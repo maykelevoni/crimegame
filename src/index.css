@@ -1,0 +1,195 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 221.2 83.2% 53.3%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 221.2 83.2% 53.3%;
+    --radius: 0.5rem;
+
+    --sidebar-background: 10 10% 4%;
+    --sidebar-foreground: 200 20% 95%;
+    --sidebar-primary: 195 100% 50%;
+    --sidebar-primary-foreground: 10 10% 4%;
+    --sidebar-accent: 10 10% 15%;
+    --sidebar-accent-foreground: 200 20% 95%;
+    --sidebar-border: 10 10% 20%;
+    --sidebar-ring: 195 100% 50%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply text-white antialiased;
+    background: rgba(0, 212, 255, 0.1);
+    background-attachment: fixed;
+  }
+}
+
+@layer components {
+  .cyber-border {
+    @apply border border-cyber-blue/30 bg-cyber-dark-light/50 backdrop-blur-sm;
+  }
+
+  .cyber-card {
+    @apply cyber-border rounded-lg p-4;
+  }
+
+  .cyber-button {
+    @apply bg-cyber-blue text-cyber-dark px-4 py-2 rounded-md font-semibold hover:bg-cyber-blue/80 transition-colors;
+  }
+
+  .cyber-button-secondary {
+    @apply border border-cyber-blue text-cyber-blue px-4 py-2 rounded-md font-semibold hover:bg-cyber-blue/10 transition-colors;
+  }
+
+  .glow-text {
+    text-shadow: 0 0 10px currentColor;
+  }
+
+  .neon-glow {
+    box-shadow: 0 0 10px currentColor, 0 0 20px currentColor;
+  }
+
+  .cyber-input {
+    @apply bg-cyber-dark-light border border-cyber-blue/30 rounded-md px-4 py-2 text-white focus:outline-none focus:border-cyber-blue focus:ring-1 focus:ring-cyber-blue;
+  }
+
+  .cyber-select {
+    @apply bg-cyber-dark-light border border-cyber-blue/30 rounded-md px-4 py-2 text-white focus:outline-none focus:border-cyber-blue focus:ring-1 focus:ring-cyber-blue;
+  }
+
+  .cyber-checkbox {
+    @apply bg-cyber-dark-light border border-cyber-blue/30 rounded-md w-5 h-5 text-cyber-blue focus:ring-cyber-blue focus:ring-offset-cyber-dark;
+  }
+
+  .cyber-radio {
+    @apply bg-cyber-dark-light border border-cyber-blue/30 rounded-full w-5 h-5 text-cyber-blue focus:ring-cyber-blue focus:ring-offset-cyber-dark;
+  }
+
+  .cyber-switch {
+    @apply bg-cyber-dark-light border border-cyber-blue/30 rounded-full w-11 h-6 text-cyber-blue focus:ring-cyber-blue focus:ring-offset-cyber-dark;
+  }
+
+  .cyber-slider {
+    @apply bg-cyber-dark-light border border-cyber-blue/30 rounded-full h-2 text-cyber-blue focus:ring-cyber-blue focus:ring-offset-cyber-dark;
+  }
+
+  .cyber-progress {
+    @apply bg-cyber-dark-light border border-cyber-blue/30 rounded-full h-2 text-cyber-blue;
+  }
+
+  .cyber-tooltip {
+    @apply bg-cyber-dark-light border border-cyber-blue/30 rounded-md px-2 py-1 text-sm text-white;
+  }
+
+  .cyber-popover {
+    @apply bg-cyber-dark-light border border-cyber-blue/30 rounded-md p-4 text-white;
+  }
+
+  .cyber-dialog {
+    @apply bg-cyber-dark-light border border-cyber-blue/30 rounded-md p-4 text-white;
+  }
+
+  .cyber-dropdown {
+    @apply bg-cyber-dark-light border border-cyber-blue/30 rounded-md p-2 text-white;
+  }
+
+  .cyber-menu {
+    @apply bg-cyber-dark-light border border-cyber-blue/30 rounded-md p-2 text-white;
+  }
+
+  .cyber-tabs {
+    @apply bg-cyber-dark-light border border-cyber-blue/30 rounded-md p-2 text-white;
+  }
+
+  .cyber-accordion {
+    @apply bg-cyber-dark-light border border-cyber-blue/30 rounded-md p-2 text-white;
+  }
+
+  .cyber-collapsible {
+    @apply bg-cyber-dark-light border border-cyber-blue/30 rounded-md p-2 text-white;
+  }
+
+  .cyber-scroll-area {
+    @apply bg-cyber-dark-light border border-cyber-blue/30 rounded-md p-2 text-white;
+  }
+
+  .cyber-separator {
+    @apply bg-cyber-blue/30 h-px w-full;
+  }
+
+  .cyber-aspect-ratio {
+    @apply bg-cyber-dark-light border border-cyber-blue/30 rounded-md overflow-hidden;
+  }
+
+  .cyber-avatar {
+    @apply bg-cyber-dark-light border border-cyber-blue/30 rounded-full overflow-hidden;
+  }
+
+  .cyber-hover-card {
+    @apply bg-cyber-dark-light border border-cyber-blue/30 rounded-md p-4 text-white;
+  }
+
+  .cyber-context-menu {
+    @apply bg-cyber-dark-light border border-cyber-blue/30 rounded-md p-2 text-white;
+  }
+
+  .cyber-navigation-menu {
+    @apply bg-cyber-dark-light border border-cyber-blue/30 rounded-md p-2 text-white;
+  }
+
+  .cyber-menubar {
+    @apply bg-cyber-dark-light border border-cyber-blue/30 rounded-md p-2 text-white;
+  }
+
+  .cyber-label {
+    @apply text-cyber-blue font-semibold;
+  }
+
+  .cyber-alert-dialog {
+    @apply bg-cyber-dark-light border border-cyber-blue/30 rounded-md p-4 text-white;
+  }
+
+  .cyber-toast {
+    @apply bg-cyber-dark-light border border-cyber-blue/30 rounded-md p-4 text-white;
+  }
+}
+
+@layer utilities {
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .drop-shadow-glow {
+    filter: drop-shadow(0 0 8px currentColor);
+  }
+  .text-neon {
+    text-shadow: 0 0 10px currentColor, 0 0 20px currentColor;
+  }
+}
