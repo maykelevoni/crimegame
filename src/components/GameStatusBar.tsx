@@ -1,5 +1,14 @@
 import React from "react";
-import { HeartPulse, Zap, Star, Pill, Skull, DollarSign } from "lucide-react";
+import {
+  HeartPulse,
+  Zap,
+  Star,
+  Pill,
+  Skull,
+  DollarSign,
+  Wallet,
+  Siren,
+} from "lucide-react";
 
 interface GameStatusBarProps {
   health: number;
@@ -96,10 +105,10 @@ const GameStatusBar: React.FC<GameStatusBarProps> = ({
             label={energy}
           />
         </div>
-        {/* Rep */}
+        {/* Reputation */}
         <div className="flex flex-col items-center min-w-[80px]">
           <span className="flex items-center gap-1 text-xs text-cyber-pink/70 mb-1">
-            <Star size={14} className="text-cyber-pink" /> Rep
+            <Star size={14} className="text-cyber-pink" /> Reputation
           </span>
           <span className="font-bold text-cyber-pink text-sm">
             {reputation}
@@ -121,7 +130,7 @@ const GameStatusBar: React.FC<GameStatusBarProps> = ({
         {/* Wanted */}
         <div className="flex flex-col items-center min-w-[110px]">
           <span className="flex items-center gap-1 text-xs text-red-500/70 mb-1">
-            <Skull size={14} className="text-red-500" /> Wanted
+            <Siren size={14} className="text-red-500" /> Wanted
           </span>
           <ProgressBar
             value={wantedLevel}
@@ -132,7 +141,7 @@ const GameStatusBar: React.FC<GameStatusBarProps> = ({
         {/* Money */}
         <div className="flex flex-col items-center min-w-[80px]">
           <span className="flex items-center gap-1 text-xs text-cyber-green/70 mb-1">
-            <DollarSign size={14} className="text-cyber-green" /> Money
+            <Wallet size={14} className="text-cyber-green" /> Money
           </span>
           <span className="font-bold text-cyber-green text-sm">
             ${money.toLocaleString()}

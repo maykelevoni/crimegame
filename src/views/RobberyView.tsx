@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import BaseView from "./BaseView";
 import {
-  DollarSign,
+  Wallet,
   Star,
   Zap,
   AlertTriangle,
@@ -12,9 +12,11 @@ import {
 interface Robbery {
   id: string;
   name: string;
+  description: string;
   image: string;
   risk: number;
-  reward: number;
+  rewardMin: number;
+  rewardMax: number;
   exp: number;
   energy: number;
 }
@@ -23,27 +25,33 @@ const robberies: Robbery[] = [
   {
     id: "beach",
     name: "Beach House",
+    description: "Uma casa de praia pequena, alvo fácil para iniciantes.",
     image: "https://placehold.co/96x96?text=Beach",
     risk: 10,
-    reward: 1191,
+    rewardMin: 1100,
+    rewardMax: 1200,
     exp: 18,
     energy: 20,
   },
   {
     id: "desert",
     name: "Desert Villa",
+    description: "Uma mansão isolada no deserto, segurança moderada.",
     image: "https://placehold.co/96x96?text=Desert",
     risk: 45,
-    reward: 2000,
+    rewardMin: 1900,
+    rewardMax: 2100,
     exp: 25,
     energy: 30,
   },
   {
     id: "city",
     name: "City Penthouse",
+    description: "Cobertura luxuosa na cidade, alto risco e alta recompensa.",
     image: "https://placehold.co/96x96?text=City",
     risk: 65,
-    reward: 3500,
+    rewardMin: 3400,
+    rewardMax: 3600,
     exp: 40,
     energy: 50,
   },
@@ -83,10 +91,16 @@ const RobberyView = () => {
                       {robbery.name}
                     </span>
                   </div>
+                  <div className="text-xs text-gray-400 mb-1">
+                    {robbery.description}
+                  </div>
                   <div className="flex items-center gap-3 mt-2 flex-wrap">
                     <div className="flex items-center gap-1 text-yellow-500">
-                      <DollarSign size={16} />
-                      <span className="font-semibold">+${robbery.reward}</span>
+                      <Wallet size={16} />
+                      <span className="font-semibold">
+                        Aprox. ${robbery.rewardMin.toLocaleString()} ~ $
+                        {robbery.rewardMax.toLocaleString()}
+                      </span>
                     </div>
                     <div className="flex items-center gap-1 text-green-400">
                       <Star size={16} />
@@ -136,8 +150,11 @@ const RobberyView = () => {
             </p>
             <div className="flex justify-center gap-6 my-4">
               <div className="flex items-center gap-1 text-yellow-500">
-                <DollarSign size={20} />
-                <span className="font-bold">+${modal.reward}</span>
+                <Wallet size={20} />
+                <span className="font-bold">
+                  Aprox. ${modal.rewardMin.toLocaleString()} ~ $
+                  {modal.rewardMax.toLocaleString()}
+                </span>
               </div>
               <div className="flex items-center gap-1 text-green-400">
                 <Star size={20} />

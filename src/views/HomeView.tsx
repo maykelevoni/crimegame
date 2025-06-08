@@ -11,9 +11,11 @@ import {
   Sword,
   HeartPulse,
   Moon,
+  Wine,
   BarChart3,
   ListChecks,
   Hospital,
+  Ambulance,
   MessageSquare,
   Map,
   Link,
@@ -32,6 +34,9 @@ import {
   Crosshair,
   Gift,
   Newspaper,
+  Dices,
+  LocateFixed,
+  Warehouse,
 } from "lucide-react";
 
 interface HomeViewProps {
@@ -221,7 +226,7 @@ const HomeView = ({ onViewChange }: HomeViewProps) => {
           >
             <div className="flex items-center gap-3">
               <div className="p-3 rounded-lg bg-red-500/20">
-                <Crosshair size={24} className="text-red-500" />
+                <LocateFixed size={24} className="text-red-500" />
               </div>
               <div className="text-left">
                 <h3 className="font-bold text-sm text-red-500">ROBBERY</h3>
@@ -239,7 +244,7 @@ const HomeView = ({ onViewChange }: HomeViewProps) => {
           >
             <div className="flex items-center gap-3">
               <div className="p-3 rounded-lg bg-purple-500/20">
-                <Moon size={24} className="text-purple-500" />
+                <Wine size={24} className="text-purple-500" />
               </div>
               <div className="text-left">
                 <h3 className="font-bold text-sm text-purple-500">NIGHTLIFE</h3>
@@ -259,7 +264,7 @@ const HomeView = ({ onViewChange }: HomeViewProps) => {
           >
             <div className="flex items-center gap-3">
               <div className="p-3 rounded-lg bg-green-500/20">
-                <Hospital size={24} className="text-green-500" />
+                <Ambulance size={24} className="text-green-500" />
               </div>
               <div className="text-left">
                 <h3 className="font-bold text-sm text-green-500">HOSPITAL</h3>
@@ -277,7 +282,7 @@ const HomeView = ({ onViewChange }: HomeViewProps) => {
           >
             <div className="flex items-center gap-3">
               <div className="p-3 rounded-lg bg-blue-500/20">
-                <Building2 size={24} className="text-blue-500" />
+                <Warehouse size={24} className="text-blue-500" />
               </div>
               <div className="text-left">
                 <h3 className="font-bold text-sm text-blue-500">BUSINESS</h3>
@@ -315,7 +320,7 @@ const HomeView = ({ onViewChange }: HomeViewProps) => {
           >
             <div className="flex items-center gap-3">
               <div className="p-3 rounded-lg bg-pink-400/20">
-                <DollarSign size={24} className="text-pink-500" />
+                <Dices size={24} className="text-pink-500" />
               </div>
               <div className="text-left">
                 <h3 className="font-bold text-sm text-pink-600">CASINO</h3>

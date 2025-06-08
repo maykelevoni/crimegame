@@ -1,5 +1,14 @@
 import React from "react";
-import { Heart, Zap, Pill, Star, DollarSign, Shield } from "lucide-react";
+import {
+  Heart,
+  Zap,
+  Pill,
+  Star,
+  DollarSign,
+  Shield,
+  Wallet,
+  Siren,
+} from "lucide-react";
 
 interface StatusBarProps {
   health: number;
@@ -49,10 +58,10 @@ export function StatusBar({
       value: reputation.toString(),
       color: "text-blue-400",
       glow: "shadow-blue-500/50",
-      label: "Rep",
+      label: "Reputation",
     },
     {
-      icon: DollarSign,
+      icon: Wallet,
       value: `$${money.toLocaleString()}`,
       color: "text-green-400",
       glow: "shadow-green-500/50",

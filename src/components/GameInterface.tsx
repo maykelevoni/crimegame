@@ -5,12 +5,15 @@ import {
   Eye,
   Wine,
   Hospital,
+  Ambulance,
   Building2,
   BriefcaseBusiness,
   Building,
+  Landmark,
   Lock,
   UserCircle,
   Crosshair,
+  LocateFixed,
 } from "lucide-react";
 import HomeView from "../views/HomeView";
 import RobberyView from "../views/RobberyView";
@@ -114,10 +117,10 @@ export function GameInterface({ playerStats }: GameInterfaceProps) {
 
   const bottomNav = [
     { id: "home", icon: Home, label: "Home" },
-    { id: "robbery", icon: Crosshair, label: "Robbery" },
+    { id: "robbery", icon: LocateFixed, label: "Robbery" },
     { id: "nightlife", icon: Wine, label: "Nightlife" },
-    { id: "hospital", icon: Hospital, label: "Hospital" },
-    { id: "bank", icon: Building, label: "Bank" },
+    { id: "hospital", icon: Ambulance, label: "Hospital" },
+    { id: "bank", icon: Landmark, label: "Bank" },
     { id: "character", icon: UserCircle, label: "Character" },
   ];
 
