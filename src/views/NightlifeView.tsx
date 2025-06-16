@@ -79,22 +79,22 @@ const venues = [
 
 function NightlifeCard({ venue }) {
   return (
-    <div className="cyber-card flex flex-row items-center p-4 gap-4 border-l-4 border-cyber-blue bg-cyber-dark-medium">
-      <div className="flex-shrink-0 flex items-center justify-center w-32 h-32 bg-cyber-dark-lighter rounded-lg border border-cyber-blue">
+    <div className="cyber-card flex flex-col md:flex-row items-center p-4 gap-4 border-l-4 border-cyber-blue bg-cyber-dark-medium">
+      <div className="flex-shrink-0 flex items-center justify-center w-full md:w-32 h-32 bg-cyber-dark-lighter rounded-lg border border-cyber-blue">
         <img
           src={venue.image}
           alt={venue.name}
           className="object-cover w-full h-full rounded-lg"
         />
       </div>
-      <div className="flex-1 flex flex-col justify-center gap-1 px-2">
+      <div className="flex-1 flex flex-col justify-center gap-1 px-2 w-full">
         <div className="flex items-center gap-2 mb-1">
           {venue.icon}
           <h4 className="font-bold text-lg text-cyber-pink drop-shadow">
             {venue.name}
           </h4>
         </div>
-        <div className="flex flex-wrap gap-2 mb-1">
+        <div className="flex flex-wrap gap-2 mb-2">
           {venue.tags.map((tag, idx) => (
             <span
               key={idx}
@@ -104,30 +104,30 @@ function NightlifeCard({ venue }) {
             </span>
           ))}
         </div>
-        <div className="flex items-center gap-2 mb-1">
-          {venue.statIcon}
-          <span className={`font-semibold ${venue.statColor}`}>
-            {venue.stat}
-          </span>
-        </div>
-        <div className="flex items-center gap-2 mb-1">
-          {venue.riskIcon}
-          <span className={`font-semibold ${venue.riskColor}`}>
-            Risk: {venue.risk}
-          </span>
+        <div className="flex flex-wrap items-center gap-4 mb-2">
+          <div className="flex items-center gap-2">
+            {venue.statIcon}
+            <span className={`font-semibold ${venue.statColor}`}>
+              {venue.stat}
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            {venue.riskIcon}
+            <span className={`font-semibold ${venue.riskColor}`}>
+              Risk: {venue.risk}
+            </span>
+          </div>
         </div>
       </div>
-      <div className="flex flex-col items-end justify-between h-full pl-4">
+      <div className="flex flex-col items-center md:items-end justify-between h-full w-full md:w-auto gap-2">
+        <span className="text-cyber-gold text-lg font-bold">{venue.price}</span>
         <button
-          className={`font-bold px-8 py-2 rounded ${venue.buttonColor} text-white uppercase hover:opacity-90 transition-all flex items-center gap-2 mb-2`}
+          className={`w-full md:w-auto font-bold px-8 py-2 rounded ${venue.buttonColor} text-white uppercase hover:opacity-90 transition-all flex items-center justify-center gap-2`}
           type="button"
         >
           {venue.actionIcon}
           {venue.button}
         </button>
-        <span className="text-cyber-gold text-lg font-bold mt-2">
-          {venue.price}
-        </span>
       </div>
     </div>
   );

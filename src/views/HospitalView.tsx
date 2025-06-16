@@ -105,7 +105,7 @@ const HospitalView = () => {
   }, [cooldown, activeTreatment]);
 
   return (
-    <div className="max-w-2xl mx-auto py-4 px-2">
+    <div className="max-w-2xl mx-auto py-4 px-2 pb-40">
       {/* Topo compacto em inglês */}
       <div className="flex items-center gap-2 mb-4">
         <Ambulance size={28} className="text-cyber-green" />
@@ -141,7 +141,7 @@ const HospitalView = () => {
       </div>
 
       {/* Grid de tratamentos 2x2 - layout anterior, só fontes menores */}
-      <div className="grid grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Card Medkit */}
         <div className="bg-cyber-dark-light rounded-xl border border-cyber-green/30 p-8 min-h-[220px] shadow flex flex-col items-center justify-center">
           <div className="flex items-center gap-3 mb-3">

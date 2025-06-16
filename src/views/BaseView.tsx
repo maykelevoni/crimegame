@@ -7,7 +7,7 @@ interface BaseViewProps {
 
 const BaseView = ({ title, children }: BaseViewProps) => {
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 pb-40">
       <h2 className="cyber-header-title">{title}</h2>
       <div className="cyber-card">{children}</div>
     </div>

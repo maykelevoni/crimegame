@@ -90,6 +90,12 @@ const RobberyView = () => {
                     <span className="text-lg font-bold text-cyber-blue">
                       {robbery.name}
                     </span>
+                    <div className="flex items-center gap-1">
+                      <AlertTriangle size={16} className="text-red-500" />
+                      <span className="text-xs text-red-500 font-bold">
+                        Risk: {robbery.risk}%
+                      </span>
+                    </div>
                   </div>
                   <div className="text-xs text-gray-400 mb-1">
                     {robbery.description}
@@ -112,15 +118,9 @@ const RobberyView = () => {
                     </div>
                   </div>
                 </div>
-                <div className="flex items-center justify-between mt-4">
-                  <div className="flex items-center gap-2">
-                    <AlertTriangle size={16} className="text-red-500" />
-                    <span className="text-xs text-red-500 font-bold">
-                      Risk: {robbery.risk}%
-                    </span>
-                  </div>
+                <div className="flex items-center justify-end mt-4">
                   <button
-                    className="font-bold px-8 py-2 rounded bg-pink-500 hover:bg-pink-600 text-white uppercase hover:opacity-90 transition-all flex items-center gap-2 shadow"
+                    className="w-full md:w-auto font-bold px-8 py-2 rounded bg-pink-500 hover:bg-pink-600 text-white uppercase hover:opacity-90 transition-all flex items-center justify-center gap-2 shadow"
                     onClick={() => handleStart(robbery)}
                     disabled={isExecuting}
                   >

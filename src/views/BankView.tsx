@@ -24,7 +24,6 @@ interface BankingService {
   risk?: string;
   icon: React.ElementType;
   color: string;
-  image: string;
   difficulty: string;
   difficultyColor: string;
   buttonColor: string;
@@ -42,29 +41,15 @@ function ActionCard({
   risk = null,
   onStart,
   buttonColor = "bg-cyber-blue",
-  imageUrl = null,
   icon: Icon,
   iconColor = "#0A0E17",
 }) {
   return (
     <div
-      className={`cyber-card flex flex-row items-center p-4 gap-4 border-l-4 ${difficultyColor} bg-cyber-dark-medium`}
+      className={`cyber-card flex flex-col p-4 gap-3 border-l-4 ${difficultyColor} bg-cyber-dark-medium`}
     >
-      <div className="flex-shrink-0 flex items-center justify-center w-28 h-28 bg-cyber-dark-lighter rounded-lg border border-cyber-blue">
-        {imageUrl ? (
-          <img
-            src={imageUrl}
-            alt={title}
-            className="object-cover w-full h-full rounded-lg"
-          />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center text-cyber-blue/40">
-            <Icon size={40} style={{ color: iconColor }} />
-          </div>
-        )}
-      </div>
-      <div className="flex-1 px-2">
-        <div className="flex items-center gap-2 mb-1">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
           <span
             className={`px-2 py-0.5 rounded text-xs font-bold text-white ${difficultyColor}`}
           >
@@ -72,41 +57,45 @@ function ActionCard({
           </span>
           <h4 className="font-bold text-lg text-cyber-blue">{title}</h4>
         </div>
-        <p className="text-sm text-gray-300 mb-2">{description}</p>
-        <div className="flex flex-wrap gap-3 text-xs mb-2">
-          {reward && (
-            <span className="flex items-center gap-1 text-cyber-green">
-              <DollarSign size={14} /> Reward: {reward}
-            </span>
-          )}
-          {energy && (
-            <span className="flex items-center gap-1 text-cyber-pink">
-              <DollarSign size={14} /> Energy: {energy}
-            </span>
-          )}
-          {reputation && (
-            <span className="flex items-center gap-1 text-cyber-pink">
-              <DollarSign size={14} /> Reputation: {reputation}
-            </span>
-          )}
-          {time && (
-            <span className="flex items-center gap-1 text-cyber-pink">
-              <Clock size={14} /> {time}
-            </span>
-          )}
-          {risk && (
-            <span className="flex items-center gap-1 text-red-500">
-              <AlertTriangle size={14} /> Risk: {risk}
-            </span>
-          )}
-        </div>
-        <button
-          className={`font-bold px-6 py-2 rounded ${buttonColor} text-white hover:opacity-90 transition-all flex items-center gap-2`}
-          onClick={onStart}
-        >
-          <Icon size={18} color={iconColor} /> {onStart ? "START" : "CONFIRM"}
-        </button>
+        <Icon size={24} style={{ color: iconColor }} />
       </div>
+
+      <p className="text-sm text-gray-300">{description}</p>
+
+      <div className="flex flex-wrap gap-3 text-xs">
+        {reward && (
+          <span className="flex items-center gap-1 text-cyber-green">
+            <DollarSign size={14} /> {reward}
+          </span>
+        )}
+        {energy && (
+          <span className="flex items-center gap-1 text-cyber-pink">
+            <DollarSign size={14} /> {energy}
+          </span>
+        )}
+        {reputation && (
+          <span className="flex items-center gap-1 text-cyber-pink">
+            <DollarSign size={14} /> {reputation}
+          </span>
+        )}
+        {time && (
+          <span className="flex items-center gap-1 text-cyber-pink">
+            <Clock size={14} /> {time}
+          </span>
+        )}
+        {risk && (
+          <span className="flex items-center gap-1 text-red-500">
+            <AlertTriangle size={14} /> {risk}
+          </span>
+        )}
+      </div>
+
+      <button
+        className={`w-full font-bold px-6 py-2 rounded ${buttonColor} text-white hover:opacity-90 transition-all flex items-center justify-center gap-2`}
+        onClick={onStart}
+      >
+        <Icon size={18} color={iconColor} /> {onStart ? "START" : "CONFIRM"}
+      </button>
     </div>
   );
 }
@@ -120,14 +109,12 @@ const BankView = () => {
       id: "transfer",
       name: "Transfer Money",
       description: "Send money to other players",
-      reward: "$100",
-      energy: "10",
+      reward: "Fee: $100",
+      energy: "Cost: 10",
       reputation: "+5",
       time: "Instant",
       icon: ArrowRightLeft,
       color: "#30E3DF",
-      image:
-        "https://images.unsplash.com/photo-1509228468518-180dd4864904?auto=format&fit=crop&w=100&q=80",
       difficulty: "Easy",
       difficultyColor: "bg-green-500",
       buttonColor: "bg-cyber-blue",
@@ -136,14 +123,12 @@ const BankView = () => {
       id: "loan",
       name: "Take Loan",
       description: "Get a loan with daily interest",
-      reward: "$500,000",
-      energy: "50",
+      reward: "Amount: $500,000",
+      energy: "Cost: 50",
       reputation: "+20",
       time: "24h",
       icon: Landmark,
       color: "#00FF88",
-      image:
-        "https://images.unsplash.com/photo-1519125323398-675f0ddb6308?auto=format&fit=crop&w=100&q=80",
       difficulty: "Medium",
       difficultyColor: "bg-yellow-500",
       buttonColor: "bg-yellow-500",
@@ -152,15 +137,13 @@ const BankView = () => {
       id: "investment",
       name: "Investment Account",
       description: "High-risk, high-reward investment options",
-      reward: "20% daily",
-      energy: "100",
+      reward: "Return: 20% daily",
+      energy: "Cost: 100",
       reputation: "+50",
       time: "24h",
-      risk: "High",
+      risk: "High Risk",
       icon: PiggyBank,
       color: "#FFD600",
-      image:
-        "https://images.unsplash.com/photo-1464983953574-0892a716854b?auto=format&fit=crop&w=100&q=80",
       difficulty: "Hard",
       difficultyColor: "bg-red-500",
       buttonColor: "bg-red-500",
@@ -176,36 +159,35 @@ const BankView = () => {
           <h3 className="text-xl font-semibold">Account Overview</h3>
         </div>
 
-        <div className="cyber-card flex flex-row items-center p-4 gap-4 border-l-4 bg-green-500 bg-cyber-dark-medium">
-          <div className="flex-shrink-0 flex items-center justify-center w-28 h-28 bg-cyber-dark-lighter rounded-lg border border-cyber-blue">
-            <Banknote size={40} className="text-yellow-400" />
-          </div>
-          <div className="flex-1 px-2">
-            <div className="flex items-center gap-2 mb-1">
+        <div className="cyber-card p-4 border-l-4 bg-green-500 bg-cyber-dark-medium">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
               <span className="px-2 py-0.5 rounded text-xs font-bold text-white bg-green-500">
                 Account
               </span>
               <h4 className="font-bold text-lg text-cyber-blue">Balance</h4>
             </div>
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-sm">Available funds:</span>
-                <span className="text-cyber-green font-medium">
-                  ${balance.toLocaleString()}
-                </span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm">Daily interest:</span>
-                <span className="text-cyber-blue">{interestRate}%</span>
-              </div>
-              <div className="flex gap-2 mt-2">
-                <button className="font-bold px-6 py-2 rounded bg-cyber-blue text-white hover:opacity-90 transition-all flex items-center gap-2">
-                  <Banknote size={18} color="#0A0E17" /> DEPOSIT
-                </button>
-                <button className="font-bold px-6 py-2 rounded bg-yellow-500 text-white hover:opacity-90 transition-all flex items-center gap-2">
-                  <Banknote size={18} color="#0A0E17" /> WITHDRAW
-                </button>
-              </div>
+            <Banknote size={24} className="text-yellow-400" />
+          </div>
+
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-sm">Available funds:</span>
+              <span className="text-cyber-green font-medium">
+                ${balance.toLocaleString()}
+              </span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-sm">Daily interest:</span>
+              <span className="text-cyber-blue">{interestRate}%</span>
+            </div>
+            <div className="flex flex-col gap-2 mt-4">
+              <button className="w-full font-bold px-6 py-2 rounded bg-cyber-blue text-white hover:opacity-90 transition-all flex items-center justify-center gap-2">
+                <Banknote size={18} color="#0A0E17" /> DEPOSIT
+              </button>
+              <button className="w-full font-bold px-6 py-2 rounded bg-yellow-500 text-white hover:opacity-90 transition-all flex items-center justify-center gap-2">
+                <Banknote size={18} color="#0A0E17" /> WITHDRAW
+              </button>
             </div>
           </div>
         </div>
@@ -233,7 +215,6 @@ const BankView = () => {
               risk={service.risk}
               onStart={() => {}}
               buttonColor={service.buttonColor}
-              imageUrl={service.image}
               icon={service.icon}
             />
           ))}

@@ -76,7 +76,7 @@ const GameStatusBar: React.FC<GameStatusBarProps> = ({
           <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
         </svg>
       </div>
-      <span className="text-sm font-medium text-cyber-blue/90 tracking-wide select-none mt-1">
+      <span className="text-sm font-medium text-cyber-blue/90 tracking-wide select-none mt-1 text-center">
         {playerName}
       </span>
     </div>
@@ -105,17 +105,8 @@ const GameStatusBar: React.FC<GameStatusBarProps> = ({
             label={energy}
           />
         </div>
-        {/* Reputation */}
-        <div className="flex flex-col items-center min-w-[80px]">
-          <span className="flex items-center gap-1 text-xs text-cyber-pink/70 mb-1">
-            <Star size={14} className="text-cyber-pink" /> Reputation
-          </span>
-          <span className="font-bold text-cyber-pink text-sm">
-            {reputation}
-          </span>
-        </div>
       </div>
-      <div className="flex gap-8 justify-center items-end mt-1">
+      <div className="flex flex-wrap gap-8 justify-center items-end mt-1">
         {/* Addiction */}
         <div className="flex flex-col items-center min-w-[110px]">
           <span className="flex items-center gap-1 text-xs text-cyber-orange/70 mb-1">
@@ -138,8 +129,20 @@ const GameStatusBar: React.FC<GameStatusBarProps> = ({
             label={wantedLevel}
           />
         </div>
+      </div>
+      {/* Money e Reputation em uma terceira linha no mobile */}
+      <div className="flex md:hidden gap-8 justify-center items-end mt-1">
+        {/* Reputation */}
+        <div className="flex flex-col items-center min-w-[110px]">
+          <span className="flex items-center gap-1 text-xs text-cyber-pink/70 mb-1">
+            <Star size={14} className="text-cyber-pink" /> Reputation
+          </span>
+          <span className="font-bold text-cyber-pink text-sm">
+            {reputation}
+          </span>
+        </div>
         {/* Money */}
-        <div className="flex flex-col items-center min-w-[80px]">
+        <div className="flex flex-col items-center min-w-[110px]">
           <span className="flex items-center gap-1 text-xs text-cyber-green/70 mb-1">
             <Wallet size={14} className="text-cyber-green" /> Money
           </span>

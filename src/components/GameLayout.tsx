@@ -43,7 +43,7 @@ const GameLayout = ({
   return (
     <div className="min-h-screen bg-cyber-dark text-white flex flex-col">
       {/* Main Content */}
-      <div className="flex-1 p-4 pb-32 overflow-y-auto">{children}</div>
+      <div className="flex-1 p-4 pb-40 overflow-y-auto">{children}</div>
 
       {/* Bottom Navigation */}
       <div

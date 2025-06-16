@@ -306,9 +306,9 @@ export default function ProfileView() {
   }
 
   return (
-    <div className="flex flex-col items-center w-full h-full bg-gray-900 text-white p-4 gap-4">
+    <div className="flex flex-col items-center w-full h-full bg-gray-900 text-white p-4 gap-4 pb-40">
       {/* TOPO: Avatar/nome à esquerda, status à direita */}
-      <div className="flex flex-row items-center justify-between w-full max-w-2xl mb-4 gap-4">
+      <div className="flex flex-col md:flex-row items-center justify-between w-full max-w-2xl mb-4 gap-4">
         {/* Avatar e nome */}
         <div className="flex items-center gap-4 min-w-[180px]">
           <img
@@ -324,7 +324,7 @@ export default function ProfileView() {
           </div>
         </div>
         {/* Status */}
-        <div className="flex flex-row gap-6 flex-1 justify-end">
+        <div className="flex flex-wrap justify-center gap-6 w-full md:w-auto">
           <div className="flex flex-col items-center">
             <Brain className="text-cyan-400 mb-1" size={22} />
             <span className="font-bold text-cyan-300 text-base">
@@ -519,7 +519,7 @@ export default function ProfileView() {
       </div>
 
       {/* BASE: Filtros */}
-      <div className="w-full max-w-xs mx-auto grid grid-cols-3 gap-2 mt-4 mb-2">
+      <div className="w-full max-w-xs mx-auto grid grid-cols-3 sm:grid-cols-6 gap-2 mt-4 mb-2">
         {FILTERS.map((f, idx) => (
           <button
             key={f.key}
