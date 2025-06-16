@@ -215,9 +215,6 @@ const HomeView = ({ onViewChange }: HomeViewProps) => {
           </ul>
         </div>
 
-        {/* Quick Actions */}
-        {/* Removido os botões de atalho para missions, gang, stats e messages */}
-
         {/* Main Actions */}
         <div className="grid grid-cols-2 md:grid-cols-2 gap-2 mb-0">
           <button

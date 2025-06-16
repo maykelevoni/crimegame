@@ -77,12 +77,12 @@ const RobberyView = () => {
           {robberies.map((robbery) => (
             <div
               key={robbery.id}
-              className="bg-cyber-dark-medium rounded-xl overflow-hidden shadow border border-cyber-blue/20 p-4 flex items-center gap-4"
+              className="bg-cyber-dark-medium rounded-xl overflow-hidden shadow border border-cyber-blue/20 p-4 flex flex-col sm:flex-row items-center gap-4 w-full"
             >
               <img
                 src={robbery.image}
                 alt={robbery.name}
-                className="w-24 h-24 object-cover object-center rounded-lg border border-cyber-blue/30 bg-cyber-dark"
+                className="w-24 h-24 object-cover object-center rounded-lg border border-cyber-blue/30 bg-cyber-dark mb-4 sm:mb-0"
               />
               <div className="flex-1 flex flex-col justify-between h-full">
                 <div>

@@ -79,8 +79,8 @@ const venues = [
 
 function NightlifeCard({ venue }) {
   return (
-    <div className="cyber-card flex flex-col md:flex-row items-center p-4 gap-4 border-l-4 border-cyber-blue bg-cyber-dark-medium">
-      <div className="flex-shrink-0 flex items-center justify-center w-full md:w-32 h-32 bg-cyber-dark-lighter rounded-lg border border-cyber-blue">
+    <div className="cyber-card flex flex-col md:flex-row items-center p-4 gap-4 border-l-4 border-cyber-blue bg-cyber-dark-medium w-full">
+      <div className="flex-shrink-0 flex items-center justify-center w-full md:w-32 h-32 bg-cyber-dark-lighter rounded-lg border border-cyber-blue mb-4 md:mb-0">
         <img
           src={venue.image}
           alt={venue.name}
@@ -119,7 +119,7 @@ function NightlifeCard({ venue }) {
           </div>
         </div>
       </div>
-      <div className="flex flex-col items-center md:items-end justify-between h-full w-full md:w-auto gap-2">
+      <div className="flex flex-col items-center justify-between h-full w-full md:w-auto gap-2">
         <span className="text-cyber-gold text-lg font-bold">{venue.price}</span>
         <button
           className={`w-full md:w-auto font-bold px-8 py-2 rounded ${venue.buttonColor} text-white uppercase hover:opacity-90 transition-all flex items-center justify-center gap-2`}

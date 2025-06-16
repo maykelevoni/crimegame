@@ -46,7 +46,7 @@ function ActionCard({
 }) {
   return (
     <div
-      className={`cyber-card flex flex-col p-4 gap-3 border-l-4 ${difficultyColor} bg-cyber-dark-medium`}
+      className={`cyber-card flex flex-col p-4 gap-3 border-l-4 ${difficultyColor} bg-cyber-dark-medium w-full`}
     >
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
