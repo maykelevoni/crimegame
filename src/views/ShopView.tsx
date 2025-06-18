@@ -322,8 +322,8 @@ const ShopView = ({ onBack }: ShopViewProps) => {
       <ShopItemModal
         item={selectedItem}
         onClose={() => setSelectedItem(null)}
-        onBuy={() => selectedItem && buyItem(selectedItem)}
-        isBuying={buyItemMutation.isPending}
+        onBuy={() => selectedItem && addToCart(selectedItem)}
+        isBuying={false}
       />
       {showCart && (
         <ShopCartModal

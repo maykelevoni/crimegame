@@ -334,6 +334,25 @@ const HomeView = ({ onViewChange }: HomeViewProps) => {
               <ChevronRight size={16} className="text-pink-500/50" />
             </div>
           </button>
+
+          {/* Novo botão: SHOP */}
+          <button
+            onClick={() => onViewChange("shop")}
+            className="group relative overflow-hidden rounded-xl bg-gradient-to-br from-cyan-400/20 to-cyan-600/20 p-4 hover:scale-[1.02] transition-all duration-200"
+          >
+            <div className="flex items-center gap-3">
+              <div className="p-3 rounded-lg bg-cyan-400/20">
+                <ShoppingBag size={24} className="text-cyan-500" />
+              </div>
+              <div className="text-left">
+                <h3 className="font-bold text-sm text-cyan-600">SHOP</h3>
+                <p className="text-xs text-cyan-600/70">Buy items</p>
+              </div>
+            </div>
+            <div className="absolute bottom-2 right-2">
+              <ChevronRight size={16} className="text-cyan-500/50" />
+            </div>
+          </button>
         </div>
 
         {/* City Map */}

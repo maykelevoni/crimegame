@@ -57,7 +57,7 @@ export default function ShopCartModal({
                   <img
                     src={item.image}
                     alt={item.name}
-                    className="w-10 h-10 object-contain drop-shadow"
+                    className="w-12 h-12 object-contain drop-shadow"
                     loading="lazy"
                     draggable={false}
                   />

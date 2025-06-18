@@ -32,7 +32,15 @@ export default function ShopItemModal({
             <X size={20} className="text-cyber-blue" />
           </button>
         </div>
-        <div className="text-6xl text-center mb-4">{item.image}</div>
+        <div className="flex justify-center mb-4">
+          <img
+            src={item.image}
+            alt={item.name}
+            className="w-20 h-20 object-contain drop-shadow"
+            loading="lazy"
+            draggable={false}
+          />
+        </div>
         <div className="space-y-4">
           <p className="text-white/80">{item.description}</p>
           <div className="space-y-2">
