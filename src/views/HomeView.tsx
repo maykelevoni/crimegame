@@ -79,6 +79,12 @@ const HomeView = ({ onViewChange }: HomeViewProps) => {
       onClick: () => onViewChange("missions"),
     },
     {
+      title: "SHOP",
+      icon: ShoppingBag,
+      color: "cyber-yellow",
+      onClick: () => onViewChange("shop"),
+    },
+    {
       title: "GANG",
       icon: Users2,
       color: "cyber-purple",

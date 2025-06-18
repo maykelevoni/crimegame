@@ -14,6 +14,7 @@ import {
   UserCircle,
   Crosshair,
   LocateFixed,
+  ShoppingBag,
 } from "lucide-react";
 import HomeView from "../views/HomeView";
 import RobberyView from "../views/RobberyView";
@@ -25,6 +26,7 @@ import HospitalView from "../views/HospitalView";
 import BankView from "../views/BankView";
 import CasinoView from "../views/CasinoView";
 import LuckyWheelView from "../views/LuckyWheelView";
+import ShopView from "../views/ShopView";
 
 interface GameInterfaceProps {
   playerStats: {
@@ -55,6 +57,19 @@ export function GameInterface({ playerStats }: GameInterfaceProps) {
       onClick: () => {
         setActiveSection("robbery");
         setActiveView("robbery");
+      },
+    },
+    {
+      id: "shop",
+      icon: ShoppingBag,
+      label: "Shop",
+      description: "Buy weapons & items",
+      color: "from-yellow-500/20 to-yellow-600/20",
+      borderColor: "border-yellow-500/50",
+      glow: "shadow-yellow-500/30",
+      onClick: () => {
+        setActiveSection("shop");
+        setActiveView("shop");
       },
     },
     {
@@ -118,6 +133,7 @@ export function GameInterface({ playerStats }: GameInterfaceProps) {
   const bottomNav = [
     { id: "home", icon: Home, label: "Home" },
     { id: "robbery", icon: LocateFixed, label: "Robbery" },
+    { id: "shop", icon: ShoppingBag, label: "Shop" },
     { id: "nightlife", icon: Wine, label: "Nightlife" },
     { id: "hospital", icon: Ambulance, label: "Hospital" },
     { id: "bank", icon: Landmark, label: "Bank" },
@@ -130,6 +146,8 @@ export function GameInterface({ playerStats }: GameInterfaceProps) {
         return <HomeView onViewChange={(view) => setActiveView(view)} />;
       case "robbery":
         return <RobberyView />;
+      case "shop":
+        return <ShopView onBack={() => setActiveView("home")} />;
       case "nightlife":
         return <NightlifeView />;
       case "hospital":
