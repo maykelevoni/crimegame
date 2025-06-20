@@ -37,6 +37,7 @@ import {
   Dices,
   LocateFixed,
   Warehouse,
+  Lock,
 } from "lucide-react";
 
 interface HomeViewProps {
@@ -351,6 +352,25 @@ const HomeView = ({ onViewChange }: HomeViewProps) => {
             </div>
             <div className="absolute bottom-2 right-2">
               <ChevronRight size={16} className="text-cyan-500/50" />
+            </div>
+          </button>
+
+          {/* Novo botão: PRISON */}
+          <button
+            onClick={() => onViewChange("prison")}
+            className="group relative overflow-hidden rounded-xl bg-gradient-to-br from-orange-500/20 to-red-600/20 p-4 hover:scale-[1.02] transition-all duration-200"
+          >
+            <div className="flex items-center gap-3">
+              <div className="p-3 rounded-lg bg-orange-500/20">
+                <Lock size={24} className="text-orange-500" />
+              </div>
+              <div className="text-left">
+                <h3 className="font-bold text-sm text-orange-500">PRISON</h3>
+                <p className="text-xs text-orange-500/70">Visit prison</p>
+              </div>
+            </div>
+            <div className="absolute bottom-2 right-2">
+              <ChevronRight size={16} className="text-orange-500/50" />
             </div>
           </button>
         </div>

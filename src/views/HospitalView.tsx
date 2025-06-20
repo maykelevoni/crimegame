@@ -11,13 +11,24 @@ import {
   BriefcaseMedical,
   PillBottle,
   CupSoda,
+  Bed,
 } from "lucide-react";
+import BaseView from "./BaseView";
 
-const HospitalView = () => {
-  // Mock de dados do player
-  const [health, setHealth] = useState(65);
+interface HospitalViewProps {
+  isPlayerHospitalized: boolean;
+  playerStatus: { health: number; addiction: number };
+  onStartTreatment: (type: "health" | "detox") => void;
+}
+
+const HospitalView = ({
+  isPlayerHospitalized,
+  playerStatus,
+  onStartTreatment,
+}: HospitalViewProps) => {
+  const [health, setHealth] = useState(playerStatus.health);
   const maxHealth = 100;
-  const [addiction, setAddiction] = useState(40);
+  const [addiction, setAddiction] = useState(playerStatus.addiction);
   const [wanted, setWanted] = useState(15);
   const [energy, setEnergy] = useState(50);
   const maxEnergy = 100;
@@ -28,6 +39,9 @@ const HospitalView = () => {
     { type: "Cura", value: "+35 HP", date: "Hoje, 08:00" },
     { type: "Detox", value: "-10% Addiction", date: "Ontem, 22:15" },
   ]);
+  const [feedback, setFeedback] = useState("");
+  const treatmentCost = 500;
+  const treatmentTime = 5; // minutos
 
   const healCost = 500;
   const detoxCost = 800;
@@ -94,6 +108,13 @@ const HospitalView = () => {
     }
   };
 
+  const handleTreatment = (type: "health" | "detox") => {
+    onStartTreatment(type);
+    setFeedback(
+      `Iniciando tratamento de ${type === "health" ? "saúde" : "detox"}.`
+    );
+  };
+
   // Simula o cooldown diminuindo a cada minuto (mock)
   React.useEffect(() => {
     if (cooldown > 0) {
@@ -104,158 +125,235 @@ const HospitalView = () => {
     }
   }, [cooldown, activeTreatment]);
 
-  return (
-    <div className="max-w-2xl mx-auto py-4 px-2 pb-40">
-      {/* Topo compacto em inglês */}
-      <div className="flex items-center gap-2 mb-4">
-        <Ambulance size={28} className="text-cyber-green" />
-        <h1 className="text-xl font-bold text-cyber-green">Hospital</h1>
-        <span className="text-cyber-green/70 text-xs ml-2">
-          Restore your health, energy and clear your record
-        </span>
-      </div>
-
-      {/* Card de status de tratamento mais compacto em inglês */}
-      <div className="w-full mb-6 bg-cyber-dark-light rounded-xl border-2 border-cyber-blue/40 p-4 flex flex-col items-center justify-center shadow col-span-2 min-h-[80px]">
-        <div className="flex items-center gap-2 mb-1">
-          <Clock size={22} className="text-cyber-blue animate-spin-slow" />
-          <span className="text-lg font-bold text-cyber-blue">
-            Ongoing Treatment
-          </span>
-        </div>
-        <div className="text-cyber-blue/80 text-sm mb-1">
-          {cooldown > 0
-            ? activeTreatment || "Recovery"
-            : "No treatment in progress"}
-        </div>
-        <div className="flex items-center gap-1 text-cyber-blue/70 text-xs">
-          <Clock size={14} />
-          {cooldown > 0 ? (
-            <span>
-              Time left: <span className="font-bold">{cooldown} min</span>
-            </span>
-          ) : (
-            <span>Ready for new treatment</span>
+  if (isPlayerHospitalized) {
+    return (
+      <BaseView title="Hospital">
+        <div className="cyber-border p-4 text-center">
+          <Bed size={48} className="mx-auto text-green-500 mb-4" />
+          <h3 className="text-2xl font-bold mb-2">Você está internado!</h3>
+          <p className="text-white/70 mb-6">
+            Sua saúde está muito baixa. Você precisa se tratar para poder sair.
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <button
+              onClick={() => handleTreatment("health")}
+              className="flex flex-col items-center justify-center p-4 bg-green-500/20 hover:bg-green-500/30 rounded-lg transition-colors"
+            >
+              <HeartPulse size={32} className="mb-2 text-green-400" />
+              <span className="font-semibold">Curar Ferimentos</span>
+              <span className="text-xs text-white/60">
+                (${treatmentCost} | {treatmentTime} min)
+              </span>
+            </button>
+            <button
+              onClick={() => handleTreatment("detox")}
+              className="flex flex-col items-center justify-center p-4 bg-orange-500/20 hover:bg-orange-500/30 rounded-lg transition-colors"
+            >
+              <Pill size={32} className="mb-2 text-orange-400" />
+              <span className="font-semibold">Fazer Detox</span>
+              <span className="text-xs text-white/60">
+                (${treatmentCost} | {treatmentTime} min)
+              </span>
+            </button>
+          </div>
+          {feedback && (
+            <div className="mt-6 p-3 bg-cyber-dark-medium rounded-lg text-center font-semibold">
+              {feedback}
+            </div>
           )}
         </div>
-      </div>
+      </BaseView>
+    );
+  }
 
-      {/* Grid de tratamentos 2x2 - layout anterior, só fontes menores */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Card Medkit */}
-        <div className="bg-cyber-dark-light rounded-xl border border-cyber-green/30 p-8 min-h-[220px] shadow flex flex-col items-center justify-center">
-          <div className="flex items-center gap-3 mb-3">
-            <BriefcaseMedical size={28} className="text-cyber-green" />
-            <span className="text-base font-bold text-cyber-green">Medkit</span>
+  // Tela de visita voluntária com design completo
+  return (
+    <BaseView title="Hospital">
+      <div className="cyber-border p-4">
+        <div className="flex items-center gap-3 mb-6">
+          <Ambulance size={32} className="text-green-400" />
+          <h2 className="text-2xl font-bold">Centro Médico</h2>
+        </div>
+
+        {/* Status do Jogador */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+          <div className="cyber-border p-4">
+            <div className="flex items-center gap-2 mb-3">
+              <HeartPulse size={20} className="text-red-400" />
+              <span className="font-semibold">Saúde</span>
+            </div>
+            <div className="w-full bg-cyber-dark-medium rounded-full h-3 mb-2">
+              <div
+                className="bg-red-500 h-3 rounded-full transition-all duration-300"
+                style={{ width: `${(health / maxHealth) * 100}%` }}
+              ></div>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span>
+                {health}/{maxHealth}
+              </span>
+              <span className="text-white/60">${healCost}</span>
+            </div>
           </div>
-          <div className="w-full bg-cyber-dark-medium rounded-full h-5 mb-3 overflow-hidden">
-            <div
-              className="bg-cyber-green h-5 rounded-full transition-all"
-              style={{ width: `${(health / maxHealth) * 100}%` }}
-            />
+
+          <div className="cyber-border p-4">
+            <div className="flex items-center gap-2 mb-3">
+              <Pill size={20} className="text-orange-400" />
+              <span className="font-semibold">Vício</span>
+            </div>
+            <div className="w-full bg-cyber-dark-medium rounded-full h-3 mb-2">
+              <div
+                className="bg-orange-500 h-3 rounded-full transition-all duration-300"
+                style={{ width: `${addiction}%` }}
+              ></div>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span>{addiction}%</span>
+              <span className="text-white/60">${detoxCost}</span>
+            </div>
           </div>
-          <div className="mb-3 text-white text-xs">
-            {health} / {maxHealth} HP
+
+          <div className="cyber-border p-4">
+            <div className="flex items-center gap-2 mb-3">
+              <Siren size={20} className="text-yellow-400" />
+              <span className="font-semibold">Wanted Level</span>
+            </div>
+            <div className="w-full bg-cyber-dark-medium rounded-full h-3 mb-2">
+              <div
+                className="bg-yellow-500 h-3 rounded-full transition-all duration-300"
+                style={{ width: `${(wanted / 100) * 100}%` }}
+              ></div>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span>{wanted}/100</span>
+              <span className="text-white/60">${surgeryCost}</span>
+            </div>
           </div>
+
+          <div className="cyber-border p-4">
+            <div className="flex items-center gap-2 mb-3">
+              <Zap size={20} className="text-blue-400" />
+              <span className="font-semibold">Energia</span>
+            </div>
+            <div className="w-full bg-cyber-dark-medium rounded-full h-3 mb-2">
+              <div
+                className="bg-blue-500 h-3 rounded-full transition-all duration-300"
+                style={{ width: `${(energy / maxEnergy) * 100}%` }}
+              ></div>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span>
+                {energy}/{maxEnergy}
+              </span>
+              <span className="text-white/60">${energyCost}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Dinheiro e Cooldown */}
+        <div className="flex justify-between items-center mb-6">
+          <div className="flex items-center gap-2">
+            <BriefcaseMedical size={20} className="text-green-400" />
+            <span className="font-semibold">Dinheiro: ${money}</span>
+          </div>
+          {cooldown > 0 && (
+            <div className="flex items-center gap-2 text-orange-400">
+              <Clock size={20} />
+              <span>Cooldown: {cooldown}min</span>
+            </div>
+          )}
+        </div>
+
+        {/* Tratamentos Disponíveis */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
           <button
-            className="bg-cyber-green hover:bg-cyber-green/80 text-cyber-dark font-bold px-8 py-3 rounded shadow mb-2 transition-all text-xs disabled:opacity-50"
             onClick={handleHeal}
-            disabled={health === maxHealth || money < healCost || cooldown > 0}
+            disabled={money < healCost || health >= maxHealth || cooldown > 0}
+            className="cyber-border p-4 text-center hover:bg-green-500/10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Use Medkit ({healCost.toLocaleString()}$)
+            <HeartPulse size={32} className="mx-auto mb-2 text-green-400" />
+            <h3 className="font-semibold mb-1">Curar Ferimentos</h3>
+            <p className="text-sm text-white/60 mb-2">
+              Restaura saúde completa
+            </p>
+            <div className="text-xs">
+              <div>Custo: ${healCost}</div>
+              <div>Tempo: {cooldownTime}min</div>
+            </div>
           </button>
-          <div className="text-xs text-cyber-green/70">
-            Instantly restore your health.
-          </div>
-        </div>
 
-        {/* Card Detox */}
-        <div className="bg-cyber-dark-light rounded-xl border border-cyber-orange/30 p-8 min-h-[220px] shadow flex flex-col items-center justify-center">
-          <div className="flex items-center gap-3 mb-3">
-            <PillBottle size={28} className="text-cyber-orange" />
-            <span className="text-base font-bold text-cyber-orange">Detox</span>
-          </div>
-          <div className="w-full bg-cyber-dark-medium rounded-full h-5 mb-3 overflow-hidden">
-            <div
-              className="bg-cyber-orange h-5 rounded-full transition-all"
-              style={{ width: `${addiction}%` }}
-            />
-          </div>
-          <div className="mb-3 text-white text-xs">{addiction}% Addiction</div>
           <button
-            className="bg-cyber-orange hover:bg-cyber-orange/80 text-cyber-dark font-bold px-8 py-3 rounded shadow mb-2 transition-all text-xs disabled:opacity-50"
             onClick={handleDetox}
-            disabled={addiction === 0 || money < detoxCost || cooldown > 0}
+            disabled={money < detoxCost || addiction <= 0 || cooldown > 0}
+            className="cyber-border p-4 text-center hover:bg-orange-500/10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Detox ({detoxCost.toLocaleString()}$)
+            <Pill size={32} className="mx-auto mb-2 text-orange-400" />
+            <h3 className="font-semibold mb-1">Fazer Detox</h3>
+            <p className="text-sm text-white/60 mb-2">Reduz vício em 20%</p>
+            <div className="text-xs">
+              <div>Custo: ${detoxCost}</div>
+              <div>Tempo: {cooldownTime}min</div>
+            </div>
           </button>
-          <div className="text-xs text-cyber-orange/70">
-            Reduce your addiction level.
-          </div>
-        </div>
 
-        {/* Card Surgery (reduce Wanted) */}
-        <div className="bg-cyber-dark-light rounded-xl border border-red-500/30 p-8 min-h-[220px] shadow flex flex-col items-center justify-center">
-          <div className="flex items-center gap-3 mb-3">
-            <Scissors size={28} className="text-red-500" />
-            <span className="text-base font-bold text-red-500">Surgery</span>
-          </div>
-          <div className="w-full bg-cyber-dark-medium rounded-full h-5 mb-3 overflow-hidden">
-            <div
-              className="bg-red-500 h-5 rounded-full transition-all"
-              style={{ width: `${wanted}%` }}
-            />
-          </div>
-          <div className="flex items-center gap-2 mb-3">
-            <Siren size={20} className="text-red-500" />
-            <span className="text-xs text-white">
-              Wanted: <span className="font-bold text-red-500">{wanted}</span>
-            </span>
-          </div>
           <button
-            className="bg-red-500 hover:bg-red-600 text-cyber-dark font-bold px-8 py-3 rounded shadow mb-2 transition-all text-xs disabled:opacity-50"
             onClick={handleSurgery}
-            disabled={wanted === 0 || money < surgeryCost || cooldown > 0}
+            disabled={money < surgeryCost || wanted <= 0 || cooldown > 0}
+            className="cyber-border p-4 text-center hover:bg-yellow-500/10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Surgery ({surgeryCost.toLocaleString()}$)
+            <Scissors size={32} className="mx-auto mb-2 text-yellow-400" />
+            <h3 className="font-semibold mb-1">Cirurgia Plástica</h3>
+            <p className="text-sm text-white/60 mb-2">Reduz wanted level</p>
+            <div className="text-xs">
+              <div>Custo: ${surgeryCost}</div>
+              <div>Tempo: {cooldownTime}min</div>
+            </div>
           </button>
-          <div className="text-xs text-red-500/70">
-            Reduce your wanted level.
+
+          <button
+            onClick={handleEnergy}
+            disabled={money < energyCost || energy >= maxEnergy || cooldown > 0}
+            className="cyber-border p-4 text-center hover:bg-blue-500/10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <CupSoda size={32} className="mx-auto mb-2 text-blue-400" />
+            <h3 className="font-semibold mb-1">Soro Energético</h3>
+            <p className="text-sm text-white/60 mb-2">Restaura energia</p>
+            <div className="text-xs">
+              <div>Custo: ${energyCost}</div>
+              <div>Tempo: {cooldownTime}min</div>
+            </div>
+          </button>
+        </div>
+
+        {/* Histórico de Tratamentos */}
+        <div className="cyber-border p-4">
+          <div className="flex items-center gap-2 mb-4">
+            <History size={20} className="text-cyan-400" />
+            <h3 className="font-semibold">Histórico de Tratamentos</h3>
+          </div>
+          <div className="space-y-2">
+            {history.map((item, index) => (
+              <div
+                key={index}
+                className="flex justify-between items-center p-2 bg-cyber-dark-medium rounded"
+              >
+                <div className="flex items-center gap-2">
+                  <span className="font-medium">{item.type}</span>
+                  <span className="text-green-400">{item.value}</span>
+                </div>
+                <span className="text-xs text-white/60">{item.date}</span>
+              </div>
+            ))}
           </div>
         </div>
 
-        {/* Card Energy Drink */}
-        <div className="bg-cyber-dark-light rounded-xl border border-cyber-blue/30 p-8 min-h-[220px] shadow flex flex-col items-center justify-center">
-          <div className="flex items-center gap-3 mb-3">
-            <CupSoda size={28} className="text-cyber-blue" />
-            <span className="text-base font-bold text-cyber-blue">
-              Energy Drink
-            </span>
+        {feedback && (
+          <div className="mt-4 p-3 bg-cyber-dark-medium rounded-lg text-center font-semibold text-green-400">
+            {feedback}
           </div>
-          <div className="w-full bg-cyber-dark-medium rounded-full h-5 mb-3 overflow-hidden">
-            <div
-              className="bg-cyber-blue h-5 rounded-full transition-all"
-              style={{ width: `${(energy / maxEnergy) * 100}%` }}
-            />
-          </div>
-          <div className="mb-3 text-white text-xs">
-            {energy} / {maxEnergy} Energy
-          </div>
-          <button
-            className="bg-cyber-blue hover:bg-cyber-blue/80 text-cyber-dark font-bold px-8 py-3 rounded shadow mb-2 transition-all text-xs disabled:opacity-50"
-            onClick={handleEnergy}
-            disabled={
-              energy === maxEnergy || money < energyCost || cooldown > 0
-            }
-          >
-            Use Energy Drink ({energyCost.toLocaleString()}$)
-          </button>
-          <div className="text-xs text-cyber-blue/70">
-            Quickly restore your energy.
-          </div>
-        </div>
+        )}
       </div>
-    </div>
+    </BaseView>
   );
 };
 

@@ -15,6 +15,12 @@ import {
   Crosshair,
   LocateFixed,
   ShoppingBag,
+  AlertTriangle,
+  HeartPulse,
+  Zap,
+  Pill,
+  Siren,
+  X,
 } from "lucide-react";
 import HomeView from "../views/HomeView";
 import RobberyView from "../views/RobberyView";
@@ -27,6 +33,7 @@ import BankView from "../views/BankView";
 import CasinoView from "../views/CasinoView";
 import LuckyWheelView from "../views/LuckyWheelView";
 import ShopView from "../views/ShopView";
+import PrisonView from "../views/PrisonView";
 
 interface GameInterfaceProps {
   playerStats: {
@@ -44,6 +51,13 @@ interface GameInterfaceProps {
 export function GameInterface({ playerStats }: GameInterfaceProps) {
   const [activeSection, setActiveSection] = useState("home");
   const [activeView, setActiveView] = useState("home");
+  const [dismissedAlerts, setDismissedAlerts] = useState<string[]>([]);
+
+  const [player, setPlayer] = useState({
+    ...playerStats,
+    isImprisoned: false,
+    isHospitalized: false,
+  });
 
   const mainActions = [
     {
@@ -140,10 +154,122 @@ export function GameInterface({ playerStats }: GameInterfaceProps) {
     { id: "character", icon: UserCircle, label: "Character" },
   ];
 
+  const handleViewChange = (view) => {
+    setActiveView(view);
+  };
+
+  // Sistema de alertas com tom de zoeira
+  const getAlerts = () => {
+    const alerts = [];
+
+    // Saúde baixa
+    if (player.health < 30 && !dismissedAlerts.includes("health")) {
+      alerts.push({
+        id: "health",
+        type: "warning",
+        icon: HeartPulse,
+        message:
+          "Tá quase morto, seu zumbi! Vai pro hospital antes que vire pó!",
+        action: "Ir ao Hospital",
+        color: "text-red-400",
+        bgColor: "bg-red-500/20",
+        borderColor: "border-red-500/50",
+        onClick: () => setActiveView("hospital"),
+      });
+    }
+
+    // Energia baixa
+    if (player.energy < 20 && !dismissedAlerts.includes("energy")) {
+      alerts.push({
+        id: "energy",
+        type: "warning",
+        icon: Zap,
+        message:
+          "Tá mais lento que lesma na areia! Vai curtir na nightlife pra pegar energia!",
+        action: "Ir à Nightlife",
+        color: "text-yellow-400",
+        bgColor: "bg-yellow-500/20",
+        borderColor: "border-yellow-500/50",
+        onClick: () => setActiveView("nightlife"),
+      });
+    }
+
+    // Vício alto
+    if (player.addiction > 70 && !dismissedAlerts.includes("addiction")) {
+      alerts.push({
+        id: "addiction",
+        type: "warning",
+        icon: Pill,
+        message: "Viciado do caramba! Vai se desintoxicar, seu verme!",
+        action: "Ir ao Hospital",
+        color: "text-orange-400",
+        bgColor: "bg-orange-500/20",
+        borderColor: "border-orange-500/50",
+        onClick: () => setActiveView("hospital"),
+      });
+    }
+
+    // Wanted level alto
+    if (player.wantedLevel > 60 && !dismissedAlerts.includes("wanted")) {
+      alerts.push({
+        id: "wanted",
+        type: "warning",
+        icon: Siren,
+        message:
+          "Tá mais procurado que bandido em filme! Faz uma cirurgia plástica!",
+        action: "Ir ao Hospital",
+        color: "text-purple-400",
+        bgColor: "bg-purple-500/20",
+        borderColor: "border-purple-500/50",
+        onClick: () => setActiveView("hospital"),
+      });
+    }
+
+    return alerts;
+  };
+
+  const dismissAlert = (alertId: string) => {
+    setDismissedAlerts([...dismissedAlerts, alertId]);
+  };
+
   const renderView = () => {
+    if (player.isImprisoned) {
+      return (
+        <PrisonView
+          isPlayerImprisoned={true}
+          onAttemptBribe={() => {
+            const success = Math.random() < 0.1;
+            if (success) {
+              setPlayer({ ...player, isImprisoned: false, wantedLevel: 0 });
+            }
+            return success;
+          }}
+          onAttemptRiot={() => {
+            const success = Math.random() < 0.3;
+            if (success) {
+              setPlayer({ ...player, isImprisoned: false });
+            }
+            return success;
+          }}
+        />
+      );
+    }
+
+    if (player.isHospitalized) {
+      return (
+        <HospitalView
+          isPlayerHospitalized={true}
+          playerStatus={player}
+          onStartTreatment={(type) => {
+            console.log(`Iniciando tratamento: ${type}`);
+          }}
+        />
+      );
+    }
+
     switch (activeView) {
       case "home":
-        return <HomeView onViewChange={(view) => setActiveView(view)} />;
+        return <HomeView onViewChange={handleViewChange} />;
       case "robbery":
         return <RobberyView />;
       case "shop":
@@ -151,13 +277,27 @@ export function GameInterface({ playerStats }: GameInterfaceProps) {
       case "nightlife":
         return <NightlifeView />;
       case "hospital":
-        return <HospitalView />;
+        return (
+          <HospitalView
+            isPlayerHospitalized={false}
+            playerStatus={player}
+            onStartTreatment={() => {
+              /* Ação de tratamento não é chamada na visita */
+            }}
+          />
+        );
       case "bank":
         return <BankView />;
       case "casino":
         return <CasinoView />;
       case "prison":
-        return <div>Prison View</div>; // TODO: Import and implement PrisonView
+        return (
+          <PrisonView
+            isPlayerImprisoned={false}
+            onAttemptBribe={() => false /* Não pode subornar ao visitar */}
+            onAttemptRiot={() => false /* Não pode iniciar motim ao visitar */}
+          />
+        );
       case "news":
         return <NewsView onBack={() => setActiveView("home")} />;
       case "luckywheel":
@@ -197,6 +337,42 @@ export function GameInterface({ playerStats }: GameInterfaceProps) {
   return (
     <GameProvider>
       <div className="bg-cyber-dark text-white">
+        {/* Sistema de Alertas */}
+        {getAlerts().map((alert) => {
+          const Icon = alert.icon;
+          return (
+            <div
+              key={alert.id}
+              className={`${alert.bgColor} ${alert.borderColor} border-l-4 p-4 mb-2 mx-2 mt-2 rounded-r-lg relative`}
+            >
+              <div className="flex items-start justify-between mb-3">
+                <div className="flex items-start gap-3 flex-1">
+                  <Icon size={20} className={`${alert.color} mt-0.5`} />
+                  <div className="flex-1">
+                    <p className={`font-semibold ${alert.color} text-sm`}>
+                      {alert.message}
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => dismissAlert(alert.id)}
+                  className="p-1 hover:bg-white/10 rounded ml-2"
+                >
+                  <X size={16} className="text-white/60" />
+                </button>
+              </div>
+              <div className="flex justify-end">
+                <button
+                  onClick={alert.onClick}
+                  className={`px-4 py-2 text-sm font-semibold ${alert.bgColor} ${alert.borderColor} border rounded hover:scale-105 transition-transform`}
+                >
+                  {alert.action}
+                </button>
+              </div>
+            </div>
+          );
+        })}
+
         {/* Main Content */}
         <div className="container mx-auto px-4 pt-4 flex flex-col justify-start">
           {renderView()}
