@@ -248,11 +248,11 @@ export default function ProfileView() {
     style: null,
     accessory: null,
   });
-  const [selectedItem, setSelectedItem] = useState(null);
+  const [selectedItem, setSelectedItem] = useState<Item | null>(null);
   const [filter, setFilter] = useState("all");
   const [usedMessage, setUsedMessage] = useState("");
-  const [usedItemId, setUsedItemId] = useState(null);
-  const [consumedIds, setConsumedIds] = useState([]);
+  const [usedItemId, setUsedItemId] = useState<string | null>(null);
+  const [consumedIds, setConsumedIds] = useState<string[]>([]);
 
   // Calcula status com bônus dos itens equipados
   const status = { ...STATUS_BASE };

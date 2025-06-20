@@ -155,7 +155,7 @@ export function GameInterface({ playerStats }: GameInterfaceProps) {
     { id: "character", icon: UserCircle, label: "Profile" },
   ];
 
-  const handleViewChange = (view) => {
+  const handleViewChange = (view: string) => {
     setActiveView(view);
   };
 
@@ -263,7 +263,7 @@ export function GameInterface({ playerStats }: GameInterfaceProps) {
           isPlayerHospitalized={true}
           playerStatus={player}
           onStartTreatment={(type) => {
-            console.log(`Iniciando tratamento: ${type}`);
+            // Treatment logic will be handled by the hospital view
           }}
         />
       );

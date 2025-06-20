@@ -236,8 +236,13 @@ const Notification = ({ message, type, onClose }) => {
 };
 
 const NightlifeView = () => {
-  const [activeSection, setActiveSection] = useState("bar");
-  const [notifications, setNotifications] = useState([]);
+  const [activeTab, setActiveTab] = useState("bar");
+  const [selectedConsumable, setSelectedConsumable] =
+    useState<Consumable | null>(null);
+  const [selectedCharacter, setSelectedCharacter] = useState<Character | null>(
+    null
+  );
+  const [notifications, setNotifications] = useState<string[]>([]);
   const [playerMoney, setPlayerMoney] = useState(1000); // Mock player money
 
   const addNotification = (message, type = "success") => {
@@ -300,9 +305,9 @@ const NightlifeView = () => {
         {/* Section Tabs */}
         <div className="flex gap-2 mb-6 flex-wrap">
           <button
-            onClick={() => setActiveSection("bar")}
+            onClick={() => setActiveTab("bar")}
             className={`flex items-center gap-2 px-4 py-2 rounded-lg font-semibold transition-colors ${
-              activeSection === "bar"
+              activeTab === "bar"
                 ? "bg-cyber-blue text-white"
                 : "bg-cyber-dark-medium text-cyber-blue hover:bg-cyber-blue/20"
             }`}
@@ -311,9 +316,9 @@ const NightlifeView = () => {
             Bar
           </button>
           <button
-            onClick={() => setActiveSection("rave")}
+            onClick={() => setActiveTab("rave")}
             className={`flex items-center gap-2 px-4 py-2 rounded-lg font-semibold transition-colors ${
-              activeSection === "rave"
+              activeTab === "rave"
                 ? "bg-purple-600 text-white"
                 : "bg-cyber-dark-medium text-purple-400 hover:bg-purple-600/20"
             }`}
@@ -322,9 +327,9 @@ const NightlifeView = () => {
             Rave
           </button>
           <button
-            onClick={() => setActiveSection("brothel")}
+            onClick={() => setActiveTab("brothel")}
             className={`flex items-center gap-2 px-4 py-2 rounded-lg font-semibold transition-colors ${
-              activeSection === "brothel"
+              activeTab === "brothel"
                 ? "bg-cyber-pink text-white"
                 : "bg-cyber-dark-medium text-cyber-pink hover:bg-cyber-pink/20"
             }`}
@@ -335,7 +340,7 @@ const NightlifeView = () => {
         </div>
 
         {/* Bar Section */}
-        {activeSection === "bar" && (
+        {activeTab === "bar" && (
           <div className="space-y-4">
             <div className="text-center mb-4">
               <h3 className="text-xl font-bold text-cyber-blue mb-2">
@@ -389,7 +394,7 @@ const NightlifeView = () => {
         )}
 
         {/* Rave Section */}
-        {activeSection === "rave" && (
+        {activeTab === "rave" && (
           <div className="space-y-4">
             <div className="text-center mb-4">
               <h3 className="text-xl font-bold text-purple-400 mb-2">
@@ -475,7 +480,7 @@ const NightlifeView = () => {
         )}
 
         {/* Brothel Section */}
-        {activeSection === "brothel" && (
+        {activeTab === "brothel" && (
           <div className="space-y-4">
             <div className="text-center mb-4">
               <h3 className="text-xl font-bold text-cyber-pink mb-2">

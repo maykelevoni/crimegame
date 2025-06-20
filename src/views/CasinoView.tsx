@@ -35,6 +35,10 @@ interface CasinoGame {
 const CasinoView = () => {
   const [balance, setBalance] = useState(50000);
   const [dailySpinAvailable, setDailySpinAvailable] = useState(true);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [selectedGame, setSelectedGame] = useState<CasinoGame | null>(null);
+  const [isSpinning, setIsSpinning] = useState(false);
+  const [showDailyReward, setShowDailyReward] = useState(false);
 
   const games: CasinoGame[] = [
     {
@@ -129,12 +133,20 @@ const CasinoView = () => {
     // Aqui você pode implementar a lógica específica de cada jogo
   };
 
+  const handleStartGame = (game: CasinoGame) => {
+    setIsPlaying(true);
+    setTimeout(() => {
+      setIsPlaying(false);
+      setSelectedGame(game);
+    }, 1200);
+  };
+
   const handleDailySpin = () => {
-    if (dailySpinAvailable) {
-      console.log("Girando a roleta diária!");
-      setDailySpinAvailable(false);
-      // Aqui você pode implementar a lógica da roleta
-    }
+    setIsSpinning(true);
+    setTimeout(() => {
+      setIsSpinning(false);
+      setShowDailyReward(true);
+    }, 2000);
   };
 
   return (

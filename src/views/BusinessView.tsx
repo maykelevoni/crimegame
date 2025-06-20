@@ -118,6 +118,7 @@ const BusinessView = () => {
   const [selectedBusiness, setSelectedBusiness] = useState<Business | null>(
     null
   );
+  const [showModal, setShowModal] = useState(false);
   const [ownedBusinesses, setOwnedBusinesses] = useState<Business[]>([]);
   const [playerMoney, setPlayerMoney] = useState(1000000);
 

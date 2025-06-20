@@ -35,6 +35,10 @@ interface BankingService {
 const BankView = () => {
   const [balance, setBalance] = useState(100000);
   const [interestRate] = useState(0.1);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [selectedService, setSelectedService] = useState<BankingService | null>(
+    null
+  );
 
   const bankingServices: BankingService[] = [
     {
@@ -104,9 +108,12 @@ const BankView = () => {
     },
   ];
 
-  const handleService = (service: BankingService) => {
-    console.log(`Iniciando serviço: ${service.name}`);
-    // Aqui você pode implementar a lógica específica de cada serviço
+  const handleStartService = (service: BankingService) => {
+    setIsProcessing(true);
+    setTimeout(() => {
+      setIsProcessing(false);
+      setSelectedService(service);
+    }, 1500);
   };
 
   return (
@@ -172,7 +179,7 @@ const BankView = () => {
                 "bg-",
                 "bg-"
               )}/10 cursor-pointer hover:scale-[1.02] transition-transform`}
-              onClick={() => handleService(service)}
+              onClick={() => handleStartService(service)}
             >
               <div className="flex items-start gap-4">
                 <img

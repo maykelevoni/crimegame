@@ -29,6 +29,7 @@ import {
   ShopItem,
 } from "../hooks/useShop";
 import { useToast } from "../hooks/use-toast";
+import type { CartItem } from "@/types/game";
 
 interface ShopViewProps {
   onBack: () => void;
@@ -38,7 +39,7 @@ const ShopView = ({ onBack }: ShopViewProps) => {
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedItem, setSelectedItem] = useState<ShopItem | null>(null);
-  const [cart, setCart] = useState<any[]>([]);
+  const [cart, setCart] = useState<CartItem[]>([]);
   const [showCart, setShowCart] = useState(false);
   const [showBanner, setShowBanner] = useState(true);
 

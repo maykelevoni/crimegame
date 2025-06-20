@@ -1,40 +1,46 @@
-
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import type { Player, PlayerStats } from "@/types/game";
 
 export const usePlayer = (playerId: string) => {
   return useQuery({
-    queryKey: ['player', playerId],
-    queryFn: async () => {
+    queryKey: ["player", playerId],
+    queryFn: async (): Promise<Player> => {
       const { data, error } = await supabase
-        .from('players')
-        .select('*')
-        .eq('id', playerId)
+        .from("players")
+        .select("*")
+        .eq("id", playerId)
         .single();
-      
+
       if (error) throw error;
-      return data;
+      return data as Player;
     },
   });
 };
 
 export const useUpdatePlayer = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
-    mutationFn: async ({ playerId, updates }: { playerId: string; updates: any }) => {
+    mutationFn: async ({
+      playerId,
+      updates,
+    }: {
+      playerId: string;
+      updates: Partial<PlayerStats>;
+    }) => {
       const { data, error } = await supabase
-        .from('players')
+        .from("players")
         .update(updates)
-        .eq('id', playerId)
+        .eq("id", playerId)
         .select()
         .single();
-      
+
       if (error) throw error;
-      return data;
+      return data as Player;
     },
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['player', data.id] });
+      queryClient.invalidateQueries({ queryKey: ["player", data.id] });
     },
   });
 };
