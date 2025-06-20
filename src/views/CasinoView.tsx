@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import BaseView from "./BaseView";
 import {
   DollarSign,
@@ -9,95 +9,40 @@ import {
   Clock,
   AlertTriangle,
   Sword,
+  Trophy,
+  Crown,
+  Sparkles,
+  Target,
 } from "lucide-react";
 
-function ActionCard({
-  difficulty = "Medium",
-  difficultyColor = "bg-yellow-500",
-  title,
-  description,
-  reward,
-  energy,
-  reputation,
-  time,
-  risk = null,
-  onStart,
-  buttonColor = "bg-cyber-blue",
-  imageUrl = null,
-  icon: Icon,
-  iconColor = "#0A0E17",
-}) {
-  return (
-    <div
-      className={`cyber-card flex flex-row items-center p-4 gap-4 border-l-4 ${difficultyColor} bg-cyber-dark-medium`}
-    >
-      <div className="flex-shrink-0 flex items-center justify-center w-28 h-28 bg-cyber-dark-lighter rounded-lg border border-cyber-blue">
-        {imageUrl ? (
-          <img
-            src={imageUrl}
-            alt={title}
-            className="object-cover w-full h-full rounded-lg"
-          />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center text-cyber-blue/40">
-            No Image
-          </div>
-        )}
-      </div>
-      <div className="flex-1 px-2">
-        <div className="flex items-center gap-2 mb-1">
-          <span
-            className={`px-2 py-0.5 rounded text-xs font-bold text-white ${difficultyColor}`}
-          >
-            {difficulty}
-          </span>
-          <h4 className="font-bold text-lg text-cyber-blue">{title}</h4>
-        </div>
-        <p className="text-sm text-gray-300 mb-2">{description}</p>
-        <div className="flex flex-wrap gap-3 text-xs mb-2">
-          {reward && (
-            <span className="flex items-center gap-1 text-cyber-green">
-              <DollarSign size={14} /> {reward}
-            </span>
-          )}
-          {energy && (
-            <span className="flex items-center gap-1 text-cyber-blue">
-              <Zap size={14} /> {energy}
-            </span>
-          )}
-          {reputation && (
-            <span className="flex items-center gap-1 text-yellow-400">
-              <Star size={14} /> {reputation}
-            </span>
-          )}
-          {time && (
-            <span className="flex items-center gap-1 text-cyber-pink">
-              <Clock size={14} /> {time}
-            </span>
-          )}
-          {risk && (
-            <span className="flex items-center gap-1 text-red-500">
-              <AlertTriangle size={14} /> Risk: {risk}
-            </span>
-          )}
-        </div>
-        <button
-          className={`font-bold px-6 py-2 rounded ${buttonColor} text-white hover:opacity-90 transition-all flex items-center gap-2`}
-          onClick={onStart}
-        >
-          <Icon size={18} color={iconColor} /> PLAY
-        </button>
-      </div>
-    </div>
-  );
+interface CasinoGame {
+  id: string;
+  name: string;
+  description: string;
+  image: string;
+  reward: string;
+  energy: string;
+  reputation: string;
+  time: string;
+  risk: string;
+  icon: React.ElementType;
+  color: string;
+  difficulty: string;
+  difficultyColor: string;
+  buttonColor: string;
 }
 
 const CasinoView = () => {
-  const games = [
+  const [balance, setBalance] = useState(50000);
+  const [dailySpinAvailable, setDailySpinAvailable] = useState(true);
+
+  const games: CasinoGame[] = [
     {
       id: "blackjack",
       name: "Blackjack",
-      description: "Classic card game with high stakes",
+      description: "Classic card game with high stakes and strategy",
+      image:
+        "https://images.unsplash.com/photo-1511512578047-dfb367046420?w=150&h=150&fit=crop",
       reward: "2x-3x bet",
       energy: "10",
       reputation: "+5",
@@ -105,8 +50,6 @@ const CasinoView = () => {
       risk: "Medium",
       icon: Star,
       color: "#FF00C8",
-      image:
-        "https://images.unsplash.com/photo-1519125323398-675f0ddb6308?auto=format&fit=crop&w=100&q=80",
       difficulty: "Medium",
       difficultyColor: "bg-yellow-500",
       buttonColor: "bg-yellow-500",
@@ -114,7 +57,9 @@ const CasinoView = () => {
     {
       id: "roulette",
       name: "Roulette",
-      description: "Spin the wheel for big wins",
+      description: "Spin the wheel for big wins and excitement",
+      image:
+        "https://images.unsplash.com/photo-1509228468518-180dd4864904?w=150&h=150&fit=crop",
       reward: "35x bet",
       energy: "5",
       reputation: "+10",
@@ -122,8 +67,6 @@ const CasinoView = () => {
       risk: "High",
       icon: Dice3,
       color: "#FFD600",
-      image:
-        "https://images.unsplash.com/photo-1509228468518-180dd4864904?auto=format&fit=crop&w=100&q=80",
       difficulty: "Hard",
       difficultyColor: "bg-red-500",
       buttonColor: "bg-red-500",
@@ -131,7 +74,9 @@ const CasinoView = () => {
     {
       id: "slots",
       name: "Slots",
-      description: "Easy to play, chance to win big",
+      description: "Easy to play, chance to win massive jackpots",
+      image:
+        "https://images.unsplash.com/photo-1519125323398-675f0ddb6308?w=150&h=150&fit=crop",
       reward: "1000x bet",
       energy: "2",
       reputation: "+2",
@@ -139,8 +84,6 @@ const CasinoView = () => {
       risk: "Very High",
       icon: Star,
       color: "#FF00C8",
-      image:
-        "https://images.unsplash.com/photo-1519125323398-675f0ddb6308?auto=format&fit=crop&w=100&q=80",
       difficulty: "Easy",
       difficultyColor: "bg-green-500",
       buttonColor: "bg-cyber-blue",
@@ -149,6 +92,8 @@ const CasinoView = () => {
       id: "poker",
       name: "Poker",
       description: "High-stakes poker against other players",
+      image:
+        "https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=150&h=150&fit=crop",
       reward: "10x pot",
       energy: "20",
       reputation: "+50",
@@ -156,84 +101,165 @@ const CasinoView = () => {
       risk: "Very High",
       icon: Landmark,
       color: "#00FF88",
+      difficulty: "Hard",
+      difficultyColor: "bg-red-500",
+      buttonColor: "bg-red-500",
+    },
+    {
+      id: "baccarat",
+      name: "Baccarat",
+      description: "Elegant card game for high rollers",
       image:
-        "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=100&q=80",
+        "https://images.unsplash.com/photo-1511512578047-dfb367046420?w=150&h=150&fit=crop",
+      reward: "8x bet",
+      energy: "15",
+      reputation: "+25",
+      time: "8m",
+      risk: "High",
+      icon: Crown,
+      color: "#FFD600",
       difficulty: "Hard",
       difficultyColor: "bg-red-500",
       buttonColor: "bg-red-500",
     },
   ];
 
+  const handleGame = (game: CasinoGame) => {
+    console.log(`Iniciando jogo: ${game.name}`);
+    // Aqui você pode implementar a lógica específica de cada jogo
+  };
+
+  const handleDailySpin = () => {
+    if (dailySpinAvailable) {
+      console.log("Girando a roleta diária!");
+      setDailySpinAvailable(false);
+      // Aqui você pode implementar a lógica da roleta
+    }
+  };
+
   return (
     <BaseView title="Casino">
-      <div className="space-y-4">
-        <div className="cyber-border p-4">
-          <h3 className="text-xl font-semibold mb-4">Daily Spin</h3>
-          <div className="flex flex-col items-center justify-center">
-            <div className="font-bold text-pink-600 text-lg mb-2">
-              Spin for daily prizes!
+      {/* Balance Overview */}
+      <div className="mb-6 p-4 bg-gradient-to-r from-yellow-500/20 to-yellow-600/20 border border-yellow-500/30 rounded-xl">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <DollarSign size={24} className="text-yellow-400" />
+            <span className="text-xl font-bold text-yellow-400">
+              ${balance.toLocaleString()}
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Trophy size={20} className="text-yellow-400" />
+            <span className="text-sm text-yellow-400">
+              Available for betting
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* Daily Spin */}
+      <div className="mb-6">
+        <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+          <Sparkles size={24} className="text-pink-400" />
+          Daily Spin
+        </h2>
+        <div className="p-4 bg-gradient-to-r from-pink-500/20 to-purple-500/20 border border-pink-500/30 rounded-xl">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="font-bold text-pink-400 text-lg mb-1">
+                Spin for daily prizes!
+              </h3>
+              <p className="text-sm text-white/70">
+                Get exclusive rewards and bonuses
+              </p>
             </div>
-            <button className="bg-pink-500 hover:bg-pink-600 text-white font-bold py-2 px-6 rounded-full shadow transition-all">
-              Spin Wheel
+            <button
+              onClick={handleDailySpin}
+              disabled={!dailySpinAvailable}
+              className={`px-6 py-3 rounded-lg font-bold transition-all ${
+                dailySpinAvailable
+                  ? "bg-pink-500 hover:bg-pink-600 text-white hover:scale-105"
+                  : "bg-gray-500 text-gray-300 cursor-not-allowed"
+              }`}
+            >
+              {dailySpinAvailable ? "Spin Wheel" : "Already Spun"}
             </button>
           </div>
         </div>
+      </div>
 
-        <div className="cyber-border p-4">
-          <h3 className="text-xl font-semibold mb-4">Your Balance</h3>
-          <div className="p-4 bg-cyber-dark-medium rounded-lg border border-cyber-blue">
-            <div className="flex items-center gap-2">
-              <DollarSign size={24} color="#FFD600" />
-              <span className="text-2xl font-bold text-cyber-green">
-                $50,000
-              </span>
+      {/* Available Games */}
+      <div>
+        <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+          <Target size={24} className="text-cyan-400" />
+          Available Games
+        </h2>
+        <div className="grid gap-4">
+          {games.map((game) => (
+            <div
+              key={game.id}
+              className={`p-4 rounded-xl border ${game.difficultyColor.replace(
+                "bg-",
+                "border-"
+              )}/30 ${game.difficultyColor.replace(
+                "bg-",
+                "bg-"
+              )}/10 cursor-pointer hover:scale-[1.02] transition-transform`}
+              onClick={() => handleGame(game)}
+            >
+              <div className="flex items-start gap-4">
+                <img
+                  src={game.image}
+                  alt={game.name}
+                  className="w-16 h-16 rounded-lg object-cover"
+                />
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-2">
+                    <span
+                      className={`px-2 py-0.5 rounded text-xs font-bold text-white ${game.difficultyColor}`}
+                    >
+                      {game.difficulty}
+                    </span>
+                    <h3 className="font-bold text-white">{game.name}</h3>
+                  </div>
+                  <p className="text-sm text-white/70 mb-3">
+                    {game.description}
+                  </p>
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <span className="text-white/60">Reward:</span>
+                      <span className="text-green-400 font-bold ml-2">
+                        {game.reward}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-white/60">Energy:</span>
+                      <span className="text-yellow-400 font-bold ml-2">
+                        {game.energy}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-white/60">Reputation:</span>
+                      <span className="text-purple-400 font-bold ml-2">
+                        {game.reputation}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-white/60">Time:</span>
+                      <span className="text-cyan-400 font-bold ml-2">
+                        {game.time}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="mt-3 p-2 bg-red-500/10 border border-red-500/30 rounded">
+                    <span className="text-red-400 font-bold">
+                      ⚠️ Risk: {game.risk}
+                    </span>
+                  </div>
+                </div>
+              </div>
             </div>
-            <p className="text-sm text-gray-400 mt-1">Available for betting</p>
-          </div>
-        </div>
-
-        <div className="cyber-border p-4">
-          <h3 className="text-xl font-semibold mb-4">Available Games</h3>
-          <div className="space-y-4">
-            {games.map((game) => (
-              <ActionCard
-                key={game.id}
-                difficulty={game.difficulty}
-                difficultyColor={game.difficultyColor}
-                title={game.name}
-                description={game.description}
-                reward={game.reward}
-                energy={game.energy}
-                reputation={game.reputation}
-                time={game.time}
-                risk={game.risk}
-                onStart={() => {}}
-                buttonColor={game.buttonColor}
-                imageUrl={game.image}
-                icon={game.icon}
-              />
-            ))}
-          </div>
-        </div>
-
-        <div className="cyber-border p-4">
-          <h3 className="text-xl font-semibold mb-4">Recent Winners</h3>
-          <div className="space-y-2">
-            <div className="p-3 bg-cyber-dark-medium rounded">
-              <p className="text-sm">Player123 won $25,000 at Blackjack</p>
-              <span className="text-xs text-gray-500">5 minutes ago</span>
-            </div>
-            <div className="p-3 bg-cyber-dark-medium rounded">
-              <p className="text-sm">
-                Gangster456 hit the jackpot at Slots - $100,000
-              </p>
-              <span className="text-xs text-gray-500">15 minutes ago</span>
-            </div>
-            <div className="p-3 bg-cyber-dark-medium rounded">
-              <p className="text-sm">Boss789 won $50,000 at Poker</p>
-              <span className="text-xs text-gray-500">1 hour ago</span>
-            </div>
-          </div>
+          ))}
         </div>
       </div>
     </BaseView>

@@ -1,7 +1,5 @@
 import React, { useState } from "react";
 import BaseView from "./BaseView";
-import CyberCard from "../components/ui/CyberCard";
-import NeonButton from "../components/ui/NeonButton";
 import {
   Banknote,
   Landmark,
@@ -11,12 +9,17 @@ import {
   Clock,
   AlertTriangle,
   Star,
+  TrendingUp,
+  Shield,
+  CreditCard,
+  Building,
 } from "lucide-react";
 
 interface BankingService {
   id: string;
   name: string;
   description: string;
+  image: string;
   reward: string;
   energy: string;
   reputation: string;
@@ -29,77 +32,6 @@ interface BankingService {
   buttonColor: string;
 }
 
-function ActionCard({
-  difficulty = "Medium",
-  difficultyColor = "bg-yellow-500",
-  title,
-  description,
-  reward,
-  energy,
-  reputation,
-  time,
-  risk = null,
-  onStart,
-  buttonColor = "bg-cyber-blue",
-  icon: Icon,
-  iconColor = "#0A0E17",
-}) {
-  return (
-    <div
-      className={`cyber-card flex flex-col p-4 gap-3 border-l-4 ${difficultyColor} bg-cyber-dark-medium w-full`}
-    >
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <span
-            className={`px-2 py-0.5 rounded text-xs font-bold text-white ${difficultyColor}`}
-          >
-            {difficulty}
-          </span>
-          <h4 className="font-bold text-lg text-cyber-blue">{title}</h4>
-        </div>
-        <Icon size={24} style={{ color: iconColor }} />
-      </div>
-
-      <p className="text-sm text-gray-300">{description}</p>
-
-      <div className="flex flex-wrap gap-3 text-xs">
-        {reward && (
-          <span className="flex items-center gap-1 text-cyber-green">
-            <DollarSign size={14} /> {reward}
-          </span>
-        )}
-        {energy && (
-          <span className="flex items-center gap-1 text-cyber-pink">
-            <DollarSign size={14} /> {energy}
-          </span>
-        )}
-        {reputation && (
-          <span className="flex items-center gap-1 text-cyber-pink">
-            <DollarSign size={14} /> {reputation}
-          </span>
-        )}
-        {time && (
-          <span className="flex items-center gap-1 text-cyber-pink">
-            <Clock size={14} /> {time}
-          </span>
-        )}
-        {risk && (
-          <span className="flex items-center gap-1 text-red-500">
-            <AlertTriangle size={14} /> {risk}
-          </span>
-        )}
-      </div>
-
-      <button
-        className={`w-full font-bold px-6 py-2 rounded ${buttonColor} text-white hover:opacity-90 transition-all flex items-center justify-center gap-2`}
-        onClick={onStart}
-      >
-        <Icon size={18} color={iconColor} /> {onStart ? "START" : "CONFIRM"}
-      </button>
-    </div>
-  );
-}
-
 const BankView = () => {
   const [balance, setBalance] = useState(100000);
   const [interestRate] = useState(0.1);
@@ -108,7 +40,9 @@ const BankView = () => {
     {
       id: "transfer",
       name: "Transfer Money",
-      description: "Send money to other players",
+      description: "Send money to other players securely",
+      image:
+        "https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=150&h=150&fit=crop",
       reward: "Fee: $100",
       energy: "Cost: 10",
       reputation: "+5",
@@ -122,7 +56,9 @@ const BankView = () => {
     {
       id: "loan",
       name: "Take Loan",
-      description: "Get a loan with daily interest",
+      description: "Get a loan with daily interest rates",
+      image:
+        "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=150&h=150&fit=crop",
       reward: "Amount: $500,000",
       energy: "Cost: 50",
       reputation: "+20",
@@ -137,6 +73,8 @@ const BankView = () => {
       id: "investment",
       name: "Investment Account",
       description: "High-risk, high-reward investment options",
+      image:
+        "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=150&h=150&fit=crop",
       reward: "Return: 20% daily",
       energy: "Cost: 100",
       reputation: "+50",
@@ -148,75 +86,148 @@ const BankView = () => {
       difficultyColor: "bg-red-500",
       buttonColor: "bg-red-500",
     },
+    {
+      id: "savings",
+      name: "Savings Account",
+      description: "Safe and secure money storage",
+      image:
+        "https://images.unsplash.com/photo-1563013544-824ae1b704d3?w=150&h=150&fit=crop",
+      reward: "Interest: 5% daily",
+      energy: "Cost: 5",
+      reputation: "+10",
+      time: "24h",
+      icon: Shield,
+      color: "#00FF88",
+      difficulty: "Easy",
+      difficultyColor: "bg-green-500",
+      buttonColor: "bg-green-500",
+    },
   ];
+
+  const handleService = (service: BankingService) => {
+    console.log(`Iniciando serviço: ${service.name}`);
+    // Aqui você pode implementar a lógica específica de cada serviço
+  };
 
   return (
     <BaseView title="Bank">
-      {/* Account Overview Section */}
-      <div className="cyber-border p-4 mb-4">
-        <div className="flex items-center gap-2 mb-4">
-          <Banknote size={24} className="text-yellow-400" />
-          <h3 className="text-xl font-semibold">Account Overview</h3>
-        </div>
-
-        <div className="cyber-card p-4 border-l-4 bg-green-500 bg-cyber-dark-medium">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
-              <span className="px-2 py-0.5 rounded text-xs font-bold text-white bg-green-500">
-                Account
-              </span>
-              <h4 className="font-bold text-lg text-cyber-blue">Balance</h4>
-            </div>
-            <Banknote size={24} className="text-yellow-400" />
+      {/* Account Overview */}
+      <div className="mb-6 p-4 bg-gradient-to-r from-green-500/20 to-green-600/20 border border-green-500/30 rounded-xl">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Banknote size={24} className="text-green-400" />
+            <span className="text-xl font-bold text-green-400">
+              ${balance.toLocaleString()}
+            </span>
           </div>
-
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="text-sm">Available funds:</span>
-              <span className="text-cyber-green font-medium">
-                ${balance.toLocaleString()}
-              </span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-sm">Daily interest:</span>
-              <span className="text-cyber-blue">{interestRate}%</span>
-            </div>
-            <div className="flex flex-col gap-2 mt-4">
-              <button className="w-full font-bold px-6 py-2 rounded bg-cyber-blue text-white hover:opacity-90 transition-all flex items-center justify-center gap-2">
-                <Banknote size={18} color="#0A0E17" /> DEPOSIT
-              </button>
-              <button className="w-full font-bold px-6 py-2 rounded bg-yellow-500 text-white hover:opacity-90 transition-all flex items-center justify-center gap-2">
-                <Banknote size={18} color="#0A0E17" /> WITHDRAW
-              </button>
-            </div>
+          <div className="flex items-center gap-2">
+            <TrendingUp size={20} className="text-green-400" />
+            <span className="text-sm text-green-400">
+              +{interestRate}% daily interest
+            </span>
           </div>
         </div>
       </div>
 
-      {/* Banking Services Section */}
-      <div className="cyber-border p-4">
-        <div className="flex items-center gap-2 mb-4">
-          <Landmark size={24} className="text-cyan-400" />
-          <h3 className="text-xl font-semibold">Banking Services</h3>
+      {/* Quick Actions */}
+      <div className="mb-6">
+        <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+          <CreditCard size={24} className="text-blue-400" />
+          Quick Actions
+        </h2>
+        <div className="grid grid-cols-2 gap-4">
+          <button className="p-4 bg-gradient-to-r from-blue-500/20 to-blue-600/20 border border-blue-500/30 rounded-xl hover:scale-[1.02] transition-transform">
+            <div className="flex items-center gap-2 mb-2">
+              <ArrowRightLeft size={20} className="text-blue-400" />
+              <span className="font-bold text-blue-400">Deposit</span>
+            </div>
+            <p className="text-xs text-white/70">Add money to your account</p>
+          </button>
+          <button className="p-4 bg-gradient-to-r from-red-500/20 to-red-600/20 border border-red-500/30 rounded-xl hover:scale-[1.02] transition-transform">
+            <div className="flex items-center gap-2 mb-2">
+              <DollarSign size={20} className="text-red-400" />
+              <span className="font-bold text-red-400">Withdraw</span>
+            </div>
+            <p className="text-xs text-white/70">
+              Take money from your account
+            </p>
+          </button>
         </div>
+      </div>
 
-        <div className="space-y-4">
+      {/* Banking Services */}
+      <div>
+        <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+          <Building size={24} className="text-cyan-400" />
+          Banking Services
+        </h2>
+        <div className="grid gap-4">
           {bankingServices.map((service) => (
-            <ActionCard
+            <div
               key={service.id}
-              difficulty={service.difficulty}
-              difficultyColor={service.difficultyColor}
-              title={service.name}
-              description={service.description}
-              reward={service.reward}
-              energy={service.energy}
-              reputation={service.reputation}
-              time={service.time}
-              risk={service.risk}
-              onStart={() => {}}
-              buttonColor={service.buttonColor}
-              icon={service.icon}
-            />
+              className={`p-4 rounded-xl border ${service.difficultyColor.replace(
+                "bg-",
+                "border-"
+              )}/30 ${service.difficultyColor.replace(
+                "bg-",
+                "bg-"
+              )}/10 cursor-pointer hover:scale-[1.02] transition-transform`}
+              onClick={() => handleService(service)}
+            >
+              <div className="flex items-start gap-4">
+                <img
+                  src={service.image}
+                  alt={service.name}
+                  className="w-16 h-16 rounded-lg object-cover"
+                />
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-2">
+                    <span
+                      className={`px-2 py-0.5 rounded text-xs font-bold text-white ${service.difficultyColor}`}
+                    >
+                      {service.difficulty}
+                    </span>
+                    <h3 className="font-bold text-white">{service.name}</h3>
+                  </div>
+                  <p className="text-sm text-white/70 mb-3">
+                    {service.description}
+                  </p>
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <span className="text-white/60">Reward:</span>
+                      <span className="text-green-400 font-bold ml-2">
+                        {service.reward}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-white/60">Energy:</span>
+                      <span className="text-yellow-400 font-bold ml-2">
+                        {service.energy}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-white/60">Reputation:</span>
+                      <span className="text-purple-400 font-bold ml-2">
+                        {service.reputation}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-white/60">Time:</span>
+                      <span className="text-cyan-400 font-bold ml-2">
+                        {service.time}
+                      </span>
+                    </div>
+                  </div>
+                  {service.risk && (
+                    <div className="mt-3 p-2 bg-red-500/10 border border-red-500/30 rounded">
+                      <span className="text-red-400 font-bold">
+                        ⚠️ {service.risk}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
           ))}
         </div>
       </div>
