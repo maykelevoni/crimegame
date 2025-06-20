@@ -227,7 +227,7 @@ const ShopView = ({ onBack }: ShopViewProps) => {
   return (
     <div className="min-h-screen bg-cyber-dark text-white">
       {/* Saldo fixo no topo */}
-      <div className="sticky top-0 z-50 bg-cyber-dark/95 backdrop-blur-sm border-b border-cyber-blue/20 flex items-center justify-between px-4 py-3">
+      <div className="sticky top-0 z-50 bg-cyber-dark/95 border-b border-cyber-blue/20 flex items-center justify-between px-4 py-3">
         <button
           onClick={onBack}
           className="flex items-center gap-2 text-cyber-blue hover:text-cyber-blue-light transition-colors"

@@ -26,7 +26,8 @@ const robberies: Robbery[] = [
     id: "beach",
     name: "Beach House",
     description: "Uma casa de praia pequena, alvo fácil para iniciantes.",
-    image: "https://placehold.co/96x96?text=Beach",
+    image:
+      "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=150&h=150&fit=crop",
     risk: 10,
     rewardMin: 1100,
     rewardMax: 1200,
@@ -37,7 +38,8 @@ const robberies: Robbery[] = [
     id: "desert",
     name: "Desert Villa",
     description: "Uma mansão isolada no deserto, segurança moderada.",
-    image: "https://placehold.co/96x96?text=Desert",
+    image:
+      "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=150&h=150&fit=crop",
     risk: 45,
     rewardMin: 1900,
     rewardMax: 2100,
@@ -48,7 +50,8 @@ const robberies: Robbery[] = [
     id: "city",
     name: "City Penthouse",
     description: "Cobertura luxuosa na cidade, alto risco e alta recompensa.",
-    image: "https://placehold.co/96x96?text=City",
+    image:
+      "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=150&h=150&fit=crop",
     risk: 65,
     rewardMin: 3400,
     rewardMax: 3600,

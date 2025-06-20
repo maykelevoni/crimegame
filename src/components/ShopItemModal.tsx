@@ -19,7 +19,7 @@ export default function ShopItemModal({
     <div
       role="dialog"
       aria-modal="true"
-      className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fadeIn"
+      className="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50 animate-fadeIn"
     >
       <div className="bg-cyber-dark border border-cyber-blue/30 rounded-xl p-6 max-w-md w-full max-h-[90vh] overflow-y-auto animate-slideInUp">
         <div className="flex items-center justify-between mb-4">

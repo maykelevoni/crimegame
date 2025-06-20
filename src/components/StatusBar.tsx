@@ -77,7 +77,7 @@ export function StatusBar({
   ];
 
   return (
-    <div className="fixed top-0 left-0 right-0 bg-cyber-dark/95 backdrop-blur-sm border-b border-cyber-blue/20 z-50">
+    <div className="fixed top-0 left-0 right-0 bg-cyber-dark/95 border-b border-cyber-blue/20 z-50">
       <div className="container mx-auto px-2 py-1">
         {/* Main Stats */}
         <div className="flex items-center justify-between gap-1 overflow-x-auto scrollbar-hide">

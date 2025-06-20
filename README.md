@@ -7,8 +7,23 @@ Urban Hustle is a browser-based crime and city-themed game where you manage your
 ### 👤 Character Management
 
 - **Player Status System:** Health, energy, addiction, reputation, money, and wanted level
-- **Real-time Status Monitoring:** Visual indicators for all character attributes
+- **Real-time Status Monitoring:** Visual indicators for all character attributes in organized 3x2 grid layout
 - **Dynamic Status Effects:** Status affects available actions and gameplay
+- **Player Avatar:** Customizable character image with name display
+- **Status Bar:** Fixed top bar showing all player stats with icons and values
+
+### 🏢 Business Empire System
+
+- **Business Management:** Buy, upgrade, and manage various business types
+- **Business Types:**
+  - **Restaurants:** Food service businesses with moderate income
+  - **Nightclubs:** Entertainment venues with high income potential
+  - **Convenience Stores:** 24/7 retail with steady income
+  - **Weapon Factories:** High-risk, high-reward illegal operations
+  - **Casinos:** Luxury gambling establishments with massive profits
+- **Upgrade System:** Improve business level, employees, and security
+- **Income Generation:** Passive income from owned businesses
+- **Investment Strategy:** Balance risk vs reward in business decisions
 
 ### 🏥 Hospital System
 
@@ -43,8 +58,8 @@ Urban Hustle is a browser-based crime and city-themed game where you manage your
 - **Humorous Alerts:** Fun, sarcastic messages based on player status:
   - **Low Health:** "Tá quase morto, seu zumbi! Vai pro hospital antes que vire pó!"
   - **Low Energy:** "Tá mais lento que lesma na areia! Vai curtir na nightlife pra pegar energia!"
-  - **High Addiction:** "Viciado do caramba! Vai se desintoxicar, seu verme!"
-  - **High Wanted Level:** "Tá mais procurado que bandido em filme! Faz uma cirurgia plástica!"
+  - **High Addiction:** "Tá viciado que nem rato em laboratório! Vai pro hospital se tratar!"
+  - **High Wanted Level:** "A polícia tá te caçando que nem cachorro atrás de osso! Vai se esconder!"
 - **Direct Action Buttons:** Quick navigation to relevant sections
 - **Dismissible Alerts:** Close individual alerts with X button
 - **Color-coded System:** Different colors for different alert types
@@ -52,19 +67,20 @@ Urban Hustle is a browser-based crime and city-themed game where you manage your
 ### 🏠 Home Interface
 
 - **Main Action Grid:** Quick access to all major game features
-- **Lucky Wheel:** Daily prize spinning system with exclusive rewards
-- **News Feed:** Real-time game world updates and events
+- **Daily Reward System:** Daily login rewards with countdown timer
+- **Surprise Rewards:** Random rewards with localStorage persistence
 - **Quick Navigation:** Direct access to all game sections
 - **Responsive Design:** Optimized for both desktop and mobile
 
 ### 🛒 Shop System
 
 - **Complete Shopping Interface:** Full-featured shop with categories
-- **Item Categories:** Weapons, consumables, equipment
+- **Item Categories:** Weapons, armor, consumables, accessories, style items
 - **Shopping Cart:** Add multiple items before purchase
-- **Item Details:** Detailed modal with item information
+- **Item Details:** Detailed modal with item information and images
 - **Purchase Confirmation:** Secure buying process
 - **Inventory Management:** Track purchased items
+- **High-Quality Images:** Real Unsplash images for all items
 
 ### 🎰 Casino & Gambling
 
@@ -81,10 +97,32 @@ Urban Hustle is a browser-based crime and city-themed game where you manage your
 
 ### 🌃 Nightlife System
 
-- **Entertainment Options:** Clubs, parties, and social activities
-- **Energy Recovery:** Restore energy through social activities
-- **Addiction Management:** Reduce addiction levels
-- **Social Interactions:** Meet other characters
+- **Three Distinct Sections:**
+  - **Bar:** Social drinking with various beverages
+  - **Brothel:** Adult entertainment with character interactions
+  - **Rave:** High-energy party scene with drugs and effects
+- **Consumable Items:** Drinks, drugs, and other consumables with effects
+- **Character Photos:** High-quality images for all nightlife characters
+- **Effect System:** Temporary status boosts and changes
+- **Notification System:** Real-time feedback on actions
+
+### 🎯 Robbery System
+
+- **Robbery Interface:** Complete crime system
+- **Multiple Targets:** Various locations to rob
+- **Risk vs Reward:** Balance danger with potential gains
+- **Equipment Requirements:** Need proper gear for different jobs
+- **Wanted Level Management:** Avoid getting caught
+
+### 🎨 Inventory & Profile System
+
+- **Complete Inventory:** 6x3 grid system for item management
+- **Equipment Slots:** Weapon, armor, style, and accessory slots
+- **Item Categories:** Weapons, armor, style, accessories, consumables, special items
+- **Rarity System:** Common, rare, and legendary items
+- **Equipment Effects:** Items provide stat bonuses
+- **High-Quality Images:** Real Unsplash images for all inventory items
+- **Character Stats:** Intelligence, strength, charisma, resistance
 
 ### 🎯 Mission System
 
@@ -97,8 +135,10 @@ Urban Hustle is a browser-based crime and city-themed game where you manage your
 - **Cyberpunk Theme:** Futuristic, neon-styled interface
 - **Responsive Design:** Works on all device sizes
 - **Smooth Animations:** Polished user experience
-- **Intuitive Navigation:** Easy-to-use interface
-- **Status Bars:** Visual representation of all character stats
+- **Intuitive Navigation:** Easy-to-use interface with bottom navigation
+- **Status Display:** Organized 3x2 grid showing all character stats
+- **Background System:** Dynamic background with dark overlay
+- **Bottom Navigation:** Simplified 4-icon navigation (Home, Robbery, Shop, Profile)
 
 ## 🛠️ Technical Features
 
@@ -109,18 +149,21 @@ Urban Hustle is a browser-based crime and city-themed game where you manage your
 - **Vite:** Fast build tool and development server
 - **Tailwind CSS:** Utility-first CSS framework
 - **shadcn/ui:** High-quality UI components
+- **Lucide React:** Beautiful icon library
 
 ### State Management
 
 - **Centralized Game State:** All game logic in GameInterface
 - **Real-time Updates:** Immediate UI updates based on actions
 - **Persistent State:** Game state maintained across sessions
+- **Local Storage:** Daily rewards and user preferences persistence
 
 ### Performance
 
 - **Optimized Rendering:** Efficient React components
 - **Lazy Loading:** Components loaded as needed
 - **Responsive Images:** Optimized for different screen sizes
+- **Image Optimization:** High-quality Unsplash images with proper sizing
 
 ## 🚀 Getting Started
 
@@ -145,7 +188,7 @@ Urban Hustle is a browser-based crime and city-themed game where you manage your
 
 4. **Open your browser and navigate to:**
    ```
-   http://localhost:5173
+   http://localhost:8080
    ```
 
 ## 📦 Deployment
@@ -164,14 +207,20 @@ And serve the `dist/` folder.
 - **Thrive:** Build reputation and accumulate wealth
 - **Explore:** Discover all game features and mechanics
 - **Compete:** Challenge yourself with missions and objectives
+- **Empire Building:** Create and manage your business empire
+- **Social Life:** Navigate the nightlife and build relationships
 
 ## 🔄 Recent Updates
 
-- **Prison System:** Complete prison management with escape mechanics
-- **Hospital System:** Comprehensive medical treatment options
-- **Smart Alerts:** Intelligent status monitoring with personality
-- **Enhanced UI:** Improved navigation and user experience
-- **Shop Integration:** Full shopping system with cart functionality
+- **Business Empire System:** Complete business management with 5 business types
+- **Enhanced Status Bar:** Reorganized 3x2 grid layout for better visibility
+- **Updated Images:** High-quality Unsplash images for all items and characters
+- **Nightlife Improvements:** Three distinct sections with consumables and effects
+- **Inventory Overhaul:** Complete 6x3 grid system with equipment slots
+- **Daily Reward System:** Persistent daily rewards with countdown
+- **Simplified Navigation:** Streamlined bottom navigation
+- **Background System:** Dynamic background with overlay
+- **Player Customization:** Avatar and name system
 
 ---
 

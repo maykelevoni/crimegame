@@ -72,7 +72,8 @@ const ITEMS = [
   {
     id: "pistol",
     name: "Pistola",
-    image: "https://placehold.co/48x48/ff0000/fff?text=Pistol",
+    image:
+      "https://images.unsplash.com/photo-1518717758536-85ae29035b6d?w=150&h=150&fit=crop",
     type: "weapon",
     desc: "Arma confiável para roubos e proteção.",
     bonus: { strength: 25 },
@@ -81,7 +82,8 @@ const ITEMS = [
   {
     id: "tactical-knife",
     name: "Faca Tática",
-    image: "https://placehold.co/48x48/ff3333/fff?text=Knife",
+    image:
+      "https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=150&h=150&fit=crop",
     type: "weapon",
     desc: "Faca especial para combate corpo a corpo.",
     bonus: { strength: 10, agility: 5 },
@@ -90,7 +92,8 @@ const ITEMS = [
   {
     id: "uzi",
     name: "Metralhadora UZI",
-    image: "https://placehold.co/48x48/ff6666/fff?text=UZI",
+    image:
+      "https://images.unsplash.com/photo-1468421870903-4df1664ac249?w=150&h=150&fit=crop",
     type: "weapon",
     desc: "Arma poderosa para situações extremas.",
     bonus: { strength: 50 },
@@ -99,7 +102,8 @@ const ITEMS = [
   {
     id: "baseball-bat",
     name: "Taco de Baseball com pregos",
-    image: "https://placehold.co/48x48/ff9999/fff?text=Bat",
+    image:
+      "https://images.unsplash.com/photo-1544531586-fde5298cdd40?w=150&h=150&fit=crop",
     type: "weapon",
     desc: "Arma intimidadora e eficiente.",
     bonus: { strength: 15, intimidation: 5 },
@@ -110,7 +114,8 @@ const ITEMS = [
   {
     id: "light-vest",
     name: "Colete Leve",
-    image: "https://placehold.co/48x48/0066ff/fff?text=Vest",
+    image:
+      "https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=150&h=150&fit=crop",
     type: "armor",
     desc: "Proteção básica para situações de risco.",
     bonus: { resistance: 20 },
@@ -119,7 +124,8 @@ const ITEMS = [
   {
     id: "military-vest",
     name: "Colete Militar",
-    image: "https://placehold.co/48x48/3399ff/fff?text=Military",
+    image:
+      "https://images.unsplash.com/photo-1512436991641-6745cdb1723f?w=150&h=150&fit=crop",
     type: "armor",
     desc: "Proteção avançada para missões perigosas.",
     bonus: { resistance: 50, agility: -5 },
@@ -128,7 +134,8 @@ const ITEMS = [
   {
     id: "leather-jacket",
     name: "Jaqueta de Couro Reforçada",
-    image: "https://placehold.co/48x48/66ccff/fff?text=Jacket",
+    image:
+      "https://images.unsplash.com/photo-1512436991641-6745cdb1723f?w=150&h=150&fit=crop",
     type: "armor",
     desc: "Estilo e proteção em um só item.",
     bonus: { resistance: 15, charisma: 5 },
@@ -139,7 +146,8 @@ const ITEMS = [
   {
     id: "designer-suit",
     name: "Terno de Marca",
-    image: "https://placehold.co/48x48/9900ff/fff?text=Suit",
+    image:
+      "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150&h=150&fit=crop",
     type: "style",
     desc: "Elegancia e sofisticação para negociações.",
     bonus: { charisma: 30 },
@@ -148,7 +156,8 @@ const ITEMS = [
   {
     id: "neon-jacket",
     name: "Jaqueta Neon",
-    image: "https://placehold.co/48x48/cc66ff/fff?text=Neon",
+    image:
+      "https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?w=150&h=150&fit=crop",
     type: "style",
     desc: "Estilo cyberpunk para festas e baladas.",
     bonus: { charisma: 10, reputation: 5 },
@@ -157,7 +166,8 @@ const ITEMS = [
   {
     id: "gold-chain",
     name: "Corrente de Ouro",
-    image: "https://placehold.co/48x48/ffcc00/fff?text=Chain",
+    image:
+      "https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=150&h=150&fit=crop",
     type: "style",
     desc: "Símbolo de status e poder nas ruas.",
     bonus: { charisma: 20 },
@@ -168,7 +178,8 @@ const ITEMS = [
   {
     id: "hacker-glasses",
     name: "Óculos de Sol Hacker",
-    image: "https://placehold.co/48x48/00ccff/fff?text=Glasses",
+    image:
+      "https://images.unsplash.com/photo-1519125323398-675f0ddb6308?w=150&h=150&fit=crop",
     type: "accessory",
     desc: "Acesso a sistemas e informações privilegiadas.",
     bonus: { intelligence: 20 },
@@ -177,7 +188,8 @@ const ITEMS = [
   {
     id: "spy-watch",
     name: "Relógio Digital Espião",
-    image: "https://placehold.co/48x48/33ddff/fff?text=Watch",
+    image:
+      "https://images.unsplash.com/photo-1516574187841-cb9cc2ca948b?w=150&h=150&fit=crop",
     type: "accessory",
     desc: "Ferramenta essencial para missões de espionagem.",
     bonus: { intelligence: 10, reputation: 5 },
@@ -186,7 +198,8 @@ const ITEMS = [
   {
     id: "cloned-tablet",
     name: "Tablet Clonado",
-    image: "https://placehold.co/48x48/66eeff/fff?text=Tablet",
+    image:
+      "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=150&h=150&fit=crop",
     type: "accessory",
     desc: "Acesso a dados e sistemas restritos.",
     bonus: { intelligence: 25 },
@@ -197,7 +210,8 @@ const ITEMS = [
   {
     id: "energy-drink",
     name: "Energético",
-    image: "https://placehold.co/48x48/00ff00/fff?text=Energy",
+    image:
+      "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=150&h=150&fit=crop",
     type: "consumable",
     desc: "Recupera energia rapidamente.",
     bonus: { energy: 50 },
@@ -206,7 +220,8 @@ const ITEMS = [
   {
     id: "anti-addiction",
     name: "Pílula Anti-vício",
-    image: "https://placehold.co/48x48/33ff33/fff?text=Pill",
+    image:
+      "https://images.unsplash.com/photo-1587854692152-cbe660dbde88?w=150&h=150&fit=crop",
     type: "consumable",
     desc: "Reduz o vício temporariamente.",
     bonus: { addiction: -30 },
@@ -215,7 +230,8 @@ const ITEMS = [
   {
     id: "medical-dose",
     name: "Dose Médica",
-    image: "https://placehold.co/48x48/66ff66/fff?text=Medical",
+    image:
+      "https://images.unsplash.com/photo-1587854692152-cbe660dbde88?w=150&h=150&fit=crop",
     type: "consumable",
     desc: "Recupera saúde rapidamente.",
     bonus: { health: 30 },
@@ -224,7 +240,8 @@ const ITEMS = [
   {
     id: "sweet-bullet",
     name: "Bala Doce",
-    image: "https://placehold.co/48x48/99ff99/fff?text=Sweet",
+    image:
+      "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=150&h=150&fit=crop",
     type: "consumable",
     desc: "Energia e vício em um só.",
     bonus: { energy: 10, addiction: 10 },
@@ -553,9 +570,11 @@ export default function ProfileView() {
               <X size={20} />
             </button>
             <div className="flex flex-col items-center gap-3">
-              <span className="text-cyan-400 text-4xl">
-                {selectedItem.icon}
-              </span>
+              <img
+                src={selectedItem.image}
+                alt={selectedItem.name}
+                className="w-20 h-20 object-contain rounded-lg border border-cyan-400/30"
+              />
               <h4 className="text-xl font-bold text-cyan-400 mb-2">
                 {selectedItem.name}
               </h4>

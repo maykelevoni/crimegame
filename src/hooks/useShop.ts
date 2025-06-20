@@ -32,7 +32,8 @@ const mockShopItems: ShopItem[] = [
     type: "weapon",
     rarity: "rare",
     stats: { damage: 45 },
-    image: "https://placehold.co/48x48/ff0000/fff?text=Pistol",
+    image:
+      "https://images.unsplash.com/photo-1518717758536-85ae29035b6d?w=150&h=150&fit=crop",
     inStock: true,
   },
   {
@@ -43,7 +44,8 @@ const mockShopItems: ShopItem[] = [
     type: "weapon",
     rarity: "epic",
     stats: { damage: 75 },
-    image: "https://placehold.co/48x48/ff6666/fff?text=UZI",
+    image:
+      "https://images.unsplash.com/photo-1468421870903-4df1664ac249?w=150&h=150&fit=crop",
     inStock: true,
     discount: 15,
   },
@@ -55,7 +57,20 @@ const mockShopItems: ShopItem[] = [
     type: "weapon",
     rarity: "common",
     stats: { damage: 25 },
-    image: "https://placehold.co/48x48/ff3333/fff?text=Knife",
+    image:
+      "https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=150&h=150&fit=crop",
+    inStock: true,
+  },
+  {
+    id: "baseball-bat",
+    name: "Taco de Baseball com pregos",
+    description: "Arma intimidadora e eficiente",
+    price: 600,
+    type: "weapon",
+    rarity: "common",
+    stats: { damage: 18 },
+    image:
+      "https://images.unsplash.com/photo-1544531586-fde5298cdd40?w=150&h=150&fit=crop",
     inStock: true,
   },
   // Armaduras
@@ -67,7 +82,8 @@ const mockShopItems: ShopItem[] = [
     type: "armor",
     rarity: "common",
     stats: { defense: 30 },
-    image: "https://placehold.co/48x48/0066ff/fff?text=Vest",
+    image:
+      "https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=150&h=150&fit=crop",
     inStock: true,
   },
   {
@@ -78,7 +94,8 @@ const mockShopItems: ShopItem[] = [
     type: "armor",
     rarity: "rare",
     stats: { defense: 60 },
-    image: "https://placehold.co/48x48/3399ff/fff?text=Military",
+    image:
+      "https://images.unsplash.com/photo-1512436991641-6745cdb1723f?w=150&h=150&fit=crop",
     inStock: true,
   },
   // Consumíveis
@@ -90,7 +107,8 @@ const mockShopItems: ShopItem[] = [
     type: "consumable",
     rarity: "common",
     stats: { health: 50 },
-    image: "https://placehold.co/48x48/ffcccc/fff?text=HP",
+    image:
+      "https://images.unsplash.com/photo-1587854692152-cbe660dbde88?w=150&h=150&fit=crop",
     inStock: true,
   },
   {
@@ -101,7 +119,8 @@ const mockShopItems: ShopItem[] = [
     type: "consumable",
     rarity: "common",
     stats: { energy: 40 },
-    image: "https://placehold.co/48x48/00ff00/fff?text=Energy",
+    image:
+      "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=150&h=150&fit=crop",
     inStock: true,
   },
   {
@@ -112,7 +131,8 @@ const mockShopItems: ShopItem[] = [
     type: "consumable",
     rarity: "rare",
     stats: { addiction: 10 },
-    image: "https://placehold.co/48x48/ffffff/000?text=Coke",
+    image:
+      "https://images.unsplash.com/photo-1587854692152-cbe660dbde88?w=150&h=150&fit=crop",
     inStock: true,
   },
   // Especiais
@@ -124,7 +144,8 @@ const mockShopItems: ShopItem[] = [
     type: "weapon",
     rarity: "legendary",
     stats: { damage: 150, reputation: 50 },
-    image: "https://placehold.co/48x48/ffd700/000?text=GoldGun",
+    image:
+      "https://images.unsplash.com/photo-1518717758536-85ae29035b6d?w=150&h=150&fit=crop",
     inStock: true,
     discount: 20,
   },

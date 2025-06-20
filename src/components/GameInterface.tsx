@@ -19,6 +19,8 @@ import {
   HeartPulse,
   Zap,
   Pill,
+  Star,
+  DollarSign,
   Siren,
   X,
 } from "lucide-react";
@@ -34,6 +36,8 @@ import CasinoView from "../views/CasinoView";
 import LuckyWheelView from "../views/LuckyWheelView";
 import ShopView from "../views/ShopView";
 import PrisonView from "../views/PrisonView";
+import BusinessView from "../views/BusinessView";
+import bgImage from "../assets/bg.png";
 
 interface GameInterfaceProps {
   playerStats: {
@@ -148,10 +152,7 @@ export function GameInterface({ playerStats }: GameInterfaceProps) {
     { id: "home", icon: Home, label: "Home" },
     { id: "robbery", icon: LocateFixed, label: "Robbery" },
     { id: "shop", icon: ShoppingBag, label: "Shop" },
-    { id: "nightlife", icon: Wine, label: "Nightlife" },
-    { id: "hospital", icon: Ambulance, label: "Hospital" },
-    { id: "bank", icon: Landmark, label: "Bank" },
-    { id: "character", icon: UserCircle, label: "Character" },
+    { id: "character", icon: UserCircle, label: "Profile" },
   ];
 
   const handleViewChange = (view) => {
@@ -200,28 +201,29 @@ export function GameInterface({ playerStats }: GameInterfaceProps) {
         id: "addiction",
         type: "warning",
         icon: Pill,
-        message: "Viciado do caramba! Vai se desintoxicar, seu verme!",
+        message:
+          "Tá viciado que nem rato em laboratório! Vai pro hospital se tratar!",
         action: "Ir ao Hospital",
-        color: "text-orange-400",
-        bgColor: "bg-orange-500/20",
-        borderColor: "border-orange-500/50",
+        color: "text-cyan-400",
+        bgColor: "bg-cyan-500/20",
+        borderColor: "border-cyan-500/50",
         onClick: () => setActiveView("hospital"),
       });
     }
 
-    // Wanted level alto
-    if (player.wantedLevel > 60 && !dismissedAlerts.includes("wanted")) {
+    // Procurado alto
+    if (player.wantedLevel > 80 && !dismissedAlerts.includes("wanted")) {
       alerts.push({
         id: "wanted",
         type: "warning",
         icon: Siren,
         message:
-          "Tá mais procurado que bandido em filme! Faz uma cirurgia plástica!",
-        action: "Ir ao Hospital",
-        color: "text-purple-400",
-        bgColor: "bg-purple-500/20",
-        borderColor: "border-purple-500/50",
-        onClick: () => setActiveView("hospital"),
+          "A polícia tá te caçando que nem cachorro atrás de osso! Vai se esconder!",
+        action: "Ir à Prisão",
+        color: "text-orange-400",
+        bgColor: "bg-orange-500/20",
+        borderColor: "border-orange-500/50",
+        onClick: () => setActiveView("prison"),
       });
     }
 
@@ -304,6 +306,8 @@ export function GameInterface({ playerStats }: GameInterfaceProps) {
         return <LuckyWheelView onBack={() => setActiveView("home")} />;
       case "character":
         return <ProfileView />;
+      case "business":
+        return <BusinessView />;
       default:
         return (
           <div className="flex flex-col gap-3">
@@ -336,71 +340,86 @@ export function GameInterface({ playerStats }: GameInterfaceProps) {
 
   return (
     <GameProvider>
-      <div className="bg-cyber-dark text-white">
-        {/* Sistema de Alertas */}
-        {getAlerts().map((alert) => {
-          const Icon = alert.icon;
-          return (
-            <div
-              key={alert.id}
-              className={`${alert.bgColor} ${alert.borderColor} border-l-4 p-4 mb-2 mx-2 mt-2 rounded-r-lg relative`}
-            >
-              <div className="flex items-start justify-between mb-3">
-                <div className="flex items-start gap-3 flex-1">
-                  <Icon size={20} className={`${alert.color} mt-0.5`} />
-                  <div className="flex-1">
-                    <p className={`font-semibold ${alert.color} text-sm`}>
-                      {alert.message}
-                    </p>
-                  </div>
-                </div>
-                <button
-                  onClick={() => dismissAlert(alert.id)}
-                  className="p-1 hover:bg-white/10 rounded ml-2"
-                >
-                  <X size={16} className="text-white/60" />
-                </button>
-              </div>
-              <div className="flex justify-end">
-                <button
-                  onClick={alert.onClick}
-                  className={`px-4 py-2 text-sm font-semibold ${alert.bgColor} ${alert.borderColor} border rounded hover:scale-105 transition-transform`}
-                >
-                  {alert.action}
-                </button>
-              </div>
-            </div>
-          );
-        })}
+      <div
+        className="bg-cyber-dark text-white min-h-screen relative"
+        style={{
+          backgroundImage: `url(${bgImage})`,
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          backgroundRepeat: "no-repeat",
+          backgroundAttachment: "fixed",
+        }}
+      >
+        {/* Overlay escuro para melhorar legibilidade */}
+        <div className="absolute inset-0 bg-black/60 pointer-events-none"></div>
 
-        {/* Main Content */}
-        <div className="container mx-auto px-4 pt-4 flex flex-col justify-start">
-          {renderView()}
-        </div>
-        {/* Bottom Navigation */}
-        <div className="fixed bottom-0 left-0 right-0 bg-cyber-dark/95 backdrop-blur-sm border-t border-cyber-blue/20">
-          <div className="container mx-auto px-4 py-2">
-            <div className="flex items-center justify-between">
-              {bottomNav.map((item) => {
-                const Icon = item.icon;
-                return (
+        {/* Conteúdo principal com z-index para ficar sobre o overlay */}
+        <div className="relative z-10">
+          {/* Sistema de Alertas */}
+          {getAlerts().map((alert) => {
+            const Icon = alert.icon;
+            return (
+              <div
+                key={alert.id}
+                className={`${alert.bgColor} ${alert.borderColor} border-l-4 p-4 mb-2 mx-2 mt-2 rounded-r-lg relative bg-black/80`}
+              >
+                <div className="flex items-start justify-between mb-3">
+                  <div className="flex items-start gap-3 flex-1">
+                    <Icon size={20} className={`${alert.color} mt-0.5`} />
+                    <div className="flex-1">
+                      <p className={`font-semibold ${alert.color} text-sm`}>
+                        {alert.message}
+                      </p>
+                    </div>
+                  </div>
                   <button
-                    key={item.id}
-                    onClick={() => {
-                      setActiveSection(item.id);
-                      setActiveView(item.id);
-                    }}
-                    className={`flex flex-col items-center gap-1 p-2 transition-colors ${
-                      activeSection === item.id
-                        ? "text-white"
-                        : "text-cyber-blue hover:text-white"
-                    }`}
+                    onClick={() => dismissAlert(alert.id)}
+                    className="p-1 hover:bg-white/10 rounded ml-2"
                   >
-                    <Icon size={20} />
-                    <span className="text-[10px]">{item.label}</span>
+                    <X size={16} className="text-white/60" />
                   </button>
-                );
-              })}
+                </div>
+                <div className="flex justify-end">
+                  <button
+                    onClick={alert.onClick}
+                    className={`px-4 py-2 text-sm font-semibold ${alert.bgColor} ${alert.borderColor} border rounded hover:scale-105 transition-transform`}
+                  >
+                    {alert.action}
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+
+          {/* Main Content */}
+          <div className="container mx-auto px-4 pt-4 flex flex-col justify-start">
+            {renderView()}
+          </div>
+          {/* Bottom Navigation */}
+          <div className="fixed bottom-0 left-0 right-0 bg-cyber-dark/95 border-t border-cyber-blue/20">
+            <div className="container mx-auto px-4 py-2">
+              <div className="flex items-center justify-between">
+                {bottomNav.map((item) => {
+                  const Icon = item.icon;
+                  return (
+                    <button
+                      key={item.id}
+                      onClick={() => {
+                        setActiveSection(item.id);
+                        setActiveView(item.id);
+                      }}
+                      className={`flex flex-col items-center gap-1 p-2 transition-colors ${
+                        activeSection === item.id
+                          ? "text-white"
+                          : "text-cyber-blue hover:text-white"
+                      }`}
+                    >
+                      <Icon size={20} />
+                      <span className="text-[10px]">{item.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           </div>
         </div>

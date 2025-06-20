@@ -24,6 +24,7 @@ function App() {
         addiction={mockPlayerStats.addiction}
         wantedLevel={mockPlayerStats.wantedLevel}
         money={mockPlayerStats.money}
+        playerName={"Paidrew"}
       />
       <GameInterface playerStats={mockPlayerStats} />
     </div>

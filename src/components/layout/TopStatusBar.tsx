@@ -9,42 +9,66 @@ import {
   User,
 } from "lucide-react";
 
-const TopStatusBar = () => {
+interface TopStatusBarProps {
+  playerName: string;
+  avatarUrl?: string;
+  health: number;
+  maxHealth: number;
+  energy: number;
+  maxEnergy: number;
+  addiction: number;
+  reputation: number;
+  money: number;
+  wantedLevel: number;
+}
+
+const TopStatusBar: React.FC<TopStatusBarProps> = ({
+  playerName,
+  avatarUrl,
+  health,
+  maxHealth,
+  energy,
+  maxEnergy,
+  addiction,
+  reputation,
+  money,
+  wantedLevel,
+}) => {
   const status = [
     {
       icon: <Heart size={18} color="#FF4D4F" />,
-      label: "Life",
-      value: "100/100",
+      label: "Vida",
+      value: `${health}/${maxHealth}`,
     },
     {
       icon: <Zap size={18} color="#FFD600" />,
-      label: "Energy",
-      value: "68/100",
+      label: "Energia",
+      value: `${energy}/${maxEnergy}`,
     },
     {
       icon: <Pill size={18} color="#00fff7" />,
-      label: "Addiction",
-      value: "40%",
+      label: "Vício",
+      value: `${addiction}%`,
     },
     {
       icon: <Star size={18} color="#9945ff" />,
-      label: "Reputation",
-      value: "25",
+      label: "Reputação",
+      value: `${reputation}`,
     },
     {
       icon: <DollarSign size={18} color="#30E3DF" />,
-      label: "Money",
-      value: "$2,500",
+      label: "Dinheiro",
+      value: `$${money.toLocaleString()}`,
     },
     {
       icon: <AlertTriangle size={18} color="#FF8800" />,
-      label: "Wanted",
-      value: "★★★☆☆",
+      label: "Procurado",
+      value: `${wantedLevel}`,
     },
   ];
 
   return (
-    <header className="w-full bg-cyber-dark border-b-2 border-cyber-blue/40 shadow-cyber-glow">
+    <header className="w-full bg-cyber-dark border-b-2 border-cyber-blue/40 shadow-cyber-glow z-30 relative">
       {/* Game Name Section */}
       <div className="w-full py-3 border-b border-cyber-blue/20">
         <h1 className="text-cyber-blue text-2xl font-extrabold tracking-widest font-nunito glow-text text-center">
@@ -57,11 +81,19 @@ const TopStatusBar = () => {
         <div className="flex items-center justify-between">
           {/* Player Info - Left Side */}
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-full border-2 border-cyber-blue bg-cyber-dark-lighter flex items-center justify-center shadow-cyber-glow">
-              <User size={28} color="#30E3DF" />
+            <div className="w-12 h-12 rounded-full border-2 border-cyber-blue bg-cyber-dark-lighter flex items-center justify-center shadow-cyber-glow overflow-hidden">
+              {avatarUrl ? (
+                <img
+                  src={avatarUrl}
+                  alt={playerName}
+                  className="w-full h-full object-cover rounded-full"
+                />
+              ) : (
+                <User size={28} color="#30E3DF" />
+              )}
             </div>
             <span className="text-cyber-blue font-bold text-lg truncate max-w-[120px]">
-              Alex "The Hust"
+              {playerName}
             </span>
           </div>
 

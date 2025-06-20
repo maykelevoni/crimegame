@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
   MapPin,
   Users,
@@ -38,6 +38,7 @@ import {
   LocateFixed,
   Warehouse,
   Lock,
+  Calendar,
 } from "lucide-react";
 
 interface HomeViewProps {
@@ -45,6 +46,10 @@ interface HomeViewProps {
 }
 
 const HomeView = ({ onViewChange }: HomeViewProps) => {
+  const [lastRewardTime, setLastRewardTime] = useState<number | null>(null);
+  const [timeUntilNextReward, setTimeUntilNextReward] = useState<number>(0);
+  const [canCollectReward, setCanCollectReward] = useState<boolean>(true);
+
   const districts = [
     {
       name: "DOWNTOWN",
@@ -105,122 +110,133 @@ const HomeView = ({ onViewChange }: HomeViewProps) => {
     },
   ];
 
+  const handleDailyReward = () => {
+    if (!canCollectReward) return;
+
+    // Simular recompensa diária
+    alert("🎉 Daily Reward Collected!\n💰 +$500\n💊 +20 HP\n⚡ +30 Energy");
+
+    // Salvar timestamp da última coleta
+    const now = Date.now();
+    setLastRewardTime(now);
+    localStorage.setItem("lastDailyReward", now.toString());
+    setCanCollectReward(false);
+  };
+
+  // Verificar se pode coletar recompensa
+  useEffect(() => {
+    const lastReward = localStorage.getItem("lastDailyReward");
+    if (lastReward) {
+      const lastTime = parseInt(lastReward);
+      setLastRewardTime(lastTime);
+
+      const now = Date.now();
+      const timeDiff = now - lastTime;
+      const dayInMs = 24 * 60 * 60 * 1000; // 24 horas em milissegundos
+
+      if (timeDiff < dayInMs) {
+        setCanCollectReward(false);
+        setTimeUntilNextReward(dayInMs - timeDiff);
+      } else {
+        setCanCollectReward(true);
+        setTimeUntilNextReward(0);
+      }
+    }
+  }, []);
+
+  // Countdown timer
+  useEffect(() => {
+    if (!canCollectReward && timeUntilNextReward > 0) {
+      const timer = setInterval(() => {
+        setTimeUntilNextReward((prev) => {
+          if (prev <= 1000) {
+            setCanCollectReward(true);
+            return 0;
+          }
+          return prev - 1000;
+        });
+      }, 1000);
+
+      return () => clearInterval(timer);
+    }
+  }, [canCollectReward, timeUntilNextReward]);
+
+  const formatTime = (ms: number) => {
+    const hours = Math.floor(ms / (1000 * 60 * 60));
+    const minutes = Math.floor((ms % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((ms % (1000 * 60)) / 1000);
+    return `${hours.toString().padStart(2, "0")}:${minutes
+      .toString()
+      .padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
+  };
+
   return (
     <>
       {/* Conteúdo principal */}
       <div className="space-y-3 mt-0 pt-0 overflow-x-hidden pb-16">
-        {/* Mini Jogo: Roleta de Prêmios Diários */}
+        {/* Daily Reward */}
         <div
-          className="lucky-box flex flex-col justify-between items-center"
+          className="daily-reward-box flex flex-col justify-center items-center"
           style={{
-            background: "linear-gradient(to bottom, #2c1c2c, #1b0f1b)",
-            border: "1px solid #ff69b4",
+            background: "linear-gradient(to bottom, #1a1a2e, #16213e)",
+            border: "1px solid #4f46e5",
             borderRadius: "12px",
-            boxShadow: "inset 0 0 8px #ff69b4",
-            padding: "16px",
-            color: "#ff69b4",
-            height: "180px",
-            minHeight: "180px",
-            maxHeight: "180px",
+            boxShadow: "inset 0 0 8px #4f46e5",
+            padding: "20px",
+            color: "#4f46e5",
+            height: "160px",
+            minHeight: "160px",
+            maxHeight: "160px",
           }}
         >
           <div
-            className="flex flex-col items-center justify-center w-full mb-2"
+            className="flex flex-col items-center justify-center w-full"
             style={{
               fontWeight: "bold",
-              fontSize: "1.15rem",
+              fontSize: "1.1rem",
               letterSpacing: "0.5px",
             }}
           >
-            <span className="flex items-center gap-2 justify-center">
-              <Gift size={22} className="text-pink-400" />
-              Lucky Wheel
+            <span className="flex items-center gap-2 justify-center mb-2">
+              <Calendar size={24} className="text-indigo-400" />
+              Daily Reward
               <span className="text-yellow-300 animate-pulse">✨</span>
             </span>
+            <div className="text-center text-sm text-indigo-300 mb-3">
+              {canCollectReward ? (
+                <div>🎁 Mystery rewards await!</div>
+              ) : (
+                <div>⏰ Come back in: {formatTime(timeUntilNextReward)}</div>
+              )}
+            </div>
+            <button
+              className={`reward-btn flex items-center justify-center mx-auto ${
+                !canCollectReward ? "opacity-50 cursor-not-allowed" : ""
+              }`}
+              style={{
+                background: canCollectReward
+                  ? "radial-gradient(circle at center, #4f46e5, #3730a3)"
+                  : "radial-gradient(circle at center, #6b7280, #4b5563)",
+                border: "none",
+                padding: "10px 24px",
+                fontSize: "0.9rem",
+                fontWeight: "bold",
+                borderRadius: "25px",
+                color: "white",
+                boxShadow: canCollectReward ? "0 0 10px #4f46e5aa" : "none",
+                cursor: canCollectReward ? "pointer" : "not-allowed",
+              }}
+              onClick={handleDailyReward}
+              disabled={!canCollectReward}
+            >
+              <Gift size={16} className="mr-2" />
+              {canCollectReward ? "Collect Reward" : "Already Collected"}
+            </button>
           </div>
-          {/* Mini roleta horizontal */}
-          <div
-            className="flex items-center justify-center w-full rounded bg-black/30 px-3 py-2 mb-2"
-            style={{
-              fontSize: "1.5rem",
-              letterSpacing: "0.2em",
-              fontWeight: 500,
-              border: "1px solid #ff69b4",
-              boxShadow: "0 0 6px #ff69b4aa",
-              minHeight: "2.5rem",
-            }}
-          >
-            💰💊⭐🔋❓💰⭐💊
-          </div>
-          <button
-            className="spin-btn flex items-center justify-center mx-auto"
-            style={{
-              background: "radial-gradient(circle at center, #ff69b4, #d62b87)",
-              border: "none",
-              padding: "12px 32px",
-              fontSize: "1rem",
-              fontWeight: "bold",
-              borderRadius: "30px",
-              color: "white",
-              boxShadow: "0 0 10px #ff69b4aa",
-              cursor: "pointer",
-              marginTop: "0",
-            }}
-            onClick={() => onViewChange("luckywheel")}
-          >
-            <Gift size={18} className="mr-2" />
-            Spin
-          </button>
         </div>
 
-        {/* Feed de Notícias do Mundo */}
-        <div className="rounded-xl bg-gradient-to-br from-cyber-dark-light to-cyber-dark-medium p-4 border border-cyber-blue/30">
-          <div className="flex items-center justify-between mb-2">
-            <div className="flex items-center gap-2 font-bold text-cyber-blue text-base">
-              <Newspaper size={20} className="text-cyber-blue" />
-              News Feed
-            </div>
-            <a
-              href="#"
-              className="text-xs text-cyber-blue/70 hover:underline font-semibold"
-              onClick={(e) => {
-                e.preventDefault();
-                onViewChange("news");
-              }}
-            >
-              More
-            </a>
-          </div>
-          <ul className="divide-y divide-cyber-blue/20">
-            <li className="py-2 flex items-start gap-2">
-              <span className="text-cyber-blue/80 text-lg">📰</span>
-              <div>
-                <span className="font-semibold text-cyber-blue">
-                  Cobras gang takes over industrial district
-                </span>
-                <div className="text-xs text-cyber-blue/60">5 min ago</div>
-              </div>
-            </li>
-            <li className="py-2 flex items-start gap-2">
-              <span className="text-cyber-blue/80 text-lg">🎰</span>
-              <div>
-                <span className="font-semibold text-cyber-blue">
-                  Player X wins $100k at the casino
-                </span>
-                <div className="text-xs text-cyber-blue/60">12 min ago</div>
-              </div>
-            </li>
-            <li className="py-2 flex items-start gap-2">
-              <span className="text-cyber-blue/80 text-lg">🚓</span>
-              <div>
-                <span className="font-semibold text-cyber-blue">
-                  Police increase patrols downtown
-                </span>
-                <div className="text-xs text-cyber-blue/60">30 min ago</div>
-              </div>
-            </li>
-          </ul>
-        </div>
+        {/* Espaçamento entre Daily Reward e Main Actions */}
+        <div className="h-4"></div>
 
         {/* Main Actions */}
         <div className="grid grid-cols-2 md:grid-cols-2 gap-2 mb-0">
@@ -286,7 +302,7 @@ const HomeView = ({ onViewChange }: HomeViewProps) => {
           >
             <div className="flex items-center gap-3">
               <div className="p-3 rounded-lg bg-blue-500/20">
-                <Warehouse size={24} className="text-blue-500" />
+                <Building2 size={24} className="text-blue-500" />
               </div>
               <div className="text-left">
                 <h3 className="font-bold text-sm text-blue-500">BUSINESS</h3>

@@ -50,7 +50,7 @@
 
 @layer components {
   .cyber-border {
-    @apply border border-cyber-blue/30 bg-cyber-dark-light/50 backdrop-blur-sm;
+    @apply border border-cyber-blue/30 bg-cyber-dark-light/50;
   }
 
   .cyber-card {
