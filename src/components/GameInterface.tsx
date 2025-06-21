@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import {
   Home,
   User,
@@ -38,30 +38,19 @@ import ShopView from "../views/ShopView";
 import PrisonView from "../views/PrisonView";
 import BusinessView from "../views/BusinessView";
 import bgImage from "../assets/bg.png";
+import { useGameStore } from "../stores/gameStore";
+import type { Alert } from "@/types/game";
 
-interface GameInterfaceProps {
-  playerStats: {
-    health: number;
-    maxHealth: number;
-    energy: number;
-    maxEnergy: number;
-    addiction: number;
-    reputation: number;
-    money: number;
-    wantedLevel: number;
-  };
-}
-
-export function GameInterface({ playerStats }: GameInterfaceProps) {
-  const [activeSection, setActiveSection] = useState("home");
-  const [activeView, setActiveView] = useState("home");
-  const [dismissedAlerts, setDismissedAlerts] = useState<string[]>([]);
-
-  const [player, setPlayer] = useState({
-    ...playerStats,
-    isImprisoned: false,
-    isHospitalized: false,
-  });
+export function GameInterface() {
+  const {
+    player,
+    activeView,
+    activeSection,
+    dismissedAlerts,
+    setActiveView,
+    setActiveSection,
+    dismissAlert,
+  } = useGameStore();
 
   const mainActions = [
     {
@@ -132,7 +121,7 @@ export function GameInterface({ playerStats }: GameInterfaceProps) {
   ];
 
   // Only show Prison if wanted level is high
-  if (playerStats.wantedLevel >= 70) {
+  if (player.stats.wantedLevel >= 70) {
     mainActions.push({
       id: "prison",
       icon: Lock,
@@ -160,11 +149,11 @@ export function GameInterface({ playerStats }: GameInterfaceProps) {
   };
 
   // Sistema de alertas com tom de zoeira
-  const getAlerts = () => {
-    const alerts = [];
+  const getAlerts = (): Alert[] => {
+    const alerts: Alert[] = [];
 
     // Saúde baixa
-    if (player.health < 30 && !dismissedAlerts.includes("health")) {
+    if (player.stats.health < 30 && !dismissedAlerts.includes("health")) {
       alerts.push({
         id: "health",
         type: "warning",
@@ -180,7 +169,7 @@ export function GameInterface({ playerStats }: GameInterfaceProps) {
     }
 
     // Energia baixa
-    if (player.energy < 20 && !dismissedAlerts.includes("energy")) {
+    if (player.stats.energy < 20 && !dismissedAlerts.includes("energy")) {
       alerts.push({
         id: "energy",
         type: "warning",
@@ -196,7 +185,7 @@ export function GameInterface({ playerStats }: GameInterfaceProps) {
     }
 
     // Vício alto
-    if (player.addiction > 70 && !dismissedAlerts.includes("addiction")) {
+    if (player.stats.addiction > 70 && !dismissedAlerts.includes("addiction")) {
       alerts.push({
         id: "addiction",
         type: "warning",
@@ -212,7 +201,7 @@ export function GameInterface({ playerStats }: GameInterfaceProps) {
     }
 
     // Procurado alto
-    if (player.wantedLevel > 80 && !dismissedAlerts.includes("wanted")) {
+    if (player.stats.wantedLevel > 80 && !dismissedAlerts.includes("wanted")) {
       alerts.push({
         id: "wanted",
         type: "warning",
@@ -230,26 +219,23 @@ export function GameInterface({ playerStats }: GameInterfaceProps) {
     return alerts;
   };
 
-  const dismissAlert = (alertId: string) => {
-    setDismissedAlerts([...dismissedAlerts, alertId]);
-  };
-
   const renderView = () => {
-    if (player.isImprisoned) {
+    if (player.stats.isImprisoned) {
       return (
         <PrisonView
           isPlayerImprisoned={true}
           onAttemptBribe={() => {
             const success = Math.random() < 0.1;
             if (success) {
-              setPlayer({ ...player, isImprisoned: false, wantedLevel: 0 });
+              useGameStore.getState().setPlayerImprisoned(false);
+              useGameStore.getState().updatePlayerStats({ wantedLevel: 0 });
             }
             return success;
           }}
           onAttemptRiot={() => {
             const success = Math.random() < 0.3;
             if (success) {
-              setPlayer({ ...player, isImprisoned: false });
+              useGameStore.getState().setPlayerImprisoned(false);
             }
             return success;
           }}
@@ -257,11 +243,11 @@ export function GameInterface({ playerStats }: GameInterfaceProps) {
       );
     }
 
-    if (player.isHospitalized) {
+    if (player.stats.isHospitalized) {
       return (
         <HospitalView
           isPlayerHospitalized={true}
-          playerStatus={player}
+          playerStatus={player.stats}
           onStartTreatment={(type) => {
             // Treatment logic will be handled by the hospital view
           }}
@@ -282,7 +268,7 @@ export function GameInterface({ playerStats }: GameInterfaceProps) {
         return (
           <HospitalView
             isPlayerHospitalized={false}
-            playerStatus={player}
+            playerStatus={player.stats}
             onStartTreatment={() => {
               /* Ação de tratamento não é chamada na visita */
             }}
