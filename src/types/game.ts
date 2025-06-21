@@ -155,7 +155,11 @@ export interface CasinoGame {
 export interface Alert {
   id: string;
   type: "warning" | "info" | "success" | "error";
-  icon: React.ComponentType<{ size?: number | string; className?: string }>;
+  icon: React.ComponentType<{
+    size?: number | string;
+    className?: string;
+    [key: string]: unknown;
+  }>;
   message: string;
   action: string;
   color: string;

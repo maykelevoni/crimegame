@@ -39,6 +39,7 @@ import PrisonView from "../views/PrisonView";
 import BusinessView from "../views/BusinessView";
 import bgImage from "../assets/bg.png";
 import { useGameStore } from "../stores/gameStore";
+import { useResponsive } from "../hooks/useResponsive";
 import type { Alert } from "@/types/game";
 
 export function GameInterface() {
@@ -51,6 +52,8 @@ export function GameInterface() {
     setActiveSection,
     dismissAlert,
   } = useGameStore();
+
+  const { isMobile, isTablet } = useResponsive();
 
   const mainActions = [
     {
@@ -158,8 +161,9 @@ export function GameInterface() {
         id: "health",
         type: "warning",
         icon: HeartPulse,
-        message:
-          "Tá quase morto, seu zumbi! Vai pro hospital antes que vire pó!",
+        message: isMobile
+          ? "Tá quase morto! Vai pro hospital!"
+          : "Tá quase morto, seu zumbi! Vai pro hospital antes que vire pó!",
         action: "Ir ao Hospital",
         color: "text-red-400",
         bgColor: "bg-red-500/20",
@@ -174,8 +178,9 @@ export function GameInterface() {
         id: "energy",
         type: "warning",
         icon: Zap,
-        message:
-          "Tá mais lento que lesma na areia! Vai curtir na nightlife pra pegar energia!",
+        message: isMobile
+          ? "Tá sem energia! Vai curtir!"
+          : "Tá mais lento que lesma na areia! Vai curtir na nightlife pra pegar energia!",
         action: "Ir à Nightlife",
         color: "text-yellow-400",
         bgColor: "bg-yellow-500/20",
@@ -190,8 +195,9 @@ export function GameInterface() {
         id: "addiction",
         type: "warning",
         icon: Pill,
-        message:
-          "Tá viciado que nem rato em laboratório! Vai pro hospital se tratar!",
+        message: isMobile
+          ? "Tá viciado! Vai se tratar!"
+          : "Tá viciado que nem rato em laboratório! Vai pro hospital se tratar!",
         action: "Ir ao Hospital",
         color: "text-cyan-400",
         bgColor: "bg-cyan-500/20",
@@ -206,8 +212,9 @@ export function GameInterface() {
         id: "wanted",
         type: "warning",
         icon: Siren,
-        message:
-          "A polícia tá te caçando que nem cachorro atrás de osso! Vai se esconder!",
+        message: isMobile
+          ? "A polícia tá te caçando! Vai se esconder!"
+          : "A polícia tá te caçando que nem cachorro atrás de osso! Vai se esconder!",
         action: "Ir à Prisão",
         color: "text-orange-400",
         bgColor: "bg-orange-500/20",
@@ -296,22 +303,42 @@ export function GameInterface() {
         return <BusinessView />;
       default:
         return (
-          <div className="flex flex-col gap-3">
+          <div className={`flex flex-col gap-3 ${isMobile ? "px-2" : "px-4"}`}>
             {mainActions.map((action) => {
               const Icon = action.icon;
               return (
                 <button
                   key={action.id}
                   onClick={action.onClick}
-                  className={`relative group p-3 rounded-xl border ${action.borderColor} bg-gradient-to-br ${action.color} ${action.glow} hover:scale-[1.02] transition-all duration-200`}
+                  className={`relative group p-3 rounded-xl border ${
+                    action.borderColor
+                  } bg-gradient-to-br ${action.color} ${
+                    action.glow
+                  } hover:scale-[1.02] transition-all duration-200 ${
+                    isMobile ? "p-4" : "p-3"
+                  }`}
                 >
                   <div className="flex items-center gap-3">
-                    <div className="p-2 rounded-lg bg-white/5">
-                      <Icon size={24} className="text-white" />
+                    <div
+                      className={`p-2 rounded-lg bg-white/5 ${
+                        isMobile ? "p-3" : "p-2"
+                      }`}
+                    >
+                      <Icon size={isMobile ? 28 : 24} className="text-white" />
                     </div>
-                    <div className="text-left">
-                      <h3 className="font-bold text-sm">{action.label}</h3>
-                      <p className="text-xs text-white/70">
+                    <div className="text-left flex-1">
+                      <h3
+                        className={`font-bold ${
+                          isMobile ? "text-base" : "text-sm"
+                        }`}
+                      >
+                        {action.label}
+                      </h3>
+                      <p
+                        className={`text-white/70 ${
+                          isMobile ? "text-sm" : "text-xs"
+                        }`}
+                      >
                         {action.description}
                       </p>
                     </div>
@@ -347,13 +374,24 @@ export function GameInterface() {
             return (
               <div
                 key={alert.id}
-                className={`${alert.bgColor} ${alert.borderColor} border-l-4 p-4 mb-2 mx-2 mt-2 rounded-r-lg relative bg-black/80`}
+                className={`${alert.bgColor} ${
+                  alert.borderColor
+                } border-l-4 p-4 mb-2 mx-2 mt-2 rounded-r-lg relative bg-black/80 ${
+                  isMobile ? "mx-1 p-3" : "mx-2 p-4"
+                }`}
               >
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex items-start gap-3 flex-1">
-                    <Icon size={20} className={`${alert.color} mt-0.5`} />
+                    <Icon
+                      size={isMobile ? 18 : 20}
+                      className={`${alert.color} mt-0.5`}
+                    />
                     <div className="flex-1">
-                      <p className={`font-semibold ${alert.color} text-sm`}>
+                      <p
+                        className={`font-semibold ${alert.color} ${
+                          isMobile ? "text-sm" : "text-sm"
+                        }`}
+                      >
                         {alert.message}
                       </p>
                     </div>
@@ -362,13 +400,19 @@ export function GameInterface() {
                     onClick={() => dismissAlert(alert.id)}
                     className="p-1 hover:bg-white/10 rounded ml-2"
                   >
-                    <X size={16} className="text-white/60" />
+                    <X size={isMobile ? 14 : 16} className="text-white/60" />
                   </button>
                 </div>
                 <div className="flex justify-end">
                   <button
                     onClick={alert.onClick}
-                    className={`px-4 py-2 text-sm font-semibold ${alert.bgColor} ${alert.borderColor} border rounded hover:scale-105 transition-transform`}
+                    className={`px-4 py-2 text-sm font-semibold ${
+                      alert.bgColor
+                    } ${
+                      alert.borderColor
+                    } border rounded hover:scale-105 transition-transform ${
+                      isMobile ? "px-3 py-2 text-xs" : "px-4 py-2 text-sm"
+                    }`}
                   >
                     {alert.action}
                   </button>
@@ -378,12 +422,19 @@ export function GameInterface() {
           })}
 
           {/* Main Content */}
-          <div className="container mx-auto px-4 pt-4 flex flex-col justify-start">
+          <div
+            className={`container mx-auto ${
+              isMobile ? "px-2" : "px-4"
+            } pt-4 flex flex-col justify-start pb-20`}
+          >
             {renderView()}
           </div>
+
           {/* Bottom Navigation */}
-          <div className="fixed bottom-0 left-0 right-0 bg-cyber-dark/95 border-t border-cyber-blue/20">
-            <div className="container mx-auto px-4 py-2">
+          <div className="fixed bottom-0 left-0 right-0 bg-cyber-dark/95 border-t border-cyber-blue/20 z-40">
+            <div
+              className={`container mx-auto ${isMobile ? "px-2" : "px-4"} py-2`}
+            >
               <div className="flex items-center justify-between">
                 {bottomNav.map((item) => {
                   const Icon = item.icon;
@@ -398,10 +449,14 @@ export function GameInterface() {
                         activeSection === item.id
                           ? "text-white"
                           : "text-cyber-blue hover:text-white"
-                      }`}
+                      } ${isMobile ? "p-1" : "p-2"}`}
                     >
-                      <Icon size={20} />
-                      <span className="text-[10px]">{item.label}</span>
+                      <Icon size={isMobile ? 18 : 20} />
+                      <span
+                        className={`${isMobile ? "text-[9px]" : "text-[10px]"}`}
+                      >
+                        {item.label}
+                      </span>
                     </button>
                   );
                 })}
