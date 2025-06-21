@@ -50,11 +50,13 @@ VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 3. Copie e cole o conteúdo do arquivo `supabase/schema.sql`
 4. Clique em **Run** para executar o script
 
+**⚠️ Nota:** O script foi corrigido e não requer permissões especiais. Se você encontrar erros de permissão, execute o script em partes menores.
+
 ### 5. Configurar Autenticação
 
 1. No dashboard, vá em **Authentication** > **Settings**
-2. Em **Site URL**, adicione: `http://localhost:5173`
-3. Em **Redirect URLs**, adicione: `http://localhost:5173/**`
+2. Em **Site URL**, adicione: `http://localhost:8081` (ou a porta que aparecer no seu terminal)
+3. Em **Redirect URLs**, adicione: `http://localhost:8081/**`
 4. Salve as configurações
 
 ### 6. Testar a Configuração
@@ -65,7 +67,7 @@ VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 npm run dev
 ```
 
-2. Abra o navegador em `http://localhost:5173`
+2. Abra o navegador na URL mostrada no terminal (ex: `http://localhost:8081`)
 3. Verifique se não há erros no console
 
 ## 🗄️ Estrutura do Banco
@@ -85,6 +87,7 @@ O banco de dados inclui as seguintes tabelas:
 - Row Level Security (RLS) está habilitado
 - Cada usuário só pode acessar seus próprios dados
 - Políticas de segurança configuradas automaticamente
+- JWT tokens gerenciados automaticamente pelo Supabase
 
 ## 🚨 Troubleshooting
 
@@ -105,6 +108,12 @@ O banco de dados inclui as seguintes tabelas:
 - Execute o script SQL novamente
 - Verifique se todas as tabelas foram criadas
 - Confirme se as políticas RLS estão ativas
+
+### Erro: "Permission denied"
+
+- O script SQL foi corrigido e não requer permissões especiais
+- Execute o script completo de uma vez
+- Se persistir, execute em partes menores
 
 ## 📞 Suporte
 

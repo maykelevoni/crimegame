@@ -1,6 +1,3 @@
--- Enable Row Level Security
-ALTER DATABASE postgres SET "app.jwt_secret" TO 'your-jwt-secret';
-
 -- Create tables
 CREATE TABLE IF NOT EXISTS public.players (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
