@@ -1,5 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { supabase } from "@/lib/supabase";
+import { SupabaseService } from "@/services/supabaseService";
 import type {
   Player,
   PlayerStats,
@@ -46,6 +48,11 @@ const initialEquipped: EquippedItems = {
 
 // Interface do store
 interface GameStore extends GameState {
+  // Auth state
+  userId: string | null;
+  isOnline: boolean;
+  syncStatus: "idle" | "syncing" | "error";
+
   // Actions do Player
   updatePlayerStats: (updates: Partial<PlayerStats>) => void;
   updatePlayerMoney: (amount: number) => void;
@@ -80,6 +87,13 @@ interface GameStore extends GameState {
   setActiveSection: (section: string) => void;
   dismissAlert: (alertId: string) => void;
 
+  // Actions de Supabase
+  setUserId: (userId: string | null) => void;
+  loadGameData: (userId: string) => Promise<void>;
+  syncGameState: () => Promise<void>;
+  setupRealtimeSync: (userId: string) => void;
+  clearRealtimeSync: () => void;
+
   // Actions de Reset
   resetGame: () => void;
 }
@@ -99,6 +113,11 @@ export const useGameStore = create<GameStore>()(
       activeView: "home",
       activeSection: "home",
 
+      // Auth state
+      userId: null,
+      isOnline: navigator.onLine,
+      syncStatus: "idle",
+
       // Actions do Player
       updatePlayerStats: (updates) => {
         set((state) => ({
@@ -111,6 +130,11 @@ export const useGameStore = create<GameStore>()(
             updatedAt: new Date(),
           },
         }));
+
+        // Sync to Supabase if online
+        if (get().userId && get().isOnline) {
+          get().syncGameState();
+        }
       },
 
       updatePlayerMoney: (amount) => {
@@ -124,6 +148,10 @@ export const useGameStore = create<GameStore>()(
             updatedAt: new Date(),
           },
         }));
+
+        if (get().userId && get().isOnline) {
+          get().syncGameState();
+        }
       },
 
       updatePlayerExperience: (exp) => {
@@ -140,6 +168,10 @@ export const useGameStore = create<GameStore>()(
             },
           };
         });
+
+        if (get().userId && get().isOnline) {
+          get().syncGameState();
+        }
       },
 
       setPlayerImprisoned: (imprisoned) => {
@@ -153,6 +185,10 @@ export const useGameStore = create<GameStore>()(
             updatedAt: new Date(),
           },
         }));
+
+        if (get().userId && get().isOnline) {
+          get().syncGameState();
+        }
       },
 
       setPlayerHospitalized: (hospitalized) => {
@@ -166,6 +202,10 @@ export const useGameStore = create<GameStore>()(
             updatedAt: new Date(),
           },
         }));
+
+        if (get().userId && get().isOnline) {
+          get().syncGameState();
+        }
       },
 
       // Actions de Inventário
@@ -190,12 +230,20 @@ export const useGameStore = create<GameStore>()(
             ],
           };
         });
+
+        if (get().userId && get().isOnline) {
+          get().syncGameState();
+        }
       },
 
       removeItemFromInventory: (itemId) => {
         set((state) => ({
           inventory: state.inventory.filter((item) => item.id !== itemId),
         }));
+
+        if (get().userId && get().isOnline) {
+          get().syncGameState();
+        }
       },
 
       updateItemQuantity: (itemId, quantity) => {
@@ -204,6 +252,10 @@ export const useGameStore = create<GameStore>()(
             item.id === itemId ? { ...item, quantity } : item
           ),
         }));
+
+        if (get().userId && get().isOnline) {
+          get().syncGameState();
+        }
       },
 
       // Actions de Equipamento
@@ -214,6 +266,10 @@ export const useGameStore = create<GameStore>()(
             [item.type]: item,
           },
         }));
+
+        if (get().userId && get().isOnline) {
+          get().syncGameState();
+        }
       },
 
       unequipItem: (itemType) => {
@@ -223,6 +279,10 @@ export const useGameStore = create<GameStore>()(
             [itemType]: null,
           },
         }));
+
+        if (get().userId && get().isOnline) {
+          get().syncGameState();
+        }
       },
 
       // Actions do Shop
@@ -285,6 +345,10 @@ export const useGameStore = create<GameStore>()(
           }
           return state;
         });
+
+        if (get().userId && get().isOnline) {
+          get().syncGameState();
+        }
       },
 
       upgradeBusiness: (businessId) => {
@@ -295,6 +359,10 @@ export const useGameStore = create<GameStore>()(
               : business
           ),
         }));
+
+        if (get().userId && get().isOnline) {
+          get().syncGameState();
+        }
       },
 
       // Actions de Hospital
@@ -302,21 +370,154 @@ export const useGameStore = create<GameStore>()(
         set((state) => ({
           treatmentHistory: [treatment, ...state.treatmentHistory.slice(0, 9)], // Keep last 10
         }));
+
+        if (get().userId && get().isOnline) {
+          get().syncGameState();
+        }
       },
 
       // Actions de UI
       setActiveView: (view) => {
         set({ activeView: view });
+
+        if (get().userId && get().isOnline) {
+          get().syncGameState();
+        }
       },
 
       setActiveSection: (section) => {
         set({ activeSection: section });
+
+        if (get().userId && get().isOnline) {
+          get().syncGameState();
+        }
       },
 
       dismissAlert: (alertId) => {
         set((state) => ({
           dismissedAlerts: [...state.dismissedAlerts, alertId],
         }));
+
+        if (get().userId && get().isOnline) {
+          get().syncGameState();
+        }
+      },
+
+      // Actions de Supabase
+      setUserId: (userId) => {
+        set({ userId });
+        if (userId) {
+          get().loadGameData(userId);
+          get().setupRealtimeSync(userId);
+        } else {
+          get().clearRealtimeSync();
+        }
+      },
+
+      loadGameData: async (userId) => {
+        try {
+          set({ syncStatus: "syncing" });
+
+          // Load player data
+          const player = await SupabaseService.getPlayer(userId);
+          if (player) {
+            const stats = await SupabaseService.getPlayerStats(player.id);
+            const inventory = await SupabaseService.getPlayerInventory(
+              player.id
+            );
+            const businesses = await SupabaseService.getPlayerBusinesses(
+              player.id
+            );
+            const treatmentHistory = await SupabaseService.getTreatmentHistory(
+              player.id
+            );
+            const gameSession = await SupabaseService.getGameSession(player.id);
+
+            set((state) => ({
+              player: {
+                ...state.player,
+                ...player,
+                stats: stats
+                  ? {
+                      ...state.player.stats,
+                      ...stats,
+                    }
+                  : state.player.stats,
+              },
+              inventory: inventory.map((inv) => ({
+                ...inv.items,
+                quantity: inv.quantity,
+              })),
+              businesses,
+              treatmentHistory,
+              activeView: gameSession?.active_view || "home",
+              activeSection: gameSession?.active_section || "home",
+              dismissedAlerts: gameSession?.dismissed_alerts || [],
+              syncStatus: "idle",
+            }));
+          }
+        } catch (error) {
+          console.error("Error loading game data:", error);
+          set({ syncStatus: "error" });
+        }
+      },
+
+      syncGameState: async () => {
+        const state = get();
+        if (!state.userId || !state.isOnline) return;
+
+        try {
+          set({ syncStatus: "syncing" });
+
+          await SupabaseService.syncGameState(state.userId, {
+            player: state.player,
+            equipped: state.equipped,
+            inventory: state.inventory,
+            businesses: state.businesses,
+            treatmentHistory: state.treatmentHistory,
+            dismissedAlerts: state.dismissedAlerts,
+            activeView: state.activeView,
+            activeSection: state.activeSection,
+          });
+
+          set({ syncStatus: "idle" });
+        } catch (error) {
+          console.error("Error syncing game state:", error);
+          set({ syncStatus: "error" });
+        }
+      },
+
+      setupRealtimeSync: (userId) => {
+        // Subscribe to player stats changes
+        SupabaseService.subscribeToPlayerStats(userId, (payload) => {
+          if (payload.eventType === "UPDATE") {
+            const newStats = payload.new;
+            set((state) => ({
+              player: {
+                ...state.player,
+                stats: {
+                  ...state.player.stats,
+                  ...newStats,
+                },
+              },
+            }));
+          }
+        });
+
+        // Subscribe to inventory changes
+        SupabaseService.subscribeToInventory(userId, (payload) => {
+          if (payload.eventType === "INSERT") {
+            // Handle new item
+          } else if (payload.eventType === "UPDATE") {
+            // Handle item update
+          } else if (payload.eventType === "DELETE") {
+            // Handle item removal
+          }
+        });
+      },
+
+      clearRealtimeSync: () => {
+        supabase.removeAllChannels();
       },
 
       // Actions de Reset
@@ -343,6 +544,9 @@ export const useGameStore = create<GameStore>()(
         businesses: state.businesses,
         treatmentHistory: state.treatmentHistory,
         dismissedAlerts: state.dismissedAlerts,
+        activeView: state.activeView,
+        activeSection: state.activeSection,
+        userId: state.userId,
       }),
     }
   )
@@ -360,3 +564,5 @@ export const useInventory = () => useGameStore((state) => state.inventory);
 export const useCart = () => useGameStore((state) => state.cart);
 export const useEquipped = () => useGameStore((state) => state.equipped);
 export const useActiveView = () => useGameStore((state) => state.activeView);
+export const useSyncStatus = () => useGameStore((state) => state.syncStatus);
+export const useIsOnline = () => useGameStore((state) => state.isOnline);

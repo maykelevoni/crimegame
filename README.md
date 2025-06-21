@@ -169,10 +169,10 @@ Urban Hustle is a browser-based crime and city-themed game where you manage your
 
 1. **Clone the repository:**
 
-   ```sh
-   git clone <YOUR_GIT_URL>
-   cd <YOUR_PROJECT_NAME>
-   ```
+```sh
+git clone <YOUR_GIT_URL>
+cd <YOUR_PROJECT_NAME>
+```
 
 2. **Install dependencies:**
 
@@ -186,10 +186,14 @@ Urban Hustle is a browser-based crime and city-themed game where you manage your
    npm run dev
    ```
 
+```
+
 4. **Open your browser and navigate to:**
-   ```
-   http://localhost:8080
-   ```
+```
+
+http://localhost:8080
+
+````
 
 ## 📦 Deployment
 
@@ -197,7 +201,7 @@ You can deploy this project using your preferred platform (Vercel, Netlify, etc)
 
 ```sh
 npm run build
-```
+````
 
 And serve the `dist/` folder.
 
