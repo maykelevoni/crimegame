@@ -188,12 +188,15 @@ cd <YOUR_PROJECT_NAME>
 
 ```
 
+```
+
 4. **Open your browser and navigate to:**
+
 ```
 
 http://localhost:8080
 
-````
+```
 
 ## 📦 Deployment
 
@@ -201,7 +204,7 @@ You can deploy this project using your preferred platform (Vercel, Netlify, etc)
 
 ```sh
 npm run build
-````
+```
 
 And serve the `dist/` folder.
 

@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/integrations/supabase/client";
 import { SupabaseService } from "@/services/supabaseService";
 import type {
   Player,
@@ -93,6 +93,12 @@ interface GameStore extends GameState {
   syncGameState: () => Promise<void>;
   setupRealtimeSync: (userId: string) => void;
   clearRealtimeSync: () => void;
+
+  // Actions de Carregamento de Dados
+  loadPlayerData: (playerData: Player) => Promise<void>;
+  loadPlayerStats: (stats: PlayerStats) => Promise<void>;
+  loadPlayerInventory: (inventory: Item[]) => Promise<void>;
+  loadPlayerBusinesses: (businesses: Business[]) => Promise<void>;
 
   // Actions de Reset
   resetGame: () => void;
@@ -518,6 +524,179 @@ export const useGameStore = create<GameStore>()(
 
       clearRealtimeSync: () => {
         supabase.removeAllChannels();
+      },
+
+      // Actions de Carregamento de Dados
+      loadPlayerData: async (playerData: Player) => {
+        try {
+          set({ syncStatus: "syncing" });
+
+          // Load player data
+          const player = await SupabaseService.getPlayer(playerData.user_id);
+          if (player) {
+            const stats = await SupabaseService.getPlayerStats(player.id);
+            const inventory = await SupabaseService.getPlayerInventory(
+              player.id
+            );
+            const businesses = await SupabaseService.getPlayerBusinesses(
+              player.id
+            );
+            const treatmentHistory = await SupabaseService.getTreatmentHistory(
+              player.id
+            );
+            const gameSession = await SupabaseService.getGameSession(player.id);
+
+            set((state) => ({
+              player: {
+                ...state.player,
+                id: player.id,
+                name: player.name,
+                avatarUrl: player.avatar_url,
+                level: player.level,
+                experience: player.experience,
+                stats: stats
+                  ? {
+                      ...state.player.stats,
+                      health: stats.health,
+                      maxHealth: stats.max_health,
+                      energy: stats.energy,
+                      maxEnergy: stats.max_energy,
+                      addiction: stats.addiction,
+                      reputation: stats.reputation,
+                      money: stats.money,
+                      wantedLevel: stats.wanted_level,
+                      isImprisoned: stats.is_imprisoned,
+                      isHospitalized: stats.is_hospitalized,
+                    }
+                  : state.player.stats,
+                createdAt: new Date(player.created_at),
+                updatedAt: new Date(player.updated_at),
+              },
+              inventory: inventory.map((inv) => ({
+                ...inv.items,
+                quantity: inv.quantity,
+              })),
+              businesses: businesses.map((business) => ({
+                id: business.id,
+                name: business.name,
+                type: business.type,
+                level: business.level,
+                income: business.income,
+                employees: business.employees,
+                security: business.security,
+                price: business.price,
+                upgradeCost: business.upgrade_cost,
+                owned: business.owned,
+                available: true, // Default value since not in DB
+                playerId: business.player_id,
+                createdAt: new Date(business.created_at),
+                updatedAt: new Date(business.updated_at),
+              })),
+              treatmentHistory: treatmentHistory.map((treatment) => ({
+                id: treatment.id,
+                playerId: treatment.player_id,
+                type: treatment.type,
+                value: treatment.value,
+                cost: treatment.cost,
+                date: new Date(treatment.created_at),
+              })),
+              activeView: gameSession?.active_view || "home",
+              activeSection: gameSession?.active_section || "home",
+              dismissedAlerts: gameSession?.dismissed_alerts || [],
+              syncStatus: "idle",
+            }));
+          }
+        } catch (error) {
+          console.error("Error loading player data:", error);
+          set({ syncStatus: "error" });
+        }
+      },
+
+      loadPlayerStats: async (stats: PlayerStats) => {
+        try {
+          set({ syncStatus: "syncing" });
+
+          set((state) => ({
+            player: {
+              ...state.player,
+              stats: {
+                ...state.player.stats,
+                health: stats.health,
+                maxHealth: stats.max_health,
+                energy: stats.energy,
+                maxEnergy: stats.max_energy,
+                addiction: stats.addiction,
+                reputation: stats.reputation,
+                money: stats.money,
+                wantedLevel: stats.wanted_level,
+                isImprisoned: stats.is_imprisoned,
+                isHospitalized: stats.is_hospitalized,
+              },
+              updatedAt: new Date(),
+            },
+          }));
+
+          if (get().userId && get().isOnline) {
+            get().syncGameState();
+          }
+        } catch (error) {
+          console.error("Error loading player stats:", error);
+          set({ syncStatus: "error" });
+        }
+      },
+
+      loadPlayerInventory: async (inventory: Item[]) => {
+        try {
+          set({ syncStatus: "syncing" });
+
+          set((state) => ({
+            inventory: inventory.map((item) => ({
+              ...item,
+              quantity: item.quantity || 1,
+            })),
+            syncStatus: "idle",
+          }));
+
+          if (get().userId && get().isOnline) {
+            get().syncGameState();
+          }
+        } catch (error) {
+          console.error("Error loading player inventory:", error);
+          set({ syncStatus: "error" });
+        }
+      },
+
+      loadPlayerBusinesses: async (businesses: Business[]) => {
+        try {
+          set({ syncStatus: "syncing" });
+
+          set((state) => ({
+            businesses: businesses.map((business) => ({
+              id: business.id,
+              name: business.name,
+              type: business.type,
+              level: business.level,
+              income: business.income,
+              employees: business.employees,
+              security: business.security,
+              price: business.price,
+              upgradeCost: business.upgrade_cost,
+              owned: business.owned,
+              available: true, // Default value since not in DB
+              playerId: business.player_id,
+              createdAt: new Date(business.created_at),
+              updatedAt: new Date(business.updated_at),
+            })),
+            syncStatus: "idle",
+          }));
+
+          if (get().userId && get().isOnline) {
+            get().syncGameState();
+          }
+        } catch (error) {
+          console.error("Error loading player businesses:", error);
+          set({ syncStatus: "error" });
+        }
       },
 
       // Actions de Reset
