@@ -19,6 +19,19 @@ import {
   Heart,
 } from "lucide-react";
 import BaseView from "./BaseView";
+import { useGameStore } from "../stores/gameStore";
+import type { Item } from "../types/game";
+
+// Tipo local para itens mockados
+interface MockItem {
+  id: string;
+  name: string;
+  image: string;
+  type: string;
+  desc: string;
+  bonus: Record<string, number>;
+  rarity: string;
+}
 
 const STATUS_BASE = {
   intelligence: 50,
@@ -33,7 +46,7 @@ const ITEM_TYPES = {
   consumable: "Uso",
 };
 
-const RARITY_ICONS = {
+const RARITY_ICONS: { [key: string]: JSX.Element } = {
   raro: <span className="w-2 h-2 bg-blue-500 rounded-full" />,
   lendario: <span className="w-2 h-2 bg-yellow-400 rounded-full" />,
 };
@@ -239,23 +252,41 @@ const FILTERS = [
 ];
 
 export default function ProfileView() {
+  const { player } = useGameStore();
+  const reputation = player?.stats?.reputation || 0;
   const [avatar, setAvatar] = useState(
     "https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg"
   );
-  const [equipped, setEquipped] = useState({
+  const [equipped, setEquipped] = useState<{
+    weapon: MockItem | null;
+    armor: MockItem | null;
+    style: MockItem | null;
+    accessory: MockItem | null;
+  }>({
     weapon: null,
     armor: null,
     style: null,
     accessory: null,
   });
-  const [selectedItem, setSelectedItem] = useState<Item | null>(null);
+  const [selectedItem, setSelectedItem] = useState<MockItem | null>(null);
   const [filter, setFilter] = useState("all");
   const [usedMessage, setUsedMessage] = useState("");
   const [usedItemId, setUsedItemId] = useState<string | null>(null);
   const [consumedIds, setConsumedIds] = useState<string[]>([]);
 
+  // Verificação de segurança
+  if (!player) {
+    return (
+      <BaseView title="Profile & Inventory">
+        <div className="text-center py-8">
+          <p className="text-white/60">Carregando dados do jogador...</p>
+        </div>
+      </BaseView>
+    );
+  }
+
   // Calcula status com bônus dos itens equipados
-  const status = { ...STATUS_BASE };
+  const status: { [key: string]: number } = { ...STATUS_BASE };
   Object.values(equipped).forEach((item) => {
     if (item && item.bonus) {
       Object.entries(item.bonus).forEach(([key, value]) => {
@@ -271,24 +302,25 @@ export default function ProfileView() {
       !consumedIds.includes(item.id)
   );
 
-  function handleEquip(item) {
+  function handleEquip(item: { id: string; name: string; type: string }) {
     if (["weapon", "armor", "style", "accessory"].includes(item.type)) {
       setEquipped((prev) => ({ ...prev, [item.type]: item }));
       setSelectedItem(null);
     }
   }
 
-  function handleUnequip(type) {
+  function handleUnequip(type: string) {
     setEquipped((prev) => ({ ...prev, [type]: null }));
     setSelectedItem(null);
   }
 
   const isEquippedSelected =
     selectedItem &&
-    equipped[selectedItem.type] &&
-    equipped[selectedItem.type].id === selectedItem.id;
+    equipped[selectedItem.type as keyof typeof equipped] &&
+    equipped[selectedItem.type as keyof typeof equipped]?.id ===
+      selectedItem.id;
 
-  function handleUse(item) {
+  function handleUse(item: { id: string; name: string }) {
     setUsedMessage(`Você usou: ${item.name}!`);
     setUsedItemId(item.id);
     setConsumedIds((prev) => [...prev, item.id]);
@@ -314,7 +346,9 @@ export default function ProfileView() {
           </div>
           <div className="flex items-center gap-2">
             <User size={20} className="text-cyan-400" />
-            <span className="text-sm text-cyan-400">Level 15</span>
+            <span className="text-sm text-cyan-400">
+              Reputation {reputation}
+            </span>
           </div>
         </div>
       </div>
@@ -485,7 +519,9 @@ export default function ProfileView() {
       <div className="grid grid-cols-6 gap-2">
         {itemsToShow.slice(0, 18).map((item, idx) => {
           const isEquipped =
-            item && equipped[item.type] && equipped[item.type].id === item.id;
+            item &&
+            equipped[item.type as keyof typeof equipped] &&
+            equipped[item.type as keyof typeof equipped]?.id === item.id;
           return (
             <div
               key={idx}
@@ -569,12 +605,12 @@ export default function ProfileView() {
 
             <div className="flex gap-2">
               {["weapon", "armor", "style", "accessory"].includes(
-                selectedItem.type
+                selectedItem.type as string
               ) ? (
                 isEquippedSelected ? (
                   <button
                     className="flex-1 bg-yellow-500 hover:bg-yellow-600 text-gray-900 px-4 py-2 rounded font-bold text-sm"
-                    onClick={() => handleUnequip(selectedItem.type)}
+                    onClick={() => handleUnequip(selectedItem.type as string)}
                   >
                     Unequip
                   </button>

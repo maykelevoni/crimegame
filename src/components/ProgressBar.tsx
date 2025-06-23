@@ -1,35 +1,50 @@
-
-import React from 'react';
+import React from "react";
 
 interface ProgressBarProps {
   current: number;
   max: number;
   color?: string;
   showText?: boolean;
-  size?: 'sm' | 'md' | 'lg';
+  size?: "sm" | "md" | "lg";
 }
 
-const ProgressBar = ({ current, max, color = 'cyber-blue', showText = true, size = 'md' }: ProgressBarProps) => {
+const ProgressBar = ({
+  current,
+  max,
+  color = "cyber-blue",
+  showText = true,
+  size = "md",
+}: ProgressBarProps) => {
   const percentage = Math.min((current / max) * 100, 100);
-  
+
   const sizeClasses = {
-    sm: 'h-2',
-    md: 'h-3',
-    lg: 'h-4'
+    sm: "h-2",
+    md: "h-3",
+    lg: "h-4",
   };
 
   const colorMap = {
-    'cyber-blue': 'bg-cyber-blue',
-    'cyber-green': 'bg-cyber-green',
-    'cyber-purple': 'bg-cyber-purple',
-    'cyber-orange': 'bg-cyber-orange'
+    "cyber-blue": "bg-cyber-blue",
+    "cyber-green": "bg-cyber-green",
+    "cyber-purple": "bg-cyber-purple",
+    "cyber-orange": "bg-cyber-orange",
+    red: "bg-red-400",
+    blue: "bg-blue-400",
+    orange: "bg-orange-400",
+    yellow: "bg-yellow-400",
+    green: "bg-green-400",
+    purple: "bg-purple-400",
   };
 
   return (
     <div className="w-full">
-      <div className={`cyber-border ${sizeClasses[size]} rounded-full overflow-hidden`}>
-        <div 
-          className={`${colorMap[color as keyof typeof colorMap]} h-full transition-all duration-300 ease-out`}
+      <div
+        className={`cyber-border ${sizeClasses[size]} rounded-full overflow-hidden`}
+      >
+        <div
+          className={`${
+            colorMap[color as keyof typeof colorMap]
+          } h-full transition-all duration-300 ease-out`}
           style={{ width: `${percentage}%` }}
         />
       </div>

@@ -1,7 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "./hooks/useAuth";
-import { usePlayerContext } from "./contexts/usePlayerContext";
-import { PlayerProvider } from "./contexts/PlayerContext";
+import { useGameStore } from "./stores/gameStore";
 import GameStatusBar from "./components/GameStatusBar";
 import { GameInterface } from "./components/GameInterface";
 import { LoginModal } from "./components/auth/LoginModal";
@@ -13,7 +12,29 @@ function AppContent() {
   const [showRegister, setShowRegister] = useState(false);
 
   const { user, signOut } = useAuth();
-  const { player, loading, error } = usePlayerContext();
+  const { player, userId, setUserId, loadGameData, syncStatus } =
+    useGameStore();
+
+  // Limpar dados antigos do localStorage na primeira execução
+  useEffect(() => {
+    const hasCleared = localStorage.getItem("urban-hustle-data-cleared");
+    if (!hasCleared) {
+      console.log("🧹 Limpando dados antigos do localStorage...");
+      localStorage.removeItem("urban-hustle-game");
+      localStorage.setItem("urban-hustle-data-cleared", "true");
+    }
+  }, []);
+
+  // Sincronizar userId quando user mudar
+  useEffect(() => {
+    if (user?.id && user.id !== userId) {
+      console.log("🔄 Sincronizando userId:", user.id);
+      setUserId(user.id);
+    } else if (!user && userId) {
+      console.log("🔄 Limpando userId");
+      setUserId(null);
+    }
+  }, [user, userId, setUserId]);
 
   const handleLogout = async () => {
     try {
@@ -23,7 +44,11 @@ function AppContent() {
     }
   };
 
-  if (loading) {
+  // Loading states
+  const isLoading = !user && syncStatus === "syncing";
+  const hasError = syncStatus === "error";
+
+  if (isLoading) {
     return (
       <div className="min-h-screen bg-cyber-dark flex items-center justify-center">
         <div className="text-center">
@@ -34,12 +59,12 @@ function AppContent() {
     );
   }
 
-  if (error) {
+  if (hasError) {
     return (
       <div className="min-h-screen bg-cyber-dark flex items-center justify-center p-4">
         <div className="text-center max-w-md">
           <h1 className="text-2xl font-bold text-red-500 mb-4">Erro</h1>
-          <p className="text-white mb-4">{error}</p>
+          <p className="text-white mb-4">Erro ao carregar dados do jogo</p>
           <button
             onClick={() => window.location.reload()}
             className="bg-cyber-blue text-white font-bold py-2 px-4 rounded-lg hover:bg-cyber-purple transition-all duration-300"
@@ -98,7 +123,7 @@ function AppContent() {
     );
   }
 
-  if (!player) {
+  if (!player || !player.id) {
     return (
       <div className="min-h-screen bg-cyber-dark flex items-center justify-center">
         <div className="text-center">
@@ -130,11 +155,7 @@ function AppContent() {
 }
 
 function App() {
-  return (
-    <PlayerProvider>
-      <AppContent />
-    </PlayerProvider>
-  );
+  return <AppContent />;
 }
 
 export default App;

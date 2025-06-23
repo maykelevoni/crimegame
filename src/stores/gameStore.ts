@@ -13,26 +13,26 @@ import type {
   GameState,
 } from "@/types/game";
 
-// Estado inicial do player
+// Estado inicial do player (valores padrão até carregar do banco)
 const initialPlayerStats: PlayerStats = {
   health: 100,
   maxHealth: 100,
-  energy: 65,
+  energy: 100,
   maxEnergy: 100,
-  addiction: 40,
-  reputation: 25,
-  money: 2500,
-  wantedLevel: 15,
+  addiction: 0,
+  reputation: 0,
+  money: 1000,
+  wantedLevel: 0,
   isImprisoned: false,
   isHospitalized: false,
 };
 
 const initialPlayer: Player = {
-  id: "1",
-  name: "Paidrew",
+  id: "",
+  name: "",
   avatarUrl: "https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg",
-  level: 15,
-  experience: 1250,
+  level: 1,
+  experience: 0,
   stats: initialPlayerStats,
   createdAt: new Date(),
   updatedAt: new Date(),
@@ -424,46 +424,114 @@ export const useGameStore = create<GameStore>()(
         try {
           set({ syncStatus: "syncing" });
 
-          // Load player data
-          const player = await SupabaseService.getPlayer(userId);
+          console.log("🔄 Carregando dados do jogo para usuário:", userId);
+
+          // Load player data by user_id
+          const player = await SupabaseService.getPlayerByUserId(userId);
           if (player) {
-            const stats = await SupabaseService.getPlayerStats(player.id);
+            console.log("✅ Player encontrado:", player.name);
+
+            // Load inventory
             const inventory = await SupabaseService.getPlayerInventory(
               player.id
             );
-            const businesses = await SupabaseService.getPlayerBusinesses(
-              player.id
+            console.log("✅ Inventário carregado:", inventory.length, "itens");
+
+            // Load businesses
+            const businesses = await SupabaseService.getPlayerBusinesses();
+            console.log(
+              "✅ Negócios carregados:",
+              businesses.length,
+              "negócios"
             );
+
+            // Load treatment history
             const treatmentHistory = await SupabaseService.getTreatmentHistory(
               player.id
             );
+            console.log(
+              "✅ Histórico de tratamento carregado:",
+              treatmentHistory.length,
+              "registros"
+            );
+
+            // Load game session
             const gameSession = await SupabaseService.getGameSession(player.id);
+            console.log("✅ Sessão do jogo carregada");
 
             set((state) => ({
               player: {
                 ...state.player,
-                ...player,
-                stats: stats
-                  ? {
-                      ...state.player.stats,
-                      ...stats,
-                    }
-                  : state.player.stats,
+                id: player.id,
+                name: player.name,
+                avatarUrl: player.avatarUrl,
+                level: player.level,
+                experience: player.experience,
+                stats: {
+                  health: player.stats.health,
+                  maxHealth: player.stats.maxHealth,
+                  energy: player.stats.energy,
+                  maxEnergy: player.stats.maxEnergy,
+                  addiction: player.stats.addiction,
+                  reputation: player.stats.reputation,
+                  money: player.stats.money,
+                  wantedLevel: player.stats.wantedLevel,
+                  isImprisoned: player.stats.isImprisoned,
+                  isHospitalized: player.stats.isHospitalized,
+                },
+                createdAt: player.createdAt,
+                updatedAt: player.updatedAt,
               },
-              inventory: inventory.map((inv) => ({
-                ...inv.items,
-                quantity: inv.quantity,
-              })),
-              businesses,
-              treatmentHistory,
+              inventory: inventory,
+              businesses: businesses,
+              treatmentHistory: treatmentHistory,
               activeView: gameSession?.active_view || "home",
               activeSection: gameSession?.active_section || "home",
               dismissedAlerts: gameSession?.dismissed_alerts || [],
               syncStatus: "idle",
             }));
+          } else {
+            console.log("📝 Criando novo player...");
+            const newPlayer = await SupabaseService.createPlayer(
+              "Player",
+              userId
+            );
+            console.log("✅ Novo player criado:", newPlayer.name);
+
+            set((state) => ({
+              player: {
+                ...state.player,
+                id: newPlayer.id,
+                name: newPlayer.name,
+                avatarUrl: newPlayer.avatarUrl,
+                level: newPlayer.level,
+                experience: newPlayer.experience,
+                stats: {
+                  health: newPlayer.stats.health,
+                  maxHealth: newPlayer.stats.maxHealth,
+                  energy: newPlayer.stats.energy,
+                  maxEnergy: newPlayer.stats.maxEnergy,
+                  addiction: newPlayer.stats.addiction,
+                  reputation: newPlayer.stats.reputation,
+                  money: newPlayer.stats.money,
+                  wantedLevel: newPlayer.stats.wantedLevel,
+                  isImprisoned: newPlayer.stats.isImprisoned,
+                  isHospitalized: newPlayer.stats.isHospitalized,
+                },
+                createdAt: newPlayer.createdAt,
+                updatedAt: newPlayer.updatedAt,
+              },
+              inventory: [],
+              businesses: [],
+              treatmentHistory: [],
+              activeView: "home",
+              activeSection: "home",
+              dismissedAlerts: [],
+              syncStatus: "idle",
+            }));
           }
         } catch (error) {
-          console.error("Error loading game data:", error);
+          console.error("❌ Erro ao carregar dados do jogo:", error);
           set({ syncStatus: "error" });
         }
       },
@@ -494,16 +562,46 @@ export const useGameStore = create<GameStore>()(
       },
 
       setupRealtimeSync: (userId) => {
-        // Subscribe to player stats changes
-        SupabaseService.subscribeToPlayerStats(userId, (payload) => {
-          if (payload.eventType === "UPDATE") {
-            const newStats = payload.new;
+        // Subscribe to player changes
+        SupabaseService.subscribeToPlayer(userId, (payload: unknown) => {
+          const typedPayload = payload as {
+            eventType: string;
+            new: Record<string, unknown>;
+          };
+          if (typedPayload.eventType === "UPDATE") {
+            const newPlayer = typedPayload.new;
             set((state) => ({
               player: {
                 ...state.player,
                 stats: {
                   ...state.player.stats,
-                  ...newStats,
+                  health:
+                    (newPlayer.health as number) || state.player.stats.health,
+                  maxHealth:
+                    (newPlayer.max_health as number) ||
+                    state.player.stats.maxHealth,
+                  energy:
+                    (newPlayer.energy as number) || state.player.stats.energy,
+                  maxEnergy:
+                    (newPlayer.max_energy as number) ||
+                    state.player.stats.maxEnergy,
+                  addiction:
+                    (newPlayer.addiction as number) ||
+                    state.player.stats.addiction,
+                  reputation:
+                    (newPlayer.reputation as number) ||
+                    state.player.stats.reputation,
+                  money:
+                    (newPlayer.money as number) || state.player.stats.money,
+                  wantedLevel:
+                    (newPlayer.wanted_level as number) ||
+                    state.player.stats.wantedLevel,
+                  isImprisoned:
+                    (newPlayer.is_imprisoned as boolean) ||
+                    state.player.stats.isImprisoned,
+                  isHospitalized:
+                    (newPlayer.is_hospitalized as boolean) ||
+                    state.player.stats.isHospitalized,
                 },
               },
             }));
@@ -511,12 +609,13 @@ export const useGameStore = create<GameStore>()(
         });
 
         // Subscribe to inventory changes
-        SupabaseService.subscribeToInventory(userId, (payload) => {
-          if (payload.eventType === "INSERT") {
+        SupabaseService.subscribeToInventory(userId, (payload: unknown) => {
+          const typedPayload = payload as { eventType: string };
+          if (typedPayload.eventType === "INSERT") {
             // Handle new item
-          } else if (payload.eventType === "UPDATE") {
+          } else if (typedPayload.eventType === "UPDATE") {
             // Handle item update
-          } else if (payload.eventType === "DELETE") {
+          } else if (typedPayload.eventType === "DELETE") {
             // Handle item removal
           }
         });
@@ -532,15 +631,12 @@ export const useGameStore = create<GameStore>()(
           set({ syncStatus: "syncing" });
 
           // Load player data
-          const player = await SupabaseService.getPlayer(playerData.user_id);
+          const player = await SupabaseService.getPlayer(playerData.id);
           if (player) {
-            const stats = await SupabaseService.getPlayerStats(player.id);
             const inventory = await SupabaseService.getPlayerInventory(
               player.id
             );
-            const businesses = await SupabaseService.getPlayerBusinesses(
-              player.id
-            );
+            const businesses = await SupabaseService.getPlayerBusinesses();
             const treatmentHistory = await SupabaseService.getTreatmentHistory(
               player.id
             );
@@ -551,55 +647,27 @@ export const useGameStore = create<GameStore>()(
                 ...state.player,
                 id: player.id,
                 name: player.name,
-                avatarUrl: player.avatar_url,
+                avatarUrl: player.avatarUrl,
                 level: player.level,
                 experience: player.experience,
-                stats: stats
-                  ? {
-                      ...state.player.stats,
-                      health: stats.health,
-                      maxHealth: stats.max_health,
-                      energy: stats.energy,
-                      maxEnergy: stats.max_energy,
-                      addiction: stats.addiction,
-                      reputation: stats.reputation,
-                      money: stats.money,
-                      wantedLevel: stats.wanted_level,
-                      isImprisoned: stats.is_imprisoned,
-                      isHospitalized: stats.is_hospitalized,
-                    }
-                  : state.player.stats,
-                createdAt: new Date(player.created_at),
-                updatedAt: new Date(player.updated_at),
+                stats: {
+                  health: player.stats.health,
+                  maxHealth: player.stats.maxHealth,
+                  energy: player.stats.energy,
+                  maxEnergy: player.stats.maxEnergy,
+                  addiction: player.stats.addiction,
+                  reputation: player.stats.reputation,
+                  money: player.stats.money,
+                  wantedLevel: player.stats.wantedLevel,
+                  isImprisoned: player.stats.isImprisoned,
+                  isHospitalized: player.stats.isHospitalized,
+                },
+                createdAt: player.createdAt,
+                updatedAt: player.updatedAt,
               },
-              inventory: inventory.map((inv) => ({
-                ...inv.items,
-                quantity: inv.quantity,
-              })),
-              businesses: businesses.map((business) => ({
-                id: business.id,
-                name: business.name,
-                type: business.type,
-                level: business.level,
-                income: business.income,
-                employees: business.employees,
-                security: business.security,
-                price: business.price,
-                upgradeCost: business.upgrade_cost,
-                owned: business.owned,
-                available: true, // Default value since not in DB
-                playerId: business.player_id,
-                createdAt: new Date(business.created_at),
-                updatedAt: new Date(business.updated_at),
-              })),
-              treatmentHistory: treatmentHistory.map((treatment) => ({
-                id: treatment.id,
-                playerId: treatment.player_id,
-                type: treatment.type,
-                value: treatment.value,
-                cost: treatment.cost,
-                date: new Date(treatment.created_at),
-              })),
+              inventory: inventory,
+              businesses: businesses,
+              treatmentHistory: treatmentHistory,
               activeView: gameSession?.active_view || "home",
               activeSection: gameSession?.active_section || "home",
               dismissedAlerts: gameSession?.dismissed_alerts || [],
@@ -622,15 +690,15 @@ export const useGameStore = create<GameStore>()(
               stats: {
                 ...state.player.stats,
                 health: stats.health,
-                maxHealth: stats.max_health,
+                maxHealth: stats.maxHealth,
                 energy: stats.energy,
-                maxEnergy: stats.max_energy,
+                maxEnergy: stats.maxEnergy,
                 addiction: stats.addiction,
                 reputation: stats.reputation,
                 money: stats.money,
-                wantedLevel: stats.wanted_level,
-                isImprisoned: stats.is_imprisoned,
-                isHospitalized: stats.is_hospitalized,
+                wantedLevel: stats.wantedLevel,
+                isImprisoned: stats.isImprisoned,
+                isHospitalized: stats.isHospitalized,
               },
               updatedAt: new Date(),
             },
@@ -671,22 +739,7 @@ export const useGameStore = create<GameStore>()(
           set({ syncStatus: "syncing" });
 
           set((state) => ({
-            businesses: businesses.map((business) => ({
-              id: business.id,
-              name: business.name,
-              type: business.type,
-              level: business.level,
-              income: business.income,
-              employees: business.employees,
-              security: business.security,
-              price: business.price,
-              upgradeCost: business.upgrade_cost,
-              owned: business.owned,
-              available: true, // Default value since not in DB
-              playerId: business.player_id,
-              createdAt: new Date(business.created_at),
-              updatedAt: new Date(business.updated_at),
-            })),
+            businesses: businesses,
             syncStatus: "idle",
           }));
 
@@ -717,7 +770,8 @@ export const useGameStore = create<GameStore>()(
     {
       name: "urban-hustle-game",
       partialize: (state) => ({
-        player: state.player,
+        // Não persistir dados do player - sempre carregar do banco
+        // player: state.player,
         equipped: state.equipped,
         inventory: state.inventory,
         businesses: state.businesses,

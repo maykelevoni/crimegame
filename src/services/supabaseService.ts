@@ -1,6 +1,12 @@
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
-import type { Player, Item, Business, TreatmentHistory } from "@/types/game";
+import type {
+  Player,
+  Item,
+  Business,
+  TreatmentHistory,
+  PlayerStats,
+} from "@/types/game";
 import type { EquippedItems } from "@/types/game";
 import {
   mapSupabasePlayerToGamePlayer,
@@ -52,11 +58,19 @@ export class SupabaseService {
       }
     }
 
+    console.log("📋 Dados brutos do Supabase:", data);
     console.log(
       "📋 Resultado da query:",
       data ? "Player encontrado" : "Nenhum player encontrado"
     );
-    return data ? mapSupabasePlayerToGamePlayer(data) : null;
+
+    if (data) {
+      const mappedPlayer = mapSupabasePlayerToGamePlayer(data);
+      console.log("📋 Player mapeado:", mappedPlayer);
+      return mappedPlayer;
+    }
+
+    return null;
   }
 
   static async getPlayer(playerId: string): Promise<Player | null> {
@@ -206,6 +220,87 @@ export class SupabaseService {
     if (error) throw error;
   }
 
+  // Player Stats Services (agora unificado com player)
+  static async getPlayerStats(playerId: string): Promise<PlayerStats | null> {
+    const { data, error } = await supabase
+      .from("players")
+      .select("*")
+      .eq("id", playerId)
+      .single();
+
+    if (error) throw error;
+
+    if (!data) return null;
+
+    // Usar apenas os campos que existem no schema atual
+    return {
+      health: 100, // Default até adicionar ao schema
+      maxHealth: 100, // Default até adicionar ao schema
+      energy: data.energy || 100,
+      maxEnergy: data.max_energy || 100,
+      addiction: 0, // Default até adicionar ao schema
+      reputation: 0, // Default até adicionar ao schema
+      money: data.money || 1000,
+      wantedLevel: 0, // Default até adicionar ao schema
+      isImprisoned: false, // Default até adicionar ao schema
+      isHospitalized: false, // Default até adicionar ao schema
+    };
+  }
+
+  // Treatment History Services - usando crime_history como fallback
+  static async getTreatmentHistory(
+    playerId: string
+  ): Promise<TreatmentHistory[]> {
+    try {
+      const { data, error } = await supabase
+        .from("crime_history")
+        .select("*")
+        .eq("player_id", playerId)
+        .order("created_at", { ascending: false })
+        .limit(10);
+
+      if (error) {
+        console.log(
+          "⚠️ Tabela crime_history não existe, retornando array vazio"
+        );
+        return [];
+      }
+
+      return (
+        data?.map((crime) => ({
+          id: crime.id,
+          type: "crime",
+          value: `Crime reward: $${crime.reward}`,
+          date: crime.created_at,
+          cost: 0,
+        })) || []
+      );
+    } catch (error) {
+      console.log(
+        "⚠️ Erro ao buscar crime_history, retornando array vazio:",
+        error
+      );
+      return [];
+    }
+  }
+
+  // Game Session Services
+  static async getGameSession(playerId: string): Promise<{
+    active_view: string;
+    active_section: string;
+    dismissed_alerts: string[];
+  } | null> {
+    // Por enquanto, retornar valores padrão até a tabela game_sessions ser criada
+    console.log(
+      "⚠️ Tabela game_sessions não existe, retornando valores padrão"
+    );
+    return {
+      active_view: "home",
+      active_section: "home",
+      dismissed_alerts: [],
+    };
+  }
+
   // Shop Services - Temporariamente desabilitado até atualizar os tipos
   static async getShopItems(): Promise<Item[]> {
     // TODO: Implementar quando os tipos do Supabase forem atualizados
@@ -252,7 +347,7 @@ export class SupabaseService {
   }
 
   static async syncGameState(
-    playerId: string,
+    userId: string,
     gameState: {
       player: Player;
       equipped: EquippedItems;
@@ -265,7 +360,7 @@ export class SupabaseService {
     }
   ) {
     // Sync player data
-    await this.updatePlayer(playerId, gameState.player, ""); // TODO: Passar userId correto
+    await this.updatePlayer(gameState.player.id, gameState.player, userId);
 
     // TODO: Implementar sync de game_sessions quando os tipos forem atualizados
   }

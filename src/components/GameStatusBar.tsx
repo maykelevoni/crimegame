@@ -54,7 +54,7 @@ const GameStatusBar: React.FC<GameStatusBarProps> = ({
             />
             <div>
               <h3 className="text-sm font-bold text-white">{playerName}</h3>
-              <p className="text-xs text-cyber-blue">Level 15</p>
+              <p className="text-sm text-purple-400">Reputation {reputation}</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -62,7 +62,7 @@ const GameStatusBar: React.FC<GameStatusBarProps> = ({
               <p className="text-sm font-bold text-green-400">
                 ${money.toLocaleString()}
               </p>
-              <p className="text-xs text-cyber-blue">Money</p>
+              <p className="text-xs text-green-400">Money</p>
             </div>
             {onLogout && (
               <button
@@ -100,14 +100,14 @@ const GameStatusBar: React.FC<GameStatusBarProps> = ({
             <ProgressBar
               current={health}
               max={maxHealth}
-              color="cyber-blue"
+              color="red"
               showText={false}
             />
           </div>
 
           <div className="bg-black/20 rounded p-2">
             <div className="flex items-center justify-between mb-1">
-              <span className="text-xs text-yellow-400">Energy</span>
+              <span className="text-xs text-blue-400">Energy</span>
               <span className="text-xs text-white">
                 {energy}/{maxEnergy}
               </span>
@@ -115,50 +115,36 @@ const GameStatusBar: React.FC<GameStatusBarProps> = ({
             <ProgressBar
               current={energy}
               max={maxEnergy}
-              color="cyber-purple"
+              color="blue"
               showText={false}
             />
           </div>
 
           <div className="bg-black/20 rounded p-2">
             <div className="flex items-center justify-between mb-1">
-              <span className="text-xs text-cyan-400">Addiction</span>
+              <span className="text-xs text-orange-400">Addiction</span>
               <span className="text-xs text-white">{addiction}%</span>
             </div>
             <ProgressBar
               current={addiction}
               max={100}
-              color="cyber-orange"
+              color="orange"
               showText={false}
             />
           </div>
 
           <div className="bg-black/20 rounded p-2">
             <div className="flex items-center justify-between mb-1">
-              <span className="text-xs text-orange-400">Wanted</span>
+              <span className="text-xs text-yellow-400">Wanted</span>
               <span className="text-xs text-white">{wantedLevel}%</span>
             </div>
             <ProgressBar
               current={wantedLevel}
               max={100}
-              color="cyber-orange"
+              color="yellow"
               showText={false}
             />
           </div>
-        </div>
-
-        {/* Reputation */}
-        <div className="mt-2 bg-black/20 rounded p-2">
-          <div className="flex items-center justify-between mb-1">
-            <span className="text-xs text-purple-400">Reputation</span>
-            <span className="text-xs text-white">{reputation}</span>
-          </div>
-          <ProgressBar
-            current={reputation}
-            max={100}
-            color="cyber-purple"
-            showText={false}
-          />
         </div>
       </div>
     );
@@ -177,7 +163,7 @@ const GameStatusBar: React.FC<GameStatusBarProps> = ({
             />
             <div>
               <h3 className="font-bold text-white">{playerName}</h3>
-              <p className="text-sm text-cyber-blue">Level 15</p>
+              <p className="text-sm text-purple-400">Reputation {reputation}</p>
             </div>
           </div>
 
@@ -193,14 +179,14 @@ const GameStatusBar: React.FC<GameStatusBarProps> = ({
               <ProgressBar
                 current={health}
                 max={maxHealth}
-                color="cyber-blue"
+                color="red"
                 showText={false}
               />
             </div>
 
             <div className="text-center">
               <div className="flex items-center justify-between mb-1">
-                <span className="text-sm text-yellow-400">Energy</span>
+                <span className="text-sm text-blue-400">Energy</span>
                 <span className="text-sm text-white">
                   {energy}/{maxEnergy}
                 </span>
@@ -208,7 +194,7 @@ const GameStatusBar: React.FC<GameStatusBarProps> = ({
               <ProgressBar
                 current={energy}
                 max={maxEnergy}
-                color="cyber-purple"
+                color="blue"
                 showText={false}
               />
             </div>
@@ -227,26 +213,26 @@ const GameStatusBar: React.FC<GameStatusBarProps> = ({
           <div className="grid grid-cols-2 gap-3">
             <div className="text-center">
               <div className="flex items-center justify-between mb-1">
-                <span className="text-sm text-cyan-400">Addiction</span>
+                <span className="text-sm text-orange-400">Addiction</span>
                 <span className="text-sm text-white">{addiction}%</span>
               </div>
               <ProgressBar
                 current={addiction}
                 max={100}
-                color="cyber-orange"
+                color="orange"
                 showText={false}
               />
             </div>
 
             <div className="text-center">
               <div className="flex items-center justify-between mb-1">
-                <span className="text-sm text-orange-400">Wanted</span>
+                <span className="text-sm text-yellow-400">Wanted</span>
                 <span className="text-sm text-white">{wantedLevel}%</span>
               </div>
               <ProgressBar
                 current={wantedLevel}
                 max={100}
-                color="cyber-orange"
+                color="yellow"
                 showText={false}
               />
             </div>
@@ -269,7 +255,7 @@ const GameStatusBar: React.FC<GameStatusBarProps> = ({
           />
           <div>
             <h3 className="font-bold text-white text-lg">{playerName}</h3>
-            <p className="text-cyber-blue">Level 15</p>
+            <p className="text-purple-400">Reputation {reputation}</p>
           </div>
         </div>
 
@@ -285,14 +271,14 @@ const GameStatusBar: React.FC<GameStatusBarProps> = ({
             <ProgressBar
               current={health}
               max={maxHealth}
-              color="cyber-blue"
+              color="red"
               showText={false}
             />
           </div>
 
           <div className="text-center">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-yellow-400 font-medium">Energy</span>
+              <span className="text-blue-400 font-medium">Energy</span>
               <span className="text-white">
                 {energy}/{maxEnergy}
               </span>
@@ -300,7 +286,7 @@ const GameStatusBar: React.FC<GameStatusBarProps> = ({
             <ProgressBar
               current={energy}
               max={maxEnergy}
-              color="cyber-purple"
+              color="blue"
               showText={false}
             />
           </div>
@@ -314,39 +300,26 @@ const GameStatusBar: React.FC<GameStatusBarProps> = ({
 
           <div className="text-center">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-cyan-400 font-medium">Addiction</span>
+              <span className="text-orange-400 font-medium">Addiction</span>
               <span className="text-white">{addiction}%</span>
             </div>
             <ProgressBar
               current={addiction}
               max={100}
-              color="cyber-orange"
+              color="orange"
               showText={false}
             />
           </div>
 
           <div className="text-center">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-orange-400 font-medium">Wanted</span>
+              <span className="text-yellow-400 font-medium">Wanted</span>
               <span className="text-white">{wantedLevel}%</span>
             </div>
             <ProgressBar
               current={wantedLevel}
               max={100}
-              color="cyber-orange"
-              showText={false}
-            />
-          </div>
-
-          <div className="text-center">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-purple-400 font-medium">Reputation</span>
-              <span className="text-white">{reputation}</span>
-            </div>
-            <ProgressBar
-              current={reputation}
-              max={100}
-              color="cyber-purple"
+              color="yellow"
               showText={false}
             />
           </div>
