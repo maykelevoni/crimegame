@@ -52,10 +52,7 @@ export const useThrottle = <T extends (...args: unknown[]) => unknown>(
 };
 
 // Hook para lazy loading
-export const useLazyLoad = <T>(
-  data: T[],
-  itemsPerPage: number = 10
-) => {
+export const useLazyLoad = <T>(data: T[], itemsPerPage: number = 10) => {
   const [displayedItems, setDisplayedItems] = useState<T[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
@@ -64,14 +61,14 @@ export const useLazyLoad = <T>(
     const startIndex = 0;
     const endIndex = currentPage * itemsPerPage;
     const newItems = data.slice(startIndex, endIndex);
-    
+
     setDisplayedItems(newItems);
     setHasMore(endIndex < data.length);
   }, [data, currentPage, itemsPerPage]);
 
   const loadMore = useCallback(() => {
     if (hasMore) {
-      setCurrentPage(prev => prev + 1);
+      setCurrentPage((prev) => prev + 1);
     }
   }, [hasMore]);
 
@@ -103,11 +100,11 @@ const depsAreEqual = (
   newDeps: React.DependencyList
 ): boolean => {
   if (oldDeps.length !== newDeps.length) return false;
-  
+
   for (let i = 0; i < oldDeps.length; i++) {
     if (oldDeps[i] !== newDeps[i]) return false;
   }
-  
+
   return true;
 };
 
@@ -148,7 +145,7 @@ export const useShallowEqual = <T>(value: T): T => {
 };
 
 // Função auxiliar para comparação superficial
-const shallowEqual = (obj1: any, obj2: any): boolean => {
+const shallowEqual = (obj1: unknown, obj2: unknown): boolean => {
   if (obj1 === obj2) return true;
 
   if (
@@ -160,13 +157,17 @@ const shallowEqual = (obj1: any, obj2: any): boolean => {
     return false;
   }
 
-  const keys1 = Object.keys(obj1);
-  const keys2 = Object.keys(obj2);
+  const keys1 = Object.keys(obj1 as Record<string, unknown>);
+  const keys2 = Object.keys(obj2 as Record<string, unknown>);
 
   if (keys1.length !== keys2.length) return false;
 
   for (const key of keys1) {
-    if (!keys2.includes(key) || obj1[key] !== obj2[key]) {
+    if (
+      !keys2.includes(key) ||
+      (obj1 as Record<string, unknown>)[key] !==
+        (obj2 as Record<string, unknown>)[key]
+    ) {
       return false;
     }
   }

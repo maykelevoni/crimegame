@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useAuth } from "./hooks/useAuth";
-import { usePlayerContext } from "./contexts/PlayerContext";
+import { usePlayerContext } from "./contexts/usePlayerContext";
 import { PlayerProvider } from "./contexts/PlayerContext";
 import GameStatusBar from "./components/GameStatusBar";
 import { GameInterface } from "./components/GameInterface";

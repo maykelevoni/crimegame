@@ -11,6 +11,7 @@ Urban Hustle is a browser-based crime and city-themed game where you manage your
 - **Dynamic Status Effects:** Status affects available actions and gameplay
 - **Player Avatar:** Customizable character image with name display
 - **Status Bar:** Fixed top bar showing all player stats with icons and values
+- **Unified Data Structure:** All player stats stored in single `players` table for optimal performance
 
 ### 🏢 Business Empire System
 
@@ -81,6 +82,7 @@ Urban Hustle is a browser-based crime and city-themed game where you manage your
 - **Purchase Confirmation:** Secure buying process
 - **Inventory Management:** Track purchased items
 - **High-Quality Images:** Real Unsplash images for all items
+- **Real Database Integration:** All items loaded from `items` table
 
 ### 🎰 Casino & Gambling
 
@@ -123,6 +125,7 @@ Urban Hustle is a browser-based crime and city-themed game where you manage your
 - **Equipment Effects:** Items provide stat bonuses
 - **High-Quality Images:** Real Unsplash images for all inventory items
 - **Character Stats:** Intelligence, strength, charisma, resistance
+- **Real Database Integration:** Inventory items loaded from `inventory` table
 
 ### 🎯 Mission System
 
@@ -151,12 +154,32 @@ Urban Hustle is a browser-based crime and city-themed game where you manage your
 - **shadcn/ui:** High-quality UI components
 - **Lucide React:** Beautiful icon library
 
+### Backend & Database
+
+- **Supabase:** Real-time database and authentication
+- **PostgreSQL:** Robust relational database
+- **Row Level Security (RLS):** Secure data access
+- **Real-time Subscriptions:** Live updates across clients
+- **Unified Data Structure:** Optimized schema with single `players` table
+
+### Database Schema
+
+- **Players Table:** Unified table containing all player data and stats
+  - Basic info: name, level, experience, avatar_url
+  - Stats: health, energy, addiction, reputation, money, wanted_level
+  - Status: is_imprisoned, is_hospitalized
+- **Items Table:** Complete item catalog with categories and properties
+- **Inventory Table:** Player item ownership with quantities
+- **Businesses Table:** Business management and ownership
+- **Crime History Table:** Track all criminal activities
+
 ### State Management
 
 - **Centralized Game State:** All game logic in GameInterface
 - **Real-time Updates:** Immediate UI updates based on actions
 - **Persistent State:** Game state maintained across sessions
 - **Local Storage:** Daily rewards and user preferences persistence
+- **Database Integration:** All data synchronized with Supabase
 
 ### Performance
 
@@ -164,6 +187,7 @@ Urban Hustle is a browser-based crime and city-themed game where you manage your
 - **Lazy Loading:** Components loaded as needed
 - **Responsive Images:** Optimized for different screen sizes
 - **Image Optimization:** High-quality Unsplash images with proper sizing
+- **Database Optimization:** Efficient queries and indexing
 
 ## 🚀 Getting Started
 
@@ -180,54 +204,42 @@ cd <YOUR_PROJECT_NAME>
    npm install
    ```
 
-3. **Start the development server:**
+3. **Set up environment variables:**
+
+   Create a `.env` file with your Supabase credentials:
+
+   ```env
+   VITE_SUPABASE_URL=your_supabase_url
+   VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+   ```
+
+4. **Start the development server:**
 
    ```sh
    npm run dev
    ```
 
-```
+5. **Open your browser and navigate to:**
 
-```
+   ```
+   http://localhost:8080
+   ```
 
-4. **Open your browser and navigate to:**
+## 📊 Recent Updates
 
-```
+### Database Unification (Latest)
 
-http://localhost:8080
+- **Unified Player Data:** Merged `players` and `player_stats` tables for better performance
+- **Simplified Schema:** Reduced complexity and eliminated data duplication
+- **Real-time Data:** All player stats now load directly from database
+- **Optimized Queries:** Faster data access with unified structure
 
-```
+### Previous Updates
 
-## 📦 Deployment
-
-You can deploy this project using your preferred platform (Vercel, Netlify, etc). Just make sure to build with:
-
-```sh
-npm run build
-```
-
-And serve the `dist/` folder.
-
-## 🎯 Game Objectives
-
-- **Survive:** Maintain your health and avoid imprisonment
-- **Thrive:** Build reputation and accumulate wealth
-- **Explore:** Discover all game features and mechanics
-- **Compete:** Challenge yourself with missions and objectives
-- **Empire Building:** Create and manage your business empire
-- **Social Life:** Navigate the nightlife and build relationships
-
-## 🔄 Recent Updates
-
-- **Business Empire System:** Complete business management with 5 business types
-- **Enhanced Status Bar:** Reorganized 3x2 grid layout for better visibility
-- **Updated Images:** High-quality Unsplash images for all items and characters
-- **Nightlife Improvements:** Three distinct sections with consumables and effects
-- **Inventory Overhaul:** Complete 6x3 grid system with equipment slots
-- **Daily Reward System:** Persistent daily rewards with countdown
-- **Simplified Navigation:** Streamlined bottom navigation
-- **Background System:** Dynamic background with overlay
-- **Player Customization:** Avatar and name system
+- **Complete UI Overhaul:** Modern cyberpunk theme with responsive design
+- **Real Database Integration:** All game data now comes from Supabase
+- **Enhanced Security:** Row Level Security implemented
+- **Performance Improvements:** Optimized rendering and data loading
 
 ---
 

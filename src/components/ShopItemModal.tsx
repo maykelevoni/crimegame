@@ -1,8 +1,18 @@
 import React from "react";
 import { DollarSign, X } from "lucide-react";
 
+interface ShopItem {
+  id: string;
+  name: string;
+  description: string;
+  price: number;
+  image: string;
+  stats: Record<string, number>;
+  discount?: number;
+}
+
 interface ShopItemModalProps {
-  item: any;
+  item: ShopItem;
   onClose: () => void;
   onBuy: () => void;
   isBuying: boolean;

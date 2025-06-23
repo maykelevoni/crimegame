@@ -118,12 +118,13 @@ export const usePlayerData = () => {
   }, [user, session, authLoading]);
 
   const updatePlayer = async (updates: Partial<Player>) => {
-    if (!player) return;
+    if (!player || !user) return;
 
     try {
       const updatedPlayer = await SupabaseService.updatePlayer(
         player.id,
-        updates
+        updates,
+        user.id
       );
       setPlayer(updatedPlayer);
     } catch (err) {
@@ -132,22 +133,19 @@ export const usePlayerData = () => {
     }
   };
 
-  const addWeaponToInventory = async (
-    weaponId: string,
-    quantity: number = 1
-  ) => {
+  const addItemToInventory = async (itemId: string, quantity: number = 1) => {
     if (!player) return;
 
     try {
-      await SupabaseService.addWeaponToInventory(player.id, weaponId, quantity);
+      await SupabaseService.addItemToInventory(player.id, itemId, quantity);
 
       // Reload inventory
       const inventoryData = await SupabaseService.getPlayerInventory(player.id);
       setInventory(inventoryData);
     } catch (err) {
-      console.error("Error adding weapon to inventory:", err);
+      console.error("Error adding item to inventory:", err);
       setError(
-        err instanceof Error ? err.message : "Failed to add weapon to inventory"
+        err instanceof Error ? err.message : "Failed to add item to inventory"
       );
     }
   };
@@ -188,14 +186,12 @@ export const usePlayerData = () => {
     }
   };
 
-  const getShopWeapons = async (): Promise<Item[]> => {
+  const getShopItems = async (): Promise<Item[]> => {
     try {
-      return await SupabaseService.getShopWeapons();
+      return await SupabaseService.getShopItems();
     } catch (err) {
-      console.error("Error getting shop weapons:", err);
-      setError(
-        err instanceof Error ? err.message : "Failed to get shop weapons"
-      );
+      console.error("Error getting shop items:", err);
+      setError(err instanceof Error ? err.message : "Failed to get shop items");
       return [];
     }
   };
@@ -207,9 +203,9 @@ export const usePlayerData = () => {
     loading,
     error,
     updatePlayer,
-    addWeaponToInventory,
+    addItemToInventory,
     buyBusiness,
     addCrimeHistory,
-    getShopWeapons,
+    getShopItems,
   };
 };

@@ -3,6 +3,7 @@ import { X, Eye, EyeOff, Loader2 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useGameStore } from "@/stores/gameStore";
 import { SupabaseService } from "@/services/supabaseService";
+import { supabase } from "@/lib/supabase";
 
 interface RegisterModalProps {
   isOpen: boolean;
@@ -70,9 +71,9 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({
 
         console.log("Player created:", player);
 
-        // Create initial player stats
-        await SupabaseService.createPlayerStats({
-          player_id: player.id,
+        // Create player stats
+        await supabase.from("player_stats").insert({
+          player_id: result.data.user.id,
           health: 100,
           max_health: 100,
           energy: 100,
@@ -92,15 +93,15 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({
         console.error("SignUp failed:", result.error);
         alert(`Erro no registro: ${result.error}`);
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Registration error:", error);
       // Mostra o erro detalhado do Supabase se existir
-      if (error && error.message) {
-        alert(`Erro no registro: ${error.message}`);
+      if (error && typeof error === "object" && "message" in error) {
+        alert(`Erro no registro: ${(error as Error).message}`);
       } else if (typeof error === "object") {
         alert(`Erro no registro: ${JSON.stringify(error)}`);
       } else {
-        alert(`Erro no registro: ${error}`);
+        alert(`Erro no registro: ${String(error)}`);
       }
     } finally {
       setIsLoading(false);

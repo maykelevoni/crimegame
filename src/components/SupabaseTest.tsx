@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { usePlayerContext } from "@/contexts/PlayerContext";
+import { usePlayerContext } from "@/contexts/usePlayerContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";

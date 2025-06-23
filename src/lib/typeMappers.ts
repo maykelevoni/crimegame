@@ -7,49 +7,50 @@ import type {
   TreatmentHistory,
 } from "@/types/game";
 
-// Mapeamento de Player
+// Mapeamento de Player (agora unificado com stats)
 export const mapSupabasePlayerToGamePlayer = (
-  supabasePlayer: Tables<"players">
+  supabasePlayer: Record<string, unknown> // Usando Record em vez de any
 ): Player => {
   return {
-    id: supabasePlayer.id,
-    name: supabasePlayer.name,
+    id: supabasePlayer.id as string,
+    name: supabasePlayer.name as string,
     avatarUrl:
-      "https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg", // Default avatar
-    level: supabasePlayer.level,
-    experience: supabasePlayer.experience,
+      (supabasePlayer.avatar_url as string) ||
+      "https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg",
+    level: (supabasePlayer.level as number) || 1,
+    experience: (supabasePlayer.experience as number) || 0,
     stats: {
-      health: 100, // Default values - should be loaded from player_stats
-      maxHealth: 100,
-      energy: supabasePlayer.energy,
-      maxEnergy: supabasePlayer.max_energy,
-      addiction: 0,
-      reputation: 0,
-      money: supabasePlayer.money,
-      wantedLevel: 0,
-      isImprisoned: false,
-      isHospitalized: false,
+      health: (supabasePlayer.health as number) || 100,
+      maxHealth: (supabasePlayer.max_health as number) || 100,
+      energy: (supabasePlayer.energy as number) || 100,
+      maxEnergy: (supabasePlayer.max_energy as number) || 100,
+      addiction: (supabasePlayer.addiction as number) || 0,
+      reputation: (supabasePlayer.reputation as number) || 0,
+      money: (supabasePlayer.money as number) || 1000,
+      wantedLevel: (supabasePlayer.wanted_level as number) || 0,
+      isImprisoned: (supabasePlayer.is_imprisoned as boolean) || false,
+      isHospitalized: (supabasePlayer.is_hospitalized as boolean) || false,
     },
-    createdAt: new Date(supabasePlayer.created_at),
-    updatedAt: new Date(supabasePlayer.updated_at),
+    createdAt: new Date(supabasePlayer.created_at as string),
+    updatedAt: new Date(supabasePlayer.updated_at as string),
   };
 };
 
-// Mapeamento de PlayerStats
+// Mapeamento de PlayerStats (mantido para compatibilidade)
 export const mapSupabasePlayerStatsToGamePlayerStats = (
-  supabaseStats: Tables<"player_stats">
+  supabaseStats: Record<string, unknown> // Usando Record em vez de any
 ): PlayerStats => {
   return {
-    health: supabaseStats.health,
-    maxHealth: supabaseStats.max_health,
-    energy: supabaseStats.energy,
-    maxEnergy: supabaseStats.max_energy,
-    addiction: supabaseStats.addiction,
-    reputation: supabaseStats.reputation,
-    money: supabaseStats.money,
-    wantedLevel: supabaseStats.wanted_level,
-    isImprisoned: supabaseStats.is_imprisoned,
-    isHospitalized: supabaseStats.is_hospitalized,
+    health: supabaseStats.health as number,
+    maxHealth: supabaseStats.max_health as number,
+    energy: supabaseStats.energy as number,
+    maxEnergy: supabaseStats.max_energy as number,
+    addiction: supabaseStats.addiction as number,
+    reputation: supabaseStats.reputation as number,
+    money: supabaseStats.money as number,
+    wantedLevel: supabaseStats.wanted_level as number,
+    isImprisoned: supabaseStats.is_imprisoned as boolean,
+    isHospitalized: supabaseStats.is_hospitalized as boolean,
   };
 };
 
@@ -103,47 +104,51 @@ export const mapSupabaseCrimeHistoryToGameTreatmentHistory = (
 
 // Mapeamentos reversos (Game -> Supabase)
 export const mapGamePlayerToSupabasePlayer = (
-  gamePlayer: Player
-): Omit<Tables<"players">, "id" | "created_at" | "updated_at"> => {
+  gamePlayer: Player,
+  userId: string
+): Record<string, unknown> => {
+  // Usando Record em vez de any
   return {
     name: gamePlayer.name,
+    avatar_url: gamePlayer.avatarUrl,
     level: gamePlayer.level,
     experience: gamePlayer.experience,
+    health: gamePlayer.stats.health,
+    max_health: gamePlayer.stats.maxHealth,
     energy: gamePlayer.stats.energy,
     max_energy: gamePlayer.stats.maxEnergy,
+    addiction: gamePlayer.stats.addiction,
+    reputation: gamePlayer.stats.reputation,
     money: gamePlayer.stats.money,
+    wanted_level: gamePlayer.stats.wantedLevel,
+    is_imprisoned: gamePlayer.stats.isImprisoned,
+    is_hospitalized: gamePlayer.stats.isHospitalized,
+    user_id: userId,
   };
 };
 
-export const mapGamePlayerStatsToSupabasePlayerStats = (
-  gameStats: PlayerStats,
-  playerId: string
-): Omit<Tables<"player_stats">, "id" | "created_at" | "updated_at"> => {
-  return {
-    player_id: playerId,
-    health: gameStats.health,
-    max_health: gameStats.maxHealth,
-    energy: gameStats.energy,
-    max_energy: gameStats.maxEnergy,
-    addiction: gameStats.addiction,
-    reputation: gameStats.reputation,
-    money: gameStats.money,
-    wanted_level: gameStats.wantedLevel,
-    is_imprisoned: gameStats.isImprisoned,
-    is_hospitalized: gameStats.isHospitalized,
-  };
-};
-
-// Helper para criar um novo player no Supabase
+// Helper para criar um novo player no Supabase (agora com todos os stats)
 export const createNewPlayerData = (
-  name: string
-): Omit<Tables<"players">, "id" | "created_at" | "updated_at"> => {
+  name: string,
+  userId: string
+): Record<string, unknown> => {
+  // Usando Record em vez de any
   return {
     name,
-    level: 1, // Começar com level 1
+    avatar_url:
+      "https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg",
+    level: 1,
     experience: 0,
+    health: 100,
+    max_health: 100,
     energy: 100,
     max_energy: 100,
-    money: 0, // Começar com dinheiro 0
+    addiction: 0,
+    reputation: 0,
+    money: 1000,
+    wanted_level: 0,
+    is_imprisoned: false,
+    is_hospitalized: false,
+    user_id: userId,
   };
 };

@@ -28,7 +28,7 @@ import {
   ChefHat,
   User,
 } from "lucide-react";
-import { useGame } from "../GameProvider";
+import { useGame } from "../useGameContext";
 import { usePlayer } from "../../hooks/usePlayer";
 import TopStatusBar from "./TopStatusBar";
 
@@ -85,7 +85,17 @@ const GameLayout = ({
   return (
     <div className="bg-cyber-dark text-white flex flex-col">
       {/* Header */}
-      <TopStatusBar />
+      <TopStatusBar
+        playerName={player.name}
+        health={player.stats.health}
+        maxHealth={player.stats.maxHealth}
+        energy={player.stats.energy}
+        maxEnergy={player.stats.maxEnergy}
+        addiction={player.stats.addiction}
+        reputation={player.stats.reputation}
+        money={player.stats.money}
+        wantedLevel={player.stats.wantedLevel}
+      />
 
       {/* Main Content */}
       <div className="p-4 pb-20">{children}</div>
