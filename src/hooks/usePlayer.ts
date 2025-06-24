@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { mapSupabasePlayerToGamePlayer } from "@/lib/typeMappers";
 import type { Player, PlayerStats } from "@/types/game";
 
 export const usePlayer = (playerId: string) => {
@@ -13,7 +14,7 @@ export const usePlayer = (playerId: string) => {
         .single();
 
       if (error) throw error;
-      return data as Player;
+      return mapSupabasePlayerToGamePlayer(data);
     },
   });
 };
@@ -37,7 +38,7 @@ export const useUpdatePlayer = () => {
         .single();
 
       if (error) throw error;
-      return data as Player;
+      return mapSupabasePlayerToGamePlayer(data);
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["player", data.id] });

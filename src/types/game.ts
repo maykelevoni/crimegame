@@ -16,8 +16,6 @@ export interface Player {
   id: string;
   name: string;
   avatarUrl: string;
-  level: number;
-  experience: number;
   stats: PlayerStats;
   createdAt: Date;
   updatedAt: Date;

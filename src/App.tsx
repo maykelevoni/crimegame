@@ -6,6 +6,7 @@ import { GameInterface } from "./components/GameInterface";
 import { LoginModal } from "./components/auth/LoginModal";
 import { RegisterModal } from "./components/auth/RegisterModal";
 import { LoadingSpinner } from "./components/ui/LoadingSpinner";
+import { Toaster } from "./components/ui/toaster";
 
 function AppContent() {
   const [showLogin, setShowLogin] = useState(false);
@@ -150,6 +151,7 @@ function AppContent() {
         onLogout={handleLogout}
       />
       <GameInterface />
+      <Toaster />
     </div>
   );
 }

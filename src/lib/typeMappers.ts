@@ -17,8 +17,6 @@ export const mapSupabasePlayerToGamePlayer = (
     avatarUrl:
       (supabasePlayer.avatar_url as string) ||
       "https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg",
-    level: (supabasePlayer.level as number) || 1,
-    experience: (supabasePlayer.experience as number) || 0,
     stats: {
       health: (supabasePlayer.health as number) || 100,
       maxHealth: (supabasePlayer.max_health as number) || 100,
@@ -111,8 +109,6 @@ export const mapGamePlayerToSupabasePlayer = (
   return {
     name: gamePlayer.name,
     avatar_url: gamePlayer.avatarUrl,
-    level: gamePlayer.level,
-    experience: gamePlayer.experience,
     health: gamePlayer.stats.health,
     max_health: gamePlayer.stats.maxHealth,
     energy: gamePlayer.stats.energy,
@@ -137,8 +133,6 @@ export const createNewPlayerData = (
     name,
     avatar_url:
       "https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg",
-    level: 1,
-    experience: 0,
     health: 100,
     max_health: 100,
     energy: 100,

@@ -31,8 +31,6 @@ const initialPlayer: Player = {
   id: "",
   name: "",
   avatarUrl: "https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg",
-  level: 1,
-  experience: 0,
   stats: initialPlayerStats,
   createdAt: new Date(),
   updatedAt: new Date(),
@@ -56,7 +54,6 @@ interface GameStore extends GameState {
   // Actions do Player
   updatePlayerStats: (updates: Partial<PlayerStats>) => void;
   updatePlayerMoney: (amount: number) => void;
-  updatePlayerExperience: (exp: number) => void;
   setPlayerImprisoned: (imprisoned: boolean) => void;
   setPlayerHospitalized: (hospitalized: boolean) => void;
 
@@ -126,16 +123,37 @@ export const useGameStore = create<GameStore>()(
 
       // Actions do Player
       updatePlayerStats: (updates) => {
-        set((state) => ({
-          player: {
+        console.log("🔍 Debug - updatePlayerStats chamada com:", updates);
+
+        set((state) => {
+          const newStats = {
+            ...state.player.stats,
+            ...updates,
+          };
+
+          const newPlayer = {
             ...state.player,
-            stats: {
-              ...state.player.stats,
-              ...updates,
-            },
+            stats: newStats,
             updatedAt: new Date(),
-          },
-        }));
+          };
+
+          console.log("🔍 Debug - Estado anterior:", {
+            reputation: state.player.stats.reputation,
+            wantedLevel: state.player.stats.wantedLevel,
+            energy: state.player.stats.energy,
+          });
+
+          console.log("🔍 Debug - Novo estado:", {
+            reputation: newStats.reputation,
+            wantedLevel: newStats.wantedLevel,
+            energy: newStats.energy,
+          });
+
+          return {
+            ...state,
+            player: newPlayer,
+          };
+        });
 
         // Sync to Supabase if online
         if (get().userId && get().isOnline) {
@@ -154,26 +172,6 @@ export const useGameStore = create<GameStore>()(
             updatedAt: new Date(),
           },
         }));
-
-        if (get().userId && get().isOnline) {
-          get().syncGameState();
-        }
-      },
-
-      updatePlayerExperience: (exp) => {
-        set((state) => {
-          const newExperience = state.player.experience + exp;
-          const newLevel = Math.floor(newExperience / 100) + 1;
-
-          return {
-            player: {
-              ...state.player,
-              experience: newExperience,
-              level: newLevel,
-              updatedAt: new Date(),
-            },
-          };
-        });
 
         if (get().userId && get().isOnline) {
           get().syncGameState();
@@ -430,6 +428,13 @@ export const useGameStore = create<GameStore>()(
           const player = await SupabaseService.getPlayerByUserId(userId);
           if (player) {
             console.log("✅ Player encontrado:", player.name);
+            console.log("🔍 Debug - Player stats carregados:", {
+              health: player.stats.health,
+              energy: player.stats.energy,
+              reputation: player.stats.reputation,
+              wantedLevel: player.stats.wantedLevel,
+              money: player.stats.money,
+            });
 
             // Load inventory
             const inventory = await SupabaseService.getPlayerInventory(
@@ -465,8 +470,6 @@ export const useGameStore = create<GameStore>()(
                 id: player.id,
                 name: player.name,
                 avatarUrl: player.avatarUrl,
-                level: player.level,
-                experience: player.experience,
                 stats: {
                   health: player.stats.health,
                   maxHealth: player.stats.maxHealth,
@@ -504,8 +507,6 @@ export const useGameStore = create<GameStore>()(
                 id: newPlayer.id,
                 name: newPlayer.name,
                 avatarUrl: newPlayer.avatarUrl,
-                level: newPlayer.level,
-                experience: newPlayer.experience,
                 stats: {
                   health: newPlayer.stats.health,
                   maxHealth: newPlayer.stats.maxHealth,
@@ -648,8 +649,6 @@ export const useGameStore = create<GameStore>()(
                 id: player.id,
                 name: player.name,
                 avatarUrl: player.avatarUrl,
-                level: player.level,
-                experience: player.experience,
                 stats: {
                   health: player.stats.health,
                   maxHealth: player.stats.maxHealth,
