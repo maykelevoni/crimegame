@@ -105,9 +105,31 @@ export const useAuth = () => {
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
+          // Desabilitar confirmação de email para evitar rate limits
+          data: {
+            email_confirm: true,
+          },
+        },
       });
 
       if (error) {
+        // Tratamento específico para rate limit
+        if (
+          error.message.includes("rate limit") ||
+          error.message.includes("too many requests")
+        ) {
+          const errorMessage =
+            "Limite de tentativas excedido. Aguarde alguns minutos antes de tentar novamente.";
+          setAuthState((prev) => ({
+            ...prev,
+            error: errorMessage,
+            loading: false,
+          }));
+          return { success: false, error: errorMessage };
+        }
+
         setAuthState((prev) => ({
           ...prev,
           error: error.message,

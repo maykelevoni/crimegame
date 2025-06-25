@@ -1,0 +1,443 @@
+{
+  "timestamp": "2025-06-25T22:05:54.042Z",
+  "project_url": "https://mkqwnfofyttnhodafdqe.supabase.co",
+  "tables": {
+    "players": [],
+    "player_stats": [],
+    "items": [
+      {
+        "id": "300335fa-d6f9-40a5-8c8c-bb349a5e47ad",
+        "name": "Pistola Glock",
+        "image": "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400",
+        "type": "weapon",
+        "description": "Pistola semiautomática confiável",
+        "bonus": {
+          "damage": 25,
+          "accuracy": 80
+        },
+        "rarity": "comum",
+        "price": 1500,
+        "stackable": false,
+        "category": "weapons",
+        "available": true,
+        "created_at": "2025-06-21T00:24:16.951054+00:00"
+      },
+      {
+        "id": "857d73d2-cce7-46f0-ab13-86167604f13f",
+        "name": "AK-47",
+        "image": "https://images.unsplash.com/photo-1548883356-5d8c0c0c0c0c?w=400",
+        "type": "weapon",
+        "description": "Rifle de assalto poderoso",
+        "bonus": {
+          "damage": 45,
+          "accuracy": 70
+        },
+        "rarity": "raro",
+        "price": 5000,
+        "stackable": false,
+        "category": "weapons",
+        "available": true,
+        "created_at": "2025-06-21T00:24:16.951054+00:00"
+      },
+      {
+        "id": "6267bd2d-ef3c-4c1c-afca-c698402d9af8",
+        "name": "Sniper Rifle",
+        "image": "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400",
+        "type": "weapon",
+        "description": "Rifle de precisão de longo alcance",
+        "bonus": {
+          "damage": 80,
+          "accuracy": 95
+        },
+        "rarity": "lendario",
+        "price": 12000,
+        "stackable": false,
+        "category": "weapons",
+        "available": true,
+        "created_at": "2025-06-21T00:24:16.951054+00:00"
+      },
+      {
+        "id": "baede7c4-0134-4796-bcac-8d9ccc4abf24",
+        "name": "Baseball Bat",
+        "image": "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400",
+        "type": "weapon",
+        "description": "Taco de baseball para combate corpo a corpo",
+        "bonus": {
+          "damage": 15,
+          "accuracy": 90
+        },
+        "rarity": "comum",
+        "price": 200,
+        "stackable": false,
+        "category": "weapons",
+        "available": true,
+        "created_at": "2025-06-21T00:24:16.951054+00:00"
+      },
+      {
+        "id": "51cba6b7-1c2c-4f6b-8486-3321c5d11b40",
+        "name": "Colete Balístico",
+        "image": "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400",
+        "type": "armor",
+        "description": "Proteção contra tiros",
+        "bonus": {
+          "weight": 5,
+          "defense": 30
+        },
+        "rarity": "raro",
+        "price": 3000,
+        "stackable": false,
+        "category": "armor",
+        "available": true,
+        "created_at": "2025-06-21T00:24:16.951054+00:00"
+      },
+      {
+        "id": "b3e054d1-a67e-4623-a87b-dc03038c0932",
+        "name": "Capacete Militar",
+        "image": "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400",
+        "type": "armor",
+        "description": "Proteção para a cabeça",
+        "bonus": {
+          "weight": 2,
+          "defense": 20
+        },
+        "rarity": "comum",
+        "price": 800,
+        "stackable": false,
+        "category": "armor",
+        "available": true,
+        "created_at": "2025-06-21T00:24:16.951054+00:00"
+      },
+      {
+        "id": "24c0d381-53da-42bf-915e-3b1a306016de",
+        "name": "Jaqueta de Couro",
+        "image": "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400",
+        "type": "style",
+        "description": "Jaqueta estilosa de couro",
+        "bonus": {
+          "style": 15,
+          "reputation": 5
+        },
+        "rarity": "comum",
+        "price": 500,
+        "stackable": false,
+        "category": "clothing",
+        "available": true,
+        "created_at": "2025-06-21T00:24:16.951054+00:00"
+      },
+      {
+        "id": "fbaa0d5c-57d7-4c36-9734-c20c1d276eb6",
+        "name": "Terno Preto",
+        "image": "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400",
+        "type": "style",
+        "description": "Terno elegante para ocasiões especiais",
+        "bonus": {
+          "style": 25,
+          "reputation": 10
+        },
+        "rarity": "raro",
+        "price": 1500,
+        "stackable": false,
+        "category": "clothing",
+        "available": true,
+        "created_at": "2025-06-21T00:24:16.951054+00:00"
+      },
+      {
+        "id": "0c4ffa62-4fed-4491-bee7-6e6c868e20b0",
+        "name": "Relógio de Luxo",
+        "image": "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400",
+        "type": "accessory",
+        "description": "Relógio caro que mostra status",
+        "bonus": {
+          "style": 10,
+          "reputation": 8
+        },
+        "rarity": "raro",
+        "price": 2000,
+        "stackable": false,
+        "category": "accessories",
+        "available": true,
+        "created_at": "2025-06-21T00:24:16.951054+00:00"
+      },
+      {
+        "id": "d63e3c2c-7fcc-473f-ab38-011b4fa5da01",
+        "name": "Óculos Escuros",
+        "image": "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400",
+        "type": "accessory",
+        "description": "Óculos estilosos",
+        "bonus": {
+          "style": 8,
+          "stealth": 5
+        },
+        "rarity": "comum",
+        "price": 300,
+        "stackable": false,
+        "category": "accessories",
+        "available": true,
+        "created_at": "2025-06-21T00:24:16.951054+00:00"
+      },
+      {
+        "id": "2a5b55fc-1cf9-4b76-aeeb-6daf2ac7ac4f",
+        "name": "Bebida Energética",
+        "image": "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400",
+        "type": "consumable",
+        "description": "Restaura energia rapidamente",
+        "bonus": {
+          "energy": 30
+        },
+        "rarity": "comum",
+        "price": 50,
+        "stackable": true,
+        "category": "consumables",
+        "available": true,
+        "created_at": "2025-06-21T00:24:16.951054+00:00"
+      },
+      {
+        "id": "42ac8a5d-c8e4-4a15-b7dc-501c815212fc",
+        "name": "Kit Médico",
+        "image": "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400",
+        "type": "consumable",
+        "description": "Cura ferimentos",
+        "bonus": {
+          "health": 50
+        },
+        "rarity": "comum",
+        "price": 200,
+        "stackable": true,
+        "category": "consumables",
+        "available": true,
+        "created_at": "2025-06-21T00:24:16.951054+00:00"
+      },
+      {
+        "id": "5f0b6d56-bb8b-4322-906a-e2b75399bc22",
+        "name": "Pílula de Adrenalina",
+        "image": "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400",
+        "type": "consumable",
+        "description": "Aumenta temporariamente as habilidades",
+        "bonus": {
+          "speed": 20,
+          "strength": 20
+        },
+        "rarity": "raro",
+        "price": 500,
+        "stackable": true,
+        "category": "consumables",
+        "available": true,
+        "created_at": "2025-06-21T00:24:16.951054+00:00"
+      },
+      {
+        "id": "c6050137-7ef2-40ec-90cd-7a89e1e291f9",
+        "name": "Chip Neural",
+        "image": "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400",
+        "type": "special",
+        "description": "Implante que melhora habilidades",
+        "bonus": {
+          "reaction": 10,
+          "intelligence": 15
+        },
+        "rarity": "lendario",
+        "price": 8000,
+        "stackable": false,
+        "category": "special",
+        "available": true,
+        "created_at": "2025-06-21T00:24:16.951054+00:00"
+      },
+      {
+        "id": "8009be96-a295-48a0-b8fb-7337f0698cb2",
+        "name": "Chave Mestra",
+        "image": "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400",
+        "type": "special",
+        "description": "Abre qualquer fechadura",
+        "bonus": {
+          "lockpicking": 100
+        },
+        "rarity": "raro",
+        "price": 3000,
+        "stackable": false,
+        "category": "special",
+        "available": true,
+        "created_at": "2025-06-21T00:24:16.951054+00:00"
+      },
+      {
+        "id": "936e9d71-eae8-4c2c-9c82-7f7d486b1ca7",
+        "name": "Pistola Desert Eagle",
+        "image": "https://images.unsplash.com/photo-1518717758536-85ae29035b6d?w=150&h=150&fit=crop",
+        "type": "weapon",
+        "description": "Arma de fogo poderosa e confiável",
+        "bonus": {
+          "damage": 45
+        },
+        "rarity": "raro",
+        "price": 2500,
+        "stackable": false,
+        "category": "weapons",
+        "available": true,
+        "created_at": "2025-06-22T23:17:05.784764+00:00"
+      },
+      {
+        "id": "1700266a-bcbf-41d3-81de-d0977d6365b0",
+        "name": "Metralhadora UZI",
+        "image": "https://images.unsplash.com/photo-1468421870903-4df1664ac249?w=150&h=150&fit=crop",
+        "type": "weapon",
+        "description": "Arma automática devastadora",
+        "bonus": {
+          "damage": 75
+        },
+        "rarity": "lendario",
+        "price": 8500,
+        "stackable": false,
+        "category": "weapons",
+        "available": true,
+        "created_at": "2025-06-22T23:17:05.832981+00:00"
+      },
+      {
+        "id": "0abdc550-bef1-426b-aa5b-e9e375eadf8c",
+        "name": "Faca Tática",
+        "image": "https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=150&h=150&fit=crop",
+        "type": "weapon",
+        "description": "Arma branca para combate corpo a corpo",
+        "bonus": {
+          "damage": 25
+        },
+        "rarity": "comum",
+        "price": 800,
+        "stackable": false,
+        "category": "weapons",
+        "available": true,
+        "created_at": "2025-06-22T23:17:05.871566+00:00"
+      },
+      {
+        "id": "46decf8a-684b-4ecf-abc5-2c335600d559",
+        "name": "Taco de Baseball com pregos",
+        "image": "https://images.unsplash.com/photo-1544531586-fde5298cdd40?w=150&h=150&fit=crop",
+        "type": "weapon",
+        "description": "Arma intimidadora e eficiente",
+        "bonus": {
+          "damage": 18
+        },
+        "rarity": "comum",
+        "price": 600,
+        "stackable": false,
+        "category": "weapons",
+        "available": true,
+        "created_at": "2025-06-22T23:17:05.922214+00:00"
+      },
+      {
+        "id": "6dc2b4cb-b639-4c47-9df0-967b4ed61e03",
+        "name": "Colete Militar",
+        "image": "https://images.unsplash.com/photo-1512436991641-6745cdb1723f?w=150&h=150&fit=crop",
+        "type": "armor",
+        "description": "Proteção avançada para missões perigosas",
+        "bonus": {
+          "defense": 60
+        },
+        "rarity": "raro",
+        "price": 3500,
+        "stackable": false,
+        "category": "armor",
+        "available": true,
+        "created_at": "2025-06-22T23:17:06.009169+00:00"
+      },
+      {
+        "id": "9c72cc81-63ad-4d92-87ac-50e82b3a576c",
+        "name": "Cocaína Premium",
+        "image": "https://images.unsplash.com/photo-1587854692152-cbe660dbde88?w=150&h=150&fit=crop",
+        "type": "consumable",
+        "description": "Aumenta temporariamente força e velocidade",
+        "bonus": {
+          "addiction": 10
+        },
+        "rarity": "raro",
+        "price": 500,
+        "stackable": true,
+        "category": "consumables",
+        "available": true,
+        "created_at": "2025-06-22T23:17:06.08977+00:00"
+      },
+      {
+        "id": "c8b783cd-6944-41f4-a5d5-7c11febb3a18",
+        "name": "Colete Leve",
+        "image": "https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=150&h=150&fit=crop",
+        "type": "armor",
+        "description": "Proteção básica contra tiros",
+        "bonus": {
+          "defense": 30
+        },
+        "rarity": "comum",
+        "price": 1200,
+        "stackable": false,
+        "category": "armor",
+        "available": true,
+        "created_at": "2025-06-22T23:17:05.970931+00:00"
+      },
+      {
+        "id": "b41c65a1-7d11-471a-b4ad-1e61854a5e91",
+        "name": "Poção de Vida",
+        "image": "https://images.unsplash.com/photo-1587854692152-cbe660dbde88?w=150&h=150&fit=crop",
+        "type": "consumable",
+        "description": "Restaura 50 pontos de vida",
+        "bonus": {
+          "health": 50
+        },
+        "rarity": "comum",
+        "price": 300,
+        "stackable": true,
+        "category": "consumables",
+        "available": true,
+        "created_at": "2025-06-22T23:17:06.046611+00:00"
+      },
+      {
+        "id": "62196931-0a3b-4d18-a06d-cabbec2e33c2",
+        "name": "Arma Dourada",
+        "image": "https://images.unsplash.com/photo-1518717758536-85ae29035b6d?w=150&h=150&fit=crop",
+        "type": "weapon",
+        "description": "Arma lendária com poder devastador",
+        "bonus": {
+          "damage": 150,
+          "reputation": 50
+        },
+        "rarity": "lendario",
+        "price": 25000,
+        "stackable": false,
+        "category": "special",
+        "available": true,
+        "created_at": "2025-06-22T23:17:06.131009+00:00"
+      }
+    ],
+    "inventory": [],
+    "businesses": [],
+    "treatment_history": [],
+    "game_sessions": []
+  },
+  "summary": {
+    "players": {
+      "count": 0,
+      "status": "empty"
+    },
+    "player_stats": {
+      "count": 0,
+      "status": "error",
+      "message": "relation \"public.player_stats\" does not exist"
+    },
+    "items": {
+      "count": 24,
+      "status": "success"
+    },
+    "inventory": {
+      "count": 0,
+      "status": "empty"
+    },
+    "businesses": {
+      "count": 0,
+      "status": "empty"
+    },
+    "treatment_history": {
+      "count": 0,
+      "status": "error",
+      "message": "relation \"public.treatment_history\" does not exist"
+    },
+    "game_sessions": {
+      "count": 0,
+      "status": "empty"
+    }
+  }
+}

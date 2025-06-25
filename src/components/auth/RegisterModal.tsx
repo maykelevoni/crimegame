@@ -17,7 +17,7 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({
   onSwitchToLogin,
 }) => {
   const [formData, setFormData] = useState({
-    name: "",
+    username: "",
     email: "",
     password: "",
     confirmPassword: "",
@@ -65,7 +65,7 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({
 
         // Create player profile with correct parameters
         const player = await SupabaseService.createPlayer(
-          formData.name,
+          formData.username,
           result.data.user.id
         );
 
@@ -91,13 +91,36 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({
         onClose();
       } else {
         console.error("SignUp failed:", result.error);
-        alert(`Erro no registro: ${result.error}`);
+
+        // Tratamento específico para rate limit
+        if (
+          result.error &&
+          (result.error.includes("rate limit") ||
+            result.error.includes("too many requests"))
+        ) {
+          alert(
+            "Limite de tentativas excedido. Aguarde alguns minutos antes de tentar novamente."
+          );
+        } else {
+          alert(`Erro no registro: ${result.error}`);
+        }
       }
     } catch (error: unknown) {
       console.error("Registration error:", error);
-      // Mostra o erro detalhado do Supabase se existir
+
+      // Tratamento específico para rate limit
       if (error && typeof error === "object" && "message" in error) {
-        alert(`Erro no registro: ${(error as Error).message}`);
+        const errorMessage = (error as Error).message;
+        if (
+          errorMessage.includes("rate limit") ||
+          errorMessage.includes("too many requests")
+        ) {
+          alert(
+            "Limite de tentativas excedido. Aguarde alguns minutos antes de tentar novamente."
+          );
+        } else {
+          alert(`Erro no registro: ${errorMessage}`);
+        }
       } else if (typeof error === "object") {
         alert(`Erro no registro: ${JSON.stringify(error)}`);
       } else {
@@ -140,16 +163,16 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label
-              htmlFor="name"
+              htmlFor="username"
               className="block text-sm font-medium text-cyber-blue mb-2"
             >
               Nome do Jogador
             </label>
             <input
               type="text"
-              id="name"
-              name="name"
-              value={formData.name}
+              id="username"
+              name="username"
+              value={formData.username}
               onChange={handleChange}
               className="w-full bg-black/50 border border-cyber-blue/30 rounded-lg px-4 py-3 text-white placeholder-cyber-blue/50 focus:outline-none focus:border-cyber-blue transition-colors"
               placeholder="Seu nome no jogo"

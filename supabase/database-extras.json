@@ -1,0 +1,62 @@
+{
+  "timestamp": "2025-06-25T22:35:20.803Z",
+  "policies": {
+    "business_types": {
+      "accessible": true,
+      "note": "Tabela acessível - políticas podem estar ativas"
+    },
+    "casino_games": {
+      "accessible": true,
+      "note": "Tabela acessível - políticas podem estar ativas"
+    },
+    "game_sessions": {
+      "accessible": true,
+      "note": "Tabela acessível - políticas podem estar ativas"
+    },
+    "inventory": {
+      "accessible": true,
+      "note": "Tabela acessível - políticas podem estar ativas"
+    },
+    "items": {
+      "accessible": true,
+      "note": "Tabela acessível - políticas podem estar ativas"
+    },
+    "nightlife_characters": {
+      "accessible": true,
+      "note": "Tabela acessível - políticas podem estar ativas"
+    },
+    "nightlife_venues": {
+      "accessible": true,
+      "note": "Tabela acessível - políticas podem estar ativas"
+    },
+    "players": {
+      "accessible": true,
+      "note": "Tabela acessível - políticas podem estar ativas"
+    },
+    "prisoners": {
+      "accessible": true,
+      "note": "Tabela acessível - políticas podem estar ativas"
+    },
+    "robberies": {
+      "accessible": true,
+      "note": "Tabela acessível - políticas podem estar ativas"
+    },
+    "treatments": {
+      "accessible": true,
+      "note": "Tabela acessível - políticas podem estar ativas"
+    }
+  },
+  "indexes": {},
+  "triggers": {},
+  "functions": {},
+  "sequences": {},
+  "foreignKeys": {},
+  "summary": {
+    "totalPolicies": 11,
+    "totalIndexes": 0,
+    "totalTriggers": 0,
+    "totalFunctions": 0,
+    "totalSequences": 0,
+    "totalForeignKeys": 0
+  }
+}

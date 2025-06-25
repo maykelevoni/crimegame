@@ -13,7 +13,10 @@ export const mapSupabasePlayerToGamePlayer = (
 ): Player => {
   return {
     id: supabasePlayer.id as string,
-    name: supabasePlayer.name as string,
+    name:
+      (supabasePlayer.username as string) ||
+      (supabasePlayer.name as string) ||
+      "Player",
     avatarUrl:
       (supabasePlayer.avatar_url as string) ||
       "https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg",
@@ -107,7 +110,7 @@ export const mapGamePlayerToSupabasePlayer = (
 ): Record<string, unknown> => {
   // Usando Record em vez de any
   return {
-    name: gamePlayer.name,
+    username: gamePlayer.name, // Usar username em vez de name
     avatar_url: gamePlayer.avatarUrl,
     health: gamePlayer.stats.health,
     max_health: gamePlayer.stats.maxHealth,
@@ -130,7 +133,7 @@ export const createNewPlayerData = (
 ): Record<string, unknown> => {
   // Usando Record em vez de any
   return {
-    name,
+    username: name, // Usar username em vez de name
     avatar_url:
       "https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg",
     health: 100,

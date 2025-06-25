@@ -1,6 +1,6 @@
-# Integração com Supabase - CrimeGame
+# Integração com Supabase - CrimeDB
 
-Este documento explica como a integração com o Supabase foi implementada no projeto CrimeGame.
+Este documento explica como a integração com o Supabase foi implementada no projeto CrimeDB.
 
 ## 📋 Visão Geral
 

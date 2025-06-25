@@ -1,0 +1,752 @@
+{
+  "timestamp": "2025-06-25T22:28:11.278Z",
+  "tables": {
+    "business_types": {
+      "columns": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "nullable": false,
+          "hasDefault": false
+        },
+        {
+          "name": "name",
+          "type": "text",
+          "nullable": false,
+          "hasDefault": false
+        },
+        {
+          "name": "type",
+          "type": "text",
+          "nullable": false,
+          "hasDefault": false
+        },
+        {
+          "name": "description",
+          "type": "text",
+          "nullable": false,
+          "hasDefault": false
+        },
+        {
+          "name": "base_price",
+          "type": "integer",
+          "nullable": false,
+          "hasDefault": false
+        },
+        {
+          "name": "base_income",
+          "type": "integer",
+          "nullable": false,
+          "hasDefault": false
+        },
+        {
+          "name": "max_level",
+          "type": "integer",
+          "nullable": false,
+          "hasDefault": false
+        },
+        {
+          "name": "upgrade_cost_multiplier",
+          "type": "integer",
+          "nullable": false,
+          "hasDefault": false
+        },
+        {
+          "name": "income_multiplier",
+          "type": "numeric",
+          "nullable": false,
+          "hasDefault": false
+        },
+        {
+          "name": "risk_level",
+          "type": "integer",
+          "nullable": false,
+          "hasDefault": false
+        },
+        {
+          "name": "available",
+          "type": "boolean",
+          "nullable": false,
+          "hasDefault": false
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "nullable": false,
+          "hasDefault": false
+        }
+      ],
+      "sampleData": {
+        "id": "356e65fe-727f-4f25-aa3d-b40c9069b37a",
+        "name": "Restaurante Fast Food",
+        "type": "restaurant",
+        "description": "Restaurante de comida rápida com alto volume de clientes",
+        "base_price": 5000,
+        "base_income": 200,
+        "max_level": 10,
+        "upgrade_cost_multiplier": 1.5,
+        "income_multiplier": 1.2,
+        "risk_level": 1,
+        "available": true,
+        "created_at": "2025-06-23T00:24:22.659662+00:00"
+      },
+      "recordCount": 10
+    },
+    "casino_games": {
+      "columns": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "nullable": false,
+          "hasDefault": false
+        },
+        {
+          "name": "name",
+          "type": "text",
+          "nullable": false,
+          "hasDefault": false
+        },
+        {
+          "name": "description",
+          "type": "text",
+          "nullable": false,
+          "hasDefault": false
+        },
+        {
+          "name": "type",
+          "type": "text",
+          "nullable": false,
+          "hasDefault": false
+        },
+        {
+          "name": "min_bet",
+          "type": "integer",
+          "nullable": false,
+          "hasDefault": false
+        },
+        {
+          "name": "max_bet",
+          "type": "integer",
+          "nullable": false,
+          "hasDefault": false
+        },
+        {
+          "name": "house_edge",
+          "type": "numeric",
+          "nullable": false,
+          "hasDefault": false
+        },
+        {
+          "name": "payout_multiplier",
+          "type": "integer",
+          "nullable": false,
+          "hasDefault": false
+        },
+        {
+          "name": "available",
+          "type": "boolean",
+          "nullable": false,
+          "hasDefault": false
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "nullable": false,
+          "hasDefault": false
+        }
+      ],
+      "sampleData": {
+        "id": "666c108d-0cac-4191-80bf-866a369e4f02",
+        "name": "Slots Básico",
+        "description": "Caça-níquel simples com 3 rolos",
+        "type": "slots",
+        "min_bet": 1,
+        "max_bet": 100,
+        "house_edge": 0.1,
+        "payout_multiplier": 0.9,
+        "available": true,
+        "created_at": "2025-06-23T00:24:22.659662+00:00"
+      },
+      "recordCount": 10
+    },
+    "items": {
+      "columns": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "nullable": false,
+          "hasDefault": false
+        },
+        {
+          "name": "name",
+          "type": "text",
+          "nullable": false,
+          "hasDefault": false
+        },
+        {
+          "name": "image",
+          "type": "text",
+          "nullable": false,
+          "hasDefault": false
+        },
+        {
+          "name": "type",
+          "type": "text",
+          "nullable": false,
+          "hasDefault": false
+        },
+        {
+          "name": "description",
+          "type": "text",
+          "nullable": false,
+          "hasDefault": false
+        },
+        {
+          "name": "bonus",
+          "type": "jsonb",
+          "nullable": false,
+          "hasDefault": false
+        },
+        {
+          "name": "rarity",
+          "type": "text",
+          "nullable": false,
+          "hasDefault": false
+        },
+        {
+          "name": "price",
+          "type": "integer",
+          "nullable": false,
+          "hasDefault": false
+        },
+        {
+          "name": "stackable",
+          "type": "boolean",
+          "nullable": false,
+          "hasDefault": false
+        },
+        {
+          "name": "category",
+          "type": "text",
+          "nullable": false,
+          "hasDefault": false
+        },
+        {
+          "name": "available",
+          "type": "boolean",
+          "nullable": false,
+          "hasDefault": false
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "nullable": false,
+          "hasDefault": false
+        }
+      ],
+      "sampleData": {
+        "id": "300335fa-d6f9-40a5-8c8c-bb349a5e47ad",
+        "name": "Pistola Glock",
+        "image": "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400",
+        "type": "weapon",
+        "description": "Pistola semiautomática confiável",
+        "bonus": {
+          "damage": 25,
+          "accuracy": 80
+        },
+        "rarity": "comum",
+        "price": 1500,
+        "stackable": false,
+        "category": "weapons",
+        "available": true,
+        "created_at": "2025-06-21T00:24:16.951054+00:00"
+      },
+      "recordCount": 10
+    },
+    "nightlife_characters": {
+      "columns": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "nullable": false,
+          "hasDefault": false
+        },
+        {
+          "name": "venue_id",
+          "type": "uuid",
+          "nullable": false,
+          "hasDefault": false
+        },
+        {
+          "name": "name",
+          "type": "text",
+          "nullable": false,
+          "hasDefault": false
+        },
+        {
+          "name": "description",
+          "type": "text",
+          "nullable": false,
+          "hasDefault": false
+        },
+        {
+          "name": "image_url",
+          "type": "text",
+          "nullable": false,
+          "hasDefault": false
+        },
+        {
+          "name": "price",
+          "type": "integer",
+          "nullable": false,
+          "hasDefault": false
+        },
+        {
+          "name": "energy_cost",
+          "type": "integer",
+          "nullable": false,
+          "hasDefault": false
+        },
+        {
+          "name": "effects",
+          "type": "jsonb",
+          "nullable": false,
+          "hasDefault": false
+        },
+        {
+          "name": "available",
+          "type": "boolean",
+          "nullable": false,
+          "hasDefault": false
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "nullable": false,
+          "hasDefault": false
+        }
+      ],
+      "sampleData": {
+        "id": "ba6a7565-ed8d-48d9-8a27-f5efcef913fc",
+        "venue_id": "1e693063-c816-43b4-903d-5eb05722fe49",
+        "name": "Maria",
+        "description": "Garçonete simpática e conversadora",
+        "image_url": "https://images.pexels.com/photos/3184291/pexels-photo-3184291.jpeg",
+        "price": 0,
+        "energy_cost": 0,
+        "effects": {
+          "reputation": 1
+        },
+        "available": true,
+        "created_at": "2025-06-23T00:24:22.659662+00:00"
+      },
+      "recordCount": 10
+    },
+    "nightlife_venues": {
+      "columns": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "nullable": false,
+          "hasDefault": false
+        },
+        {
+          "name": "name",
+          "type": "text",
+          "nullable": false,
+          "hasDefault": false
+        },
+        {
+          "name": "type",
+          "type": "text",
+          "nullable": false,
+          "hasDefault": false
+        },
+        {
+          "name": "description",
+          "type": "text",
+          "nullable": false,
+          "hasDefault": false
+        },
+        {
+          "name": "energy_cost",
+          "type": "integer",
+          "nullable": false,
+          "hasDefault": false
+        },
+        {
+          "name": "money_cost",
+          "type": "integer",
+          "nullable": false,
+          "hasDefault": false
+        },
+        {
+          "name": "health_effect",
+          "type": "integer",
+          "nullable": false,
+          "hasDefault": false
+        },
+        {
+          "name": "energy_effect",
+          "type": "integer",
+          "nullable": false,
+          "hasDefault": false
+        },
+        {
+          "name": "addiction_effect",
+          "type": "integer",
+          "nullable": false,
+          "hasDefault": false
+        },
+        {
+          "name": "reputation_effect",
+          "type": "integer",
+          "nullable": false,
+          "hasDefault": false
+        },
+        {
+          "name": "min_level",
+          "type": "integer",
+          "nullable": false,
+          "hasDefault": false
+        },
+        {
+          "name": "available",
+          "type": "boolean",
+          "nullable": false,
+          "hasDefault": false
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "nullable": false,
+          "hasDefault": false
+        }
+      ],
+      "sampleData": {
+        "id": "1e693063-c816-43b4-903d-5eb05722fe49",
+        "name": "Bar do Zé",
+        "type": "bar",
+        "description": "Bar tradicional com ambiente familiar",
+        "energy_cost": 5,
+        "money_cost": 20,
+        "health_effect": 0,
+        "energy_effect": 10,
+        "addiction_effect": 0,
+        "reputation_effect": 1,
+        "min_level": 1,
+        "available": true,
+        "created_at": "2025-06-23T00:24:22.659662+00:00"
+      },
+      "recordCount": 10
+    },
+    "prisoners": {
+      "columns": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "nullable": false,
+          "hasDefault": false
+        },
+        {
+          "name": "name",
+          "type": "text",
+          "nullable": false,
+          "hasDefault": false
+        },
+        {
+          "name": "description",
+          "type": "text",
+          "nullable": false,
+          "hasDefault": false
+        },
+        {
+          "name": "image_url",
+          "type": "text",
+          "nullable": false,
+          "hasDefault": false
+        },
+        {
+          "name": "crime_type",
+          "type": "text",
+          "nullable": false,
+          "hasDefault": false
+        },
+        {
+          "name": "sentence_days",
+          "type": "integer",
+          "nullable": false,
+          "hasDefault": false
+        },
+        {
+          "name": "release_date",
+          "type": "timestamp with time zone",
+          "nullable": false,
+          "hasDefault": false
+        },
+        {
+          "name": "bribe_cost",
+          "type": "integer",
+          "nullable": false,
+          "hasDefault": false
+        },
+        {
+          "name": "escape_difficulty",
+          "type": "integer",
+          "nullable": false,
+          "hasDefault": false
+        },
+        {
+          "name": "available",
+          "type": "boolean",
+          "nullable": false,
+          "hasDefault": false
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "nullable": false,
+          "hasDefault": false
+        }
+      ],
+      "sampleData": {
+        "id": "228aea4f-0a7b-4fa3-8775-2eac9a5dd68b",
+        "name": "João Silva",
+        "description": "Ladrão de rua com vários pequenos roubos",
+        "image_url": "https://images.pexels.com/photos/3184300/pexels-photo-3184300.jpeg",
+        "crime_type": "Roubo",
+        "sentence_days": 30,
+        "release_date": "2025-07-23T00:24:22.659662+00:00",
+        "bribe_cost": 500,
+        "escape_difficulty": 3,
+        "available": true,
+        "created_at": "2025-06-23T00:24:22.659662+00:00"
+      },
+      "recordCount": 9
+    },
+    "robberies": {
+      "columns": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "nullable": false,
+          "hasDefault": false
+        },
+        {
+          "name": "name",
+          "type": "text",
+          "nullable": false,
+          "hasDefault": false
+        },
+        {
+          "name": "description",
+          "type": "text",
+          "nullable": false,
+          "hasDefault": false
+        },
+        {
+          "name": "type",
+          "type": "text",
+          "nullable": false,
+          "hasDefault": false
+        },
+        {
+          "name": "min_level",
+          "type": "integer",
+          "nullable": false,
+          "hasDefault": false
+        },
+        {
+          "name": "energy_cost",
+          "type": "integer",
+          "nullable": false,
+          "hasDefault": false
+        },
+        {
+          "name": "success_rate",
+          "type": "integer",
+          "nullable": false,
+          "hasDefault": false
+        },
+        {
+          "name": "base_reward",
+          "type": "integer",
+          "nullable": false,
+          "hasDefault": false
+        },
+        {
+          "name": "max_reward",
+          "type": "integer",
+          "nullable": false,
+          "hasDefault": false
+        },
+        {
+          "name": "risk_level",
+          "type": "integer",
+          "nullable": false,
+          "hasDefault": false
+        },
+        {
+          "name": "required_equipment",
+          "type": "jsonb",
+          "nullable": false,
+          "hasDefault": false
+        },
+        {
+          "name": "location",
+          "type": "text",
+          "nullable": false,
+          "hasDefault": false
+        },
+        {
+          "name": "available",
+          "type": "boolean",
+          "nullable": false,
+          "hasDefault": false
+        },
+        {
+          "name": "cooldown_minutes",
+          "type": "integer",
+          "nullable": false,
+          "hasDefault": false
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "nullable": false,
+          "hasDefault": false
+        }
+      ],
+      "sampleData": {
+        "id": "3ea10488-e78e-4a7a-bc0f-b1a029d1a0d8",
+        "name": "Caixa Eletrônico",
+        "description": "Roubar um caixa eletrônico isolado",
+        "type": "bank",
+        "min_level": 2,
+        "energy_cost": 8,
+        "success_rate": 70,
+        "base_reward": 100,
+        "max_reward": 500,
+        "risk_level": 2,
+        "required_equipment": [
+          "weapon",
+          "lockpick"
+        ],
+        "location": "Subúrbios",
+        "available": true,
+        "cooldown_minutes": 30,
+        "created_at": "2025-06-23T00:24:22.659662+00:00"
+      },
+      "recordCount": 10
+    },
+    "treatments": {
+      "columns": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "nullable": false,
+          "hasDefault": false
+        },
+        {
+          "name": "name",
+          "type": "text",
+          "nullable": false,
+          "hasDefault": false
+        },
+        {
+          "name": "description",
+          "type": "text",
+          "nullable": false,
+          "hasDefault": false
+        },
+        {
+          "name": "type",
+          "type": "text",
+          "nullable": false,
+          "hasDefault": false
+        },
+        {
+          "name": "cost",
+          "type": "integer",
+          "nullable": false,
+          "hasDefault": false
+        },
+        {
+          "name": "health_restore",
+          "type": "integer",
+          "nullable": false,
+          "hasDefault": false
+        },
+        {
+          "name": "energy_restore",
+          "type": "integer",
+          "nullable": false,
+          "hasDefault": false
+        },
+        {
+          "name": "addiction_reduction",
+          "type": "integer",
+          "nullable": false,
+          "hasDefault": false
+        },
+        {
+          "name": "wanted_level_reduction",
+          "type": "integer",
+          "nullable": false,
+          "hasDefault": false
+        },
+        {
+          "name": "duration_minutes",
+          "type": "integer",
+          "nullable": false,
+          "hasDefault": false
+        },
+        {
+          "name": "cooldown_minutes",
+          "type": "integer",
+          "nullable": false,
+          "hasDefault": false
+        },
+        {
+          "name": "min_level",
+          "type": "integer",
+          "nullable": false,
+          "hasDefault": false
+        },
+        {
+          "name": "available",
+          "type": "boolean",
+          "nullable": false,
+          "hasDefault": false
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "nullable": false,
+          "hasDefault": false
+        }
+      ],
+      "sampleData": {
+        "id": "8ca9e3ba-f648-4b07-8390-e70aae63ed71",
+        "name": "Curativo Simples",
+        "description": "Tratamento básico para ferimentos leves",
+        "type": "health",
+        "cost": 50,
+        "health_restore": 25,
+        "energy_restore": 0,
+        "addiction_reduction": 0,
+        "wanted_level_reduction": 0,
+        "duration_minutes": 0,
+        "cooldown_minutes": 0,
+        "min_level": 1,
+        "available": true,
+        "created_at": "2025-06-23T00:24:22.659662+00:00"
+      },
+      "recordCount": 10
+    }
+  },
+  "summary": {
+    "totalTables": 8,
+    "tablesWithSchema": 8
+  }
+}
