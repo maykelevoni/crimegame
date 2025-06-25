@@ -409,12 +409,23 @@ export const useGameStore = create<GameStore>()(
 
       // Actions de Supabase
       setUserId: (userId) => {
+        const currentUserId = get().userId;
+
+        // Evitar configuração duplicada
+        if (currentUserId === userId) {
+          return;
+        }
+
+        // Limpar configuração anterior
+        if (currentUserId) {
+          get().clearRealtimeSync();
+        }
+
         set({ userId });
+
         if (userId) {
           get().loadGameData(userId);
-          get().setupRealtimeSync(userId);
-        } else {
-          get().clearRealtimeSync();
+          // setupRealtimeSync será chamado após loadGameData completar
         }
       },
 
@@ -493,6 +504,9 @@ export const useGameStore = create<GameStore>()(
               dismissedAlerts: gameSession?.dismissed_alerts || [],
               syncStatus: "idle",
             }));
+
+            // Setup realtime sync após carregar dados com sucesso
+            get().setupRealtimeSync(userId);
           } else {
             console.log("📝 Criando novo player...");
             const newPlayer = await SupabaseService.createPlayer(
@@ -530,6 +544,9 @@ export const useGameStore = create<GameStore>()(
               dismissedAlerts: [],
               syncStatus: "idle",
             }));
+
+            // Setup realtime sync após criar player com sucesso
+            get().setupRealtimeSync(userId);
           }
         } catch (error) {
           console.error("❌ Erro ao carregar dados do jogo:", error);
@@ -563,6 +580,9 @@ export const useGameStore = create<GameStore>()(
       },
 
       setupRealtimeSync: (userId) => {
+        // Limpar inscrições anteriores primeiro
+        get().clearRealtimeSync();
+
         // Subscribe to player changes
         SupabaseService.subscribeToPlayer(userId, (payload: unknown) => {
           const typedPayload = payload as {
@@ -623,7 +643,11 @@ export const useGameStore = create<GameStore>()(
       },
 
       clearRealtimeSync: () => {
-        supabase.removeAllChannels();
+        try {
+          supabase.removeAllChannels();
+        } catch (error) {
+          console.log("⚠️ Erro ao limpar canais:", error);
+        }
       },
 
       // Actions de Carregamento de Dados
