@@ -20,18 +20,9 @@ import {
 } from "lucide-react";
 import BaseView from "./BaseView";
 import { useGameStore } from "../stores/gameStore";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import type { Item } from "../types/game";
-
-// Tipo local para itens mockados
-interface MockItem {
-  id: string;
-  name: string;
-  image: string;
-  type: string;
-  desc: string;
-  bonus: Record<string, number>;
-  rarity: string;
-}
 
 const STATUS_BASE = {
   intelligence: 50,
@@ -60,190 +51,8 @@ const TYPE_ICONS = {
   special: <Briefcase className="w-4 h-4 text-yellow-400" />,
 };
 
-const ITEMS = [
-  // Armas
-  {
-    id: "pistol",
-    name: "Pistola",
-    image:
-      "https://images.unsplash.com/photo-1518717758536-85ae29035b6d?w=150&h=150&fit=crop",
-    type: "weapon",
-    desc: "Arma confiável para roubos e proteção.",
-    bonus: { strength: 25 },
-    rarity: "raro",
-  },
-  {
-    id: "tactical-knife",
-    name: "Faca Tática",
-    image:
-      "https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=150&h=150&fit=crop",
-    type: "weapon",
-    desc: "Faca especial para combate corpo a corpo.",
-    bonus: { strength: 10, agility: 5 },
-    rarity: "comum",
-  },
-  {
-    id: "uzi",
-    name: "Metralhadora UZI",
-    image:
-      "https://images.unsplash.com/photo-1468421870903-4df1664ac249?w=150&h=150&fit=crop",
-    type: "weapon",
-    desc: "Arma poderosa para situações extremas.",
-    bonus: { strength: 50 },
-    rarity: "lendario",
-  },
-  {
-    id: "baseball-bat",
-    name: "Taco de Baseball com pregos",
-    image:
-      "https://images.unsplash.com/photo-1544531586-fde5298cdd40?w=150&h=150&fit=crop",
-    type: "weapon",
-    desc: "Arma intimidadora e eficiente.",
-    bonus: { strength: 15, intimidation: 5 },
-    rarity: "comum",
-  },
-
-  // Coletes / Proteção
-  {
-    id: "light-vest",
-    name: "Colete Leve",
-    image:
-      "https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=150&h=150&fit=crop",
-    type: "armor",
-    desc: "Proteção básica para situações de risco.",
-    bonus: { resistance: 20 },
-    rarity: "comum",
-  },
-  {
-    id: "military-vest",
-    name: "Colete Militar",
-    image:
-      "https://images.unsplash.com/photo-1512436991641-6745cdb1723f?w=150&h=150&fit=crop",
-    type: "armor",
-    desc: "Proteção avançada para missões perigosas.",
-    bonus: { resistance: 50, agility: -5 },
-    rarity: "raro",
-  },
-  {
-    id: "leather-jacket",
-    name: "Jaqueta de Couro Reforçada",
-    image:
-      "https://images.unsplash.com/photo-1512436991641-6745cdb1723f?w=150&h=150&fit=crop",
-    type: "armor",
-    desc: "Estilo e proteção em um só item.",
-    bonus: { resistance: 15, charisma: 5 },
-    rarity: "comum",
-  },
-
-  // Roupas / Estilo
-  {
-    id: "designer-suit",
-    name: "Terno de Marca",
-    image:
-      "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150&h=150&fit=crop",
-    type: "style",
-    desc: "Elegancia e sofisticação para negociações.",
-    bonus: { charisma: 30 },
-    rarity: "raro",
-  },
-  {
-    id: "neon-jacket",
-    name: "Jaqueta Neon",
-    image:
-      "https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?w=150&h=150&fit=crop",
-    type: "style",
-    desc: "Estilo cyberpunk para festas e baladas.",
-    bonus: { charisma: 10, reputation: 5 },
-    rarity: "comum",
-  },
-  {
-    id: "gold-chain",
-    name: "Corrente de Ouro",
-    image:
-      "https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=150&h=150&fit=crop",
-    type: "style",
-    desc: "Símbolo de status e poder nas ruas.",
-    bonus: { charisma: 20 },
-    rarity: "comum",
-  },
-
-  // Acessórios / Inteligência
-  {
-    id: "hacker-glasses",
-    name: "Óculos de Sol Hacker",
-    image:
-      "https://images.unsplash.com/photo-1519125323398-675f0ddb6308?w=150&h=150&fit=crop",
-    type: "accessory",
-    desc: "Acesso a sistemas e informações privilegiadas.",
-    bonus: { intelligence: 20 },
-    rarity: "raro",
-  },
-  {
-    id: "spy-watch",
-    name: "Relógio Digital Espião",
-    image:
-      "https://images.unsplash.com/photo-1516574187841-cb9cc2ca948b?w=150&h=150&fit=crop",
-    type: "accessory",
-    desc: "Ferramenta essencial para missões de espionagem.",
-    bonus: { intelligence: 10, reputation: 5 },
-    rarity: "comum",
-  },
-  {
-    id: "cloned-tablet",
-    name: "Tablet Clonado",
-    image:
-      "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=150&h=150&fit=crop",
-    type: "accessory",
-    desc: "Acesso a dados e sistemas restritos.",
-    bonus: { intelligence: 25 },
-    rarity: "raro",
-  },
-
-  // Consumíveis
-  {
-    id: "energy-drink",
-    name: "Energético",
-    image:
-      "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=150&h=150&fit=crop",
-    type: "consumable",
-    desc: "Recupera energia rapidamente.",
-    bonus: { energy: 50 },
-    rarity: "comum",
-  },
-  {
-    id: "anti-addiction",
-    name: "Pílula Anti-vício",
-    image:
-      "https://images.unsplash.com/photo-1587854692152-cbe660dbde88?w=150&h=150&fit=crop",
-    type: "consumable",
-    desc: "Reduz o vício temporariamente.",
-    bonus: { addiction: -30 },
-    rarity: "raro",
-  },
-  {
-    id: "medical-dose",
-    name: "Dose Médica",
-    image:
-      "https://images.unsplash.com/photo-1587854692152-cbe660dbde88?w=150&h=150&fit=crop",
-    type: "consumable",
-    desc: "Recupera saúde rapidamente.",
-    bonus: { health: 30 },
-    rarity: "comum",
-  },
-  {
-    id: "sweet-bullet",
-    name: "Bala Doce",
-    image:
-      "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=150&h=150&fit=crop",
-    type: "consumable",
-    desc: "Energia e vício em um só.",
-    bonus: { energy: 10, addiction: 10 },
-    rarity: "comum",
-  },
-];
-
-const FILTERS = [
-  { key: "all", label: "All", icon: <Backpack /> },
+const FILTER_OPTIONS = [
+  { key: "all", label: "All Items", icon: <Backpack /> },
   { key: "weapon", label: "Weapons", icon: <Sword /> },
   { key: "armor", label: "Armor", icon: <Shield /> },
   { key: "style", label: "Style", icon: <Shirt /> },
@@ -253,22 +62,94 @@ const FILTERS = [
 
 export default function ProfileView() {
   const { player } = useGameStore();
-  const reputation = player?.stats?.reputation || 0;
+
+  // Buscar inventário do banco
+  const { data: inventory = [], isLoading: inventoryLoading } = useQuery({
+    queryKey: ["inventory", player?.id],
+    queryFn: async () => {
+      if (!player?.id) return [];
+
+      const { data: inventoryData, error: inventoryError } = await supabase
+        .from("inventory")
+        .select("*")
+        .eq("player_id", player.id);
+
+      if (inventoryError) throw inventoryError;
+
+      // Mapear nomes conhecidos baseado nos UUIDs dos itens mock
+      const itemNames: { [key: string]: string } = {
+        "0abdc550-bef1-426b-aa5b-e9e375eadf8c": "Faca Tática",
+        "300335fa-d6f9-40a5-8c8c-bb349a5e47ad": "Pistola Desert Eagle",
+        "857d73d2-cce7-46f0-ab13-86167604f13f": "Metralhadora UZI",
+        "6267bd2d-ef3c-4c1c-afca-c698402d9af8": "Faca Tática",
+        "fbaa0d5c-57d7-4c36-9734-c20c1d276eb6": "Taco de Baseball",
+        "0c4ffa62-4fed-4491-bee7-6e6c868e20b0": "Colete Leve",
+        "d63e3c2c-7fcc-473f-ab38-011b4fa5da01": "Colete Militar",
+        "2a5b55fc-1cf9-4b76-aeeb-6daf2ac7ac4f": "Poção de Vida",
+        "42ac8a5d-c8e4-4a15-b7dc-501c815212fc": "Bebida Energética",
+        "666c108d-0cac-4191-80bf-866a369e4f02": "Cocaína Premium",
+        "a1b2c3d4-e5f6-7890-abcd-ef1234567890": "Arma Dourada",
+      };
+
+      const itemImages: { [key: string]: string } = {
+        "0abdc550-bef1-426b-aa5b-e9e375eadf8c":
+          "https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=150&h=150&fit=crop",
+        "300335fa-d6f9-40a5-8c8c-bb349a5e47ad":
+          "https://images.unsplash.com/photo-1518717758536-85ae29035b6d?w=150&h=150&fit=crop",
+        "857d73d2-cce7-46f0-ab13-86167604f13f":
+          "https://images.unsplash.com/photo-1468421870903-4df1664ac249?w=150&h=150&fit=crop",
+        "6267bd2d-ef3c-4c1c-afca-c698402d9af8":
+          "https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=150&h=150&fit=crop",
+        "fbaa0d5c-57d7-4c36-9734-c20c1d276eb6":
+          "https://images.unsplash.com/photo-1544531586-fde5298cdd40?w=150&h=150&fit=crop",
+        "0c4ffa62-4fed-4491-bee7-6e6c868e20b0":
+          "https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=150&h=150&fit=crop",
+        "d63e3c2c-7fcc-473f-ab38-011b4fa5da01":
+          "https://images.unsplash.com/photo-1512436991641-6745cdb1723f?w=150&h=150&fit=crop",
+        "2a5b55fc-1cf9-4b76-aeeb-6daf2ac7ac4f":
+          "https://images.unsplash.com/photo-1587854692152-cbe660dbde88?w=150&h=150&fit=crop",
+        "42ac8a5d-c8e4-4a15-b7dc-501c815212fc":
+          "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=150&h=150&fit=crop",
+        "666c108d-0cac-4191-80bf-866a369e4f02":
+          "https://images.unsplash.com/photo-1587854692152-cbe660dbde88?w=150&h=150&fit=crop",
+        "a1b2c3d4-e5f6-7890-abcd-ef1234567890":
+          "https://images.unsplash.com/photo-1518717758536-85ae29035b6d?w=150&h=150&fit=crop",
+      };
+
+      return inventoryData.map((invItem: any) => ({
+        id: invItem.item_id,
+        name:
+          itemNames[invItem.item_id] || `Item ${invItem.item_id.slice(0, 8)}`,
+        description: "Item do inventário",
+        type: "consumable" as const,
+        rarity: "comum" as const,
+        price: 0,
+        image:
+          itemImages[invItem.item_id] ||
+          "https://images.unsplash.com/photo-1587854692152-cbe660dbde88?w=150&h=150&fit=crop",
+        bonus: {},
+        quantity: invItem.quantity,
+        equipped: invItem.equipped,
+      }));
+    },
+    enabled: !!player?.id,
+  });
+
   const [avatar, setAvatar] = useState(
     "https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg"
   );
   const [equipped, setEquipped] = useState<{
-    weapon: MockItem | null;
-    armor: MockItem | null;
-    style: MockItem | null;
-    accessory: MockItem | null;
+    weapon: Item | null;
+    armor: Item | null;
+    style: Item | null;
+    accessory: Item | null;
   }>({
     weapon: null,
     armor: null,
     style: null,
     accessory: null,
   });
-  const [selectedItem, setSelectedItem] = useState<MockItem | null>(null);
+  const [selectedItem, setSelectedItem] = useState<Item | null>(null);
   const [filter, setFilter] = useState("all");
   const [usedMessage, setUsedMessage] = useState("");
   const [usedItemId, setUsedItemId] = useState<string | null>(null);
@@ -295,14 +176,14 @@ export default function ProfileView() {
     }
   });
 
-  // Filtra itens para grade, removendo os consumidos
-  const itemsToShow = ITEMS.filter(
+  // Filtra itens do inventário real, removendo os consumidos
+  const itemsToShow = inventory.filter(
     (item) =>
       (filter === "all" || item.type === filter) &&
       !consumedIds.includes(item.id)
   );
 
-  function handleEquip(item: { id: string; name: string; type: string }) {
+  function handleEquip(item: Item) {
     if (["weapon", "armor", "style", "accessory"].includes(item.type)) {
       setEquipped((prev) => ({ ...prev, [item.type]: item }));
       setSelectedItem(null);
@@ -320,7 +201,7 @@ export default function ProfileView() {
     equipped[selectedItem.type as keyof typeof equipped]?.id ===
       selectedItem.id;
 
-  function handleUse(item: { id: string; name: string }) {
+  function handleUse(item: Item) {
     setUsedMessage(`Você usou: ${item.name}!`);
     setUsedItemId(item.id);
     setConsumedIds((prev) => [...prev, item.id]);
@@ -338,62 +219,10 @@ export default function ProfileView() {
               className="w-16 h-16 rounded-full border-2 border-cyan-400 object-cover"
             />
             <div>
-              <h2 className="text-xl font-bold text-cyan-400">Paidrew</h2>
+              <h2 className="text-xl font-bold text-cyan-400">{player.name}</h2>
               <button className="text-sm text-cyan-400 flex items-center gap-1 hover:underline">
                 <Camera size={14} /> Change photo
               </button>
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <User size={20} className="text-cyan-400" />
-            <span className="text-sm text-cyan-400">
-              Reputation {reputation}
-            </span>
-          </div>
-        </div>
-      </div>
-
-      {/* Player Stats */}
-      <div className="mb-6">
-        <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
-          <TrendingUp size={24} className="text-cyan-400" />
-          Player Stats
-        </h2>
-        <div className="grid grid-cols-2 gap-4">
-          <div className="p-4 bg-cyan-500/10 border border-cyan-500/30 rounded-xl">
-            <div className="flex items-center gap-2 mb-2">
-              <Brain size={16} className="text-cyan-400" />
-              <span className="text-sm text-white/60">Intelligence:</span>
-              <span className="text-cyan-400 font-bold">
-                {status.intelligence || 0}
-              </span>
-            </div>
-          </div>
-          <div className="p-4 bg-green-500/10 border border-green-500/30 rounded-xl">
-            <div className="flex items-center gap-2 mb-2">
-              <Dumbbell size={16} className="text-green-400" />
-              <span className="text-sm text-white/60">Strength:</span>
-              <span className="text-green-400 font-bold">
-                {status.strength || 0}
-              </span>
-            </div>
-          </div>
-          <div className="p-4 bg-pink-500/10 border border-pink-500/30 rounded-xl">
-            <div className="flex items-center gap-2 mb-2">
-              <Smile size={16} className="text-pink-400" />
-              <span className="text-sm text-white/60">Charisma:</span>
-              <span className="text-pink-400 font-bold">
-                {status.charisma || 0}
-              </span>
-            </div>
-          </div>
-          <div className="p-4 bg-yellow-500/10 border border-yellow-500/30 rounded-xl">
-            <div className="flex items-center gap-2 mb-2">
-              <Shield size={16} className="text-yellow-400" />
-              <span className="text-sm text-white/60">Resistance:</span>
-              <span className="text-yellow-400 font-bold">
-                {status.resistance || 0}
-              </span>
             </div>
           </div>
         </div>
@@ -496,7 +325,7 @@ export default function ProfileView() {
           Inventory
         </h2>
         <div className="grid grid-cols-3 gap-2 mb-4">
-          {FILTERS.map((f) => (
+          {FILTER_OPTIONS.map((f) => (
             <button
               key={f.key}
               className={`flex flex-col items-center justify-center gap-1 px-3 py-2 rounded-lg font-semibold transition-all border-2 ${
@@ -517,7 +346,8 @@ export default function ProfileView() {
 
       {/* Inventory Grid */}
       <div className="grid grid-cols-6 gap-2">
-        {itemsToShow.slice(0, 18).map((item, idx) => {
+        {Array.from({ length: 18 }, (_, idx) => {
+          const item = itemsToShow[idx];
           const isEquipped =
             item &&
             equipped[item.type as keyof typeof equipped] &&
@@ -586,7 +416,7 @@ export default function ProfileView() {
               />
               <div className="flex-1">
                 <p className="text-sm text-white/70 mb-2">
-                  {selectedItem.desc}
+                  {selectedItem.description}
                 </p>
                 {selectedItem.bonus && (
                   <div className="flex flex-wrap gap-1">

@@ -21,6 +21,9 @@ import {
   Crown,
   Gem,
   Coins,
+  Plus,
+  Minus,
+  Trash2,
 } from "lucide-react";
 import {
   useShopItems,
@@ -28,8 +31,13 @@ import {
   useBuyMultipleItems,
   ShopItem,
 } from "../hooks/useShop";
-import { useToast } from "../hooks/use-toast";
-import type { CartItem } from "@/types/game";
+import { toast } from "sonner";
+import { useGameStore } from "../stores/gameStore";
+
+interface CartItem {
+  item: ShopItem;
+  quantity: number;
+}
 
 interface ShopViewProps {
   onBack: () => void;
@@ -46,14 +54,7 @@ const ShopView = ({ onBack }: ShopViewProps) => {
   const { data: shopItems = [], isLoading } = useShopItems();
   const buyItemMutation = useBuyItem();
   const buyMultipleItemsMutation = useBuyMultipleItems();
-  const { toast } = useToast();
-
-  // Mock player data - em produção viria do hook usePlayer
-  const player = {
-    id: "mock-player-id",
-    money: 2500,
-    name: "Player",
-  };
+  const { player } = useGameStore();
 
   // Generate shop ID once
   const shopId = useMemo(
@@ -108,49 +109,43 @@ const ShopView = ({ onBack }: ShopViewProps) => {
     return matchesCategory && matchesSearch;
   });
 
-  const totalCartValue = cart.reduce((sum, item) => {
-    const price = item.discount
-      ? item.price * (1 - item.discount / 100)
-      : item.price;
-    return sum + price * (item.qty || 1);
+  const totalCartValue = cart.reduce((sum, cartItem) => {
+    return sum + cartItem.item.price * cartItem.quantity;
   }, 0);
 
   const addToCart = (item: ShopItem) => {
-    const exists = cart.find((i) => i.id === item.id);
+    const exists = cart.find((cartItem) => cartItem.item.id === item.id);
     if (exists) {
       setCart(
-        cart.map((i) =>
-          i.id === item.id ? { ...i, qty: (i.qty || 1) + 1 } : i
+        cart.map((cartItem) =>
+          cartItem.item.id === item.id
+            ? { ...cartItem, quantity: cartItem.quantity + 1 }
+            : cartItem
         )
       );
     } else {
-      setCart([...cart, { ...item, qty: 1 }]);
+      setCart([...cart, { item, quantity: 1 }]);
     }
-    toast({
-      title: "Item adicionado",
-      description: `${item.name} foi adicionado ao carrinho`,
-    });
+    toast.success(`${item.name} foi adicionado ao carrinho`);
   };
 
   const removeFromCart = (itemId: string) => {
-    setCart(cart.filter((item) => item.id !== itemId));
+    setCart(cart.filter((cartItem) => cartItem.item.id !== itemId));
   };
 
   const changeCartQty = (itemId: string, qty: number) => {
     setCart(
-      cart.map((item) =>
-        item.id === itemId ? { ...item, qty: Math.max(1, qty) } : item
+      cart.map((cartItem) =>
+        cartItem.item.id === itemId
+          ? { ...cartItem, quantity: Math.max(1, qty) }
+          : cartItem
       )
     );
   };
 
   const buyItem = async (item: ShopItem) => {
     if (!player?.id) {
-      toast({
-        title: "Erro",
-        description: "Jogador não encontrado",
-        variant: "destructive",
-      });
+      toast.error("Jogador não encontrado");
       return;
     }
 
@@ -161,56 +156,41 @@ const ShopView = ({ onBack }: ShopViewProps) => {
         quantity: 1,
       });
 
-      toast({
-        title: "Compra realizada!",
-        description: `${item.name} foi comprado com sucesso`,
-      });
+      toast.success(`${item.name} foi comprado com sucesso`);
 
       setSelectedItem(null);
     } catch (error) {
-      toast({
-        title: "Erro na compra",
-        description:
-          error instanceof Error ? error.message : "Erro desconhecido",
-        variant: "destructive",
-      });
+      toast.error(error instanceof Error ? error.message : "Erro desconhecido");
     }
   };
 
   const buyCart = async () => {
     if (!player?.id) {
-      toast({
-        title: "Erro",
-        description: "Jogador não encontrado",
-        variant: "destructive",
-      });
+      toast.error("Jogador não encontrado");
       return;
     }
 
     try {
       const items = cart.map((item) => ({
-        itemId: item.id,
-        quantity: item.qty || 1,
+        itemId: item.item.id,
+        quantity: item.quantity,
       }));
+
       await buyMultipleItemsMutation.mutateAsync({
         playerId: player.id,
         items,
       });
 
-      toast({
-        title: "Compra realizada!",
-        description: `${cart.length} itens foram comprados com sucesso`,
-      });
+      console.log("🎉 Compra realizada, mostrando notificação...");
+
+      toast.success(
+        `Compra realizada! ${cart.length} itens adicionados ao inventário`
+      );
 
       setCart([]);
       setShowCart(false);
     } catch (error) {
-      toast({
-        title: "Erro na compra",
-        description:
-          error instanceof Error ? error.message : "Erro desconhecido",
-        variant: "destructive",
-      });
+      toast.error(error instanceof Error ? error.message : "Erro desconhecido");
     }
   };
 
@@ -320,12 +300,14 @@ const ShopView = ({ onBack }: ShopViewProps) => {
       </div>
 
       {/* Modais */}
-      <ShopItemModal
-        item={selectedItem}
-        onClose={() => setSelectedItem(null)}
-        onBuy={() => selectedItem && addToCart(selectedItem)}
-        isBuying={false}
-      />
+      {selectedItem && (
+        <ShopItemModal
+          item={selectedItem}
+          onClose={() => setSelectedItem(null)}
+          onBuy={() => selectedItem && addToCart(selectedItem)}
+          isBuying={false}
+        />
+      )}
       {showCart && (
         <ShopCartModal
           cart={cart}

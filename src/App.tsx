@@ -151,7 +151,12 @@ function AppContent() {
         onLogout={handleLogout}
       />
       <GameInterface />
-      <Toaster />
+      <Toaster
+        position="bottom-right"
+        duration={3000}
+        closeButton={true}
+        richColors={true}
+      />
     </div>
   );
 }

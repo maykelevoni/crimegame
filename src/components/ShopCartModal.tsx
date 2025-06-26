@@ -1,9 +1,9 @@
 import React from "react";
 import { ShoppingCart, X } from "lucide-react";
-import { ShopItem } from "../hooks/useShop";
+import type { CartItem } from "../types/game";
 
 interface ShopCartModalProps {
-  cart: (ShopItem & { qty?: number })[];
+  cart: CartItem[];
   onClose: () => void;
   onRemove: (id: string) => void;
   onChangeQty: (id: string, qty: number) => void;
@@ -48,49 +48,53 @@ export default function ShopCartModal({
           </div>
         ) : (
           <div className="space-y-4">
-            {cart.map((item, index) => (
+            {cart.map((cartItem, index) => (
               <div
-                key={`${item.id}-${index}`}
+                key={`${cartItem.item.id}-${index}`}
                 className="flex items-center justify-between p-3 bg-cyber-blue/10 rounded-lg"
               >
                 <div className="flex items-center gap-3">
                   <img
-                    src={item.image}
-                    alt={item.name}
+                    src={cartItem.item.image}
+                    alt={cartItem.item.name}
                     className="w-12 h-12 object-contain drop-shadow"
                     loading="lazy"
                     draggable={false}
                   />
                   <div>
-                    <h3 className="font-semibold text-sm">{item.name}</h3>
+                    <h3 className="font-semibold text-sm">
+                      {cartItem.item.name}
+                    </h3>
                     <p className="text-xs text-white/60">
-                      $
-                      {item.discount
-                        ? Math.round(item.price * (1 - item.discount / 100))
-                        : item.price}
+                      ${cartItem.item.price}
                     </p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() =>
-                      onChangeQty(item.id, Math.max(1, (item.qty || 1) - 1))
+                      onChangeQty(
+                        cartItem.item.id,
+                        Math.max(1, cartItem.quantity - 1)
+                      )
                     }
                     className="px-2 py-1 bg-cyber-blue/20 rounded text-cyber-blue font-bold"
                     aria-label="Diminuir quantidade"
                   >
                     -
                   </button>
-                  <span className="w-6 text-center">{item.qty || 1}</span>
+                  <span className="w-6 text-center">{cartItem.quantity}</span>
                   <button
-                    onClick={() => onChangeQty(item.id, (item.qty || 1) + 1)}
+                    onClick={() =>
+                      onChangeQty(cartItem.item.id, cartItem.quantity + 1)
+                    }
                     className="px-2 py-1 bg-cyber-blue/20 rounded text-cyber-blue font-bold"
                     aria-label="Aumentar quantidade"
                   >
                     +
                   </button>
                   <button
-                    onClick={() => onRemove(item.id)}
+                    onClick={() => onRemove(cartItem.item.id)}
                     className="p-1 rounded bg-red-500/20 hover:bg-red-500/30 transition-colors focus:outline-none focus:ring-2 focus:ring-red-500"
                     aria-label="Remover do carrinho"
                   >

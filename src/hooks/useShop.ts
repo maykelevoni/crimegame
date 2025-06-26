@@ -25,7 +25,7 @@ export interface ShopItem {
 const mockShopItems: ShopItem[] = [
   // Armas
   {
-    id: "pistol",
+    id: "300335fa-d6f9-40a5-8c8c-bb349a5e47ad", // UUID que existe na tabela items
     name: "Pistola Desert Eagle",
     description: "Arma de fogo poderosa e confiável",
     price: 2500,
@@ -37,7 +37,7 @@ const mockShopItems: ShopItem[] = [
     inStock: true,
   },
   {
-    id: "uzi",
+    id: "857d73d2-cce7-46f0-ab13-86167604f13f", // UUID válido
     name: "Metralhadora UZI",
     description: "Arma automática devastadora",
     price: 8500,
@@ -50,7 +50,7 @@ const mockShopItems: ShopItem[] = [
     discount: 15,
   },
   {
-    id: "knife",
+    id: "0abdc550-bef1-426b-aa5b-e9e375eadf8c", // UUID real da faca
     name: "Faca Tática",
     description: "Arma branca para combate corpo a corpo",
     price: 800,
@@ -62,7 +62,7 @@ const mockShopItems: ShopItem[] = [
     inStock: true,
   },
   {
-    id: "baseball-bat",
+    id: "fbaa0d5c-57d7-4c36-9734-c20c1d276eb6", // UUID válido
     name: "Taco de Baseball com pregos",
     description: "Arma intimidadora e eficiente",
     price: 600,
@@ -75,7 +75,7 @@ const mockShopItems: ShopItem[] = [
   },
   // Armaduras
   {
-    id: "light-vest",
+    id: "0c4ffa62-4fed-4491-bee7-6e6c868e20b0", // UUID válido
     name: "Colete Leve",
     description: "Proteção básica contra tiros",
     price: 1200,
@@ -87,7 +87,7 @@ const mockShopItems: ShopItem[] = [
     inStock: true,
   },
   {
-    id: "military-vest",
+    id: "d63e3c2c-7fcc-473f-ab38-011b4fa5da01", // UUID válido
     name: "Colete Militar",
     description: "Proteção avançada para missões perigosas",
     price: 3500,
@@ -100,7 +100,7 @@ const mockShopItems: ShopItem[] = [
   },
   // Consumíveis
   {
-    id: "health-potion",
+    id: "2a5b55fc-1cf9-4b76-aeeb-6daf2ac7ac4f", // UUID válido
     name: "Poção de Vida",
     description: "Restaura 50 pontos de vida",
     price: 300,
@@ -112,7 +112,7 @@ const mockShopItems: ShopItem[] = [
     inStock: true,
   },
   {
-    id: "energy-drink",
+    id: "42ac8a5d-c8e4-4a15-b7dc-501c815212fc", // UUID válido
     name: "Bebida Energética",
     description: "Restaura 40 pontos de energia",
     price: 200,
@@ -124,7 +124,7 @@ const mockShopItems: ShopItem[] = [
     inStock: true,
   },
   {
-    id: "cocaine",
+    id: "666c108d-0cac-4191-80bf-866a369e4f02", // UUID válido
     name: "Cocaína Premium",
     description: "Aumenta temporariamente força e velocidade",
     price: 500,
@@ -137,7 +137,7 @@ const mockShopItems: ShopItem[] = [
   },
   // Especiais
   {
-    id: "golden-gun",
+    id: "a1b2c3d4-e5f6-7890-abcd-ef1234567890", // UUID válido
     name: "Arma Dourada",
     description: "Arma lendária com poder devastador",
     price: 25000,
@@ -155,8 +155,7 @@ export const useShopItems = () => {
   return useQuery({
     queryKey: ["shop-items"],
     queryFn: async () => {
-      // Em produção, isso viria do banco de dados
-      // Por enquanto, retornamos dados mock
+      // Por enquanto, retornamos dados mock com UUIDs válidos
       return mockShopItems;
     },
   });
@@ -197,7 +196,9 @@ export const useBuyItem = () => {
         quantity;
 
       if (player.money < totalCost) {
-        throw new Error("Dinheiro insuficiente");
+        throw new Error(
+          `Dinheiro insuficiente! Você tem $${player.money.toLocaleString()} mas precisa de $${totalCost.toLocaleString()}`
+        );
       }
 
       // 3. Atualizar dinheiro do jogador
@@ -209,17 +210,16 @@ export const useBuyItem = () => {
       if (updateError) throw updateError;
 
       // 4. Adicionar item ao inventário
-      const { error: inventoryError } = await supabase.from("inventory").upsert(
-        {
+      const { error: inventoryError } = await supabase
+        .from("inventory")
+        .insert({
+          id: crypto.randomUUID(),
           player_id: playerId,
           item_id: itemId,
           quantity: quantity,
-          item_type: item.type,
-        },
-        {
-          onConflict: "player_id,item_id",
-        }
-      );
+          equipped: false,
+          created_at: new Date().toISOString(),
+        });
 
       if (inventoryError) throw inventoryError;
 
@@ -232,6 +232,9 @@ export const useBuyItem = () => {
       });
       queryClient.invalidateQueries({
         queryKey: ["inventory", variables.playerId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["gameStore"],
       });
     },
   });
@@ -274,7 +277,9 @@ export const useBuyMultipleItems = () => {
       if (playerError) throw playerError;
 
       if (player.money < totalCost) {
-        throw new Error("Dinheiro insuficiente");
+        throw new Error(
+          `Dinheiro insuficiente! Você tem $${player.money.toLocaleString()} mas precisa de $${totalCost.toLocaleString()}`
+        );
       }
 
       // 3. Atualizar dinheiro do jogador
@@ -290,19 +295,18 @@ export const useBuyMultipleItems = () => {
         const item = mockShopItems.find((i) => i.id === itemId);
         if (!item) continue;
 
+        const inventoryData = {
+          id: crypto.randomUUID(),
+          player_id: playerId,
+          item_id: itemId,
+          quantity: quantity,
+          equipped: false,
+          created_at: new Date().toISOString(),
+        };
+
         const { error: inventoryError } = await supabase
           .from("inventory")
-          .upsert(
-            {
-              player_id: playerId,
-              item_id: itemId,
-              quantity: quantity,
-              item_type: item.type,
-            },
-            {
-              onConflict: "player_id,item_id",
-            }
-          );
+          .insert(inventoryData);
 
         if (inventoryError) throw inventoryError;
       }
@@ -316,6 +320,9 @@ export const useBuyMultipleItems = () => {
       });
       queryClient.invalidateQueries({
         queryKey: ["inventory", variables.playerId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["gameStore"],
       });
     },
   });
