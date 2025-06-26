@@ -227,7 +227,13 @@ export function GameInterface() {
   };
 
   const renderView = () => {
+    console.log("🏥 DEBUG: Verificando status de hospitalização...");
+    console.log("isImprisoned:", player.stats.isImprisoned);
+    console.log("isHospitalized:", player.stats.isHospitalized);
+    console.log("activeView:", activeView);
+
     if (player.stats.isImprisoned) {
+      console.log("🔒 DEBUG: Jogador está na prisão");
       return (
         <PrisonView
           isPlayerImprisoned={true}
@@ -251,6 +257,9 @@ export function GameInterface() {
     }
 
     if (player.stats.isHospitalized) {
+      console.log(
+        "🏥 DEBUG: Jogador está hospitalizado - mostrando HospitalView"
+      );
       return (
         <HospitalView
           isPlayerHospitalized={true}
@@ -261,6 +270,11 @@ export function GameInterface() {
         />
       );
     }
+
+    console.log(
+      "🏠 DEBUG: Jogador está livre - mostrando view normal:",
+      activeView
+    );
 
     switch (activeView) {
       case "home":

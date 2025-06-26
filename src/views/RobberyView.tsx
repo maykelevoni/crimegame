@@ -182,38 +182,6 @@ const RobberyView = () => {
 
   return (
     <BaseView title="Robbery & Heists">
-      {/* Test Button - Restore Energy */}
-      <div className="mb-4 flex gap-2">
-        <button
-          onClick={async () => {
-            if (player?.id) {
-              try {
-                await supabase
-                  .from("players")
-                  .update({
-                    energy: 100,
-                    updated_at: new Date().toISOString(),
-                  })
-                  .eq("id", player.id);
-
-                toast.success("Energy restored to 100!");
-                // Force reload player data without page reload
-                const store = useGameStore.getState();
-                if (store.userId) {
-                  await store.loadGameData(store.userId);
-                }
-              } catch (error) {
-                toast.error("Failed to restore energy");
-                console.error(error);
-              }
-            }
-          }}
-          className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors"
-        >
-          🔋 Restore Energy to 100 (Test)
-        </button>
-      </div>
-
       {/* Available Heists */}
       <div>
         <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
