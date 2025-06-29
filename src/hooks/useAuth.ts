@@ -106,11 +106,8 @@ export const useAuth = () => {
         email,
         password,
         options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback`,
-          // Desabilitar confirmação de email para evitar rate limits
-          data: {
-            email_confirm: true,
-          },
+          // Enable email confirmation for security
+          emailRedirectTo: `${window.location.origin}/auth/confirm`,
         },
       });
 

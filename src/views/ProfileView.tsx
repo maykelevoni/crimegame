@@ -116,10 +116,19 @@ export default function ProfileView() {
           "https://images.unsplash.com/photo-1518717758536-85ae29035b6d?w=150&h=150&fit=crop",
       };
 
-      return inventoryData.map((invItem: any) => ({
-        id: invItem.item_id,
+      interface InventoryItem {
+        id: string;
+        player_id: string;
+        quantity: number;
+        weapon_id: string | null;
+        created_at: string;
+        updated_at: string;
+      }
+
+      return inventoryData.map((invItem: InventoryItem) => ({
+        id: invItem.id,
         name:
-          itemNames[invItem.item_id] || `Item ${invItem.item_id.slice(0, 8)}`,
+          itemNames[invItem.id] || `Item ${invItem.id.slice(0, 8)}`,
         description: "Item do inventário",
         type: "consumable" as const,
         rarity: "comum" as const,

@@ -37,7 +37,7 @@ export const useBusinessTypes = () => {
     queryKey: ["business-types"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("business_types" as any)
+        .from("businesses")
         .select("*")
         .eq("available", true)
         .order("base_price", { ascending: true });
@@ -53,13 +53,8 @@ export const usePlayerBusinesses = (playerId: string) => {
     queryKey: ["player-businesses", playerId],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("player_businesses" as any)
-        .select(
-          `
-          *,
-          business_types (*)
-        `
-        )
+        .from("businesses")
+        .select("*")
         .eq("player_id", playerId);
 
       if (error) throw error;
@@ -82,7 +77,7 @@ export const useBuyBusiness = () => {
     }) => {
       // Get business type and player data
       const { data: businessType, error: businessError } = await supabase
-        .from("business_types" as any)
+        .from("businesses")
         .select("*")
         .eq("id", businessTypeId)
         .single();
@@ -116,7 +111,7 @@ export const useBuyBusiness = () => {
 
       // Create player business
       const { data: newBusiness, error: businessCreateError } = await supabase
-        .from("player_businesses" as any)
+        .from("businesses")
         .insert({
           player_id: playerId,
           business_type_id: businessTypeId,
@@ -127,7 +122,7 @@ export const useBuyBusiness = () => {
         .select(
           `
           *,
-          business_types (*)
+          *
         `
         )
         .single();
@@ -160,7 +155,7 @@ export const useCollectBusinessIncome = () => {
     }) => {
       // Get business data
       const { data: business, error: businessError } = await supabase
-        .from("player_businesses" as any)
+        .from("businesses")
         .select("*")
         .eq("id", businessId)
         .eq("player_id", playerId)
@@ -201,7 +196,7 @@ export const useCollectBusinessIncome = () => {
       if (updateError) throw updateError;
 
       const { error: businessUpdateError } = await supabase
-        .from("player_businesses" as any)
+        .from("businesses")
         .update({ last_collected: now.toISOString() })
         .eq("id", businessId);
 

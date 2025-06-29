@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { X, Eye, EyeOff, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 import { useGameStore } from "@/stores/gameStore";
 
@@ -22,13 +23,51 @@ export const LoginModal: React.FC<LoginModalProps> = ({
   const { signIn, error, clearError } = useAuth();
   const { setUserId } = useGameStore();
 
+  // Input sanitization function
+  const sanitizeInput = (input: string): string => {
+    return input
+      .trim()
+      .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '') // Remove script tags
+      .replace(/[<>]/g, '') // Remove < and > characters
+      .replace(/javascript:/gi, '') // Remove javascript: protocol
+      .replace(/on\w+\s*=/gi, ''); // Remove event handlers
+  };
+
+  // Email validation function
+  const isValidEmail = (email: string): boolean => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email) && email.length <= 254;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     clearError();
 
+    // Input validation
+    if (!email.trim()) {
+      toast.error("Email é obrigatório!");
+      setIsLoading(false);
+      return;
+    }
+
+    if (!isValidEmail(email)) {
+      toast.error("Por favor, digite um email válido!");
+      setIsLoading(false);
+      return;
+    }
+
+    if (!password.trim()) {
+      toast.error("Senha é obrigatória!");
+      setIsLoading(false);
+      return;
+    }
+
+    // Sanitize inputs
+    const sanitizedEmail = sanitizeInput(email);
+    
     try {
-      const result = await signIn(email, password);
+      const result = await signIn(sanitizedEmail, password);
       if (result.success) {
         setUserId(result.data?.user?.id || null);
         onClose();

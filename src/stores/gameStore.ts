@@ -449,12 +449,16 @@ export const useGameStore = create<GameStore>()(
 
             // Load inventory
             const inventory = await SupabaseService.getPlayerInventory(
-              player.id
+              player.id,
+              userId
             );
             console.log("✅ Inventário carregado:", inventory.length, "itens");
 
             // Load businesses
-            const businesses = await SupabaseService.getPlayerBusinesses();
+            const businesses = await SupabaseService.getPlayerBusinesses(
+              player.id,
+              userId
+            );
             console.log(
               "✅ Negócios carregados:",
               businesses.length,
@@ -463,7 +467,8 @@ export const useGameStore = create<GameStore>()(
 
             // Load treatment history
             const treatmentHistory = await SupabaseService.getTreatmentHistory(
-              player.id
+              player.id,
+              userId
             );
             console.log(
               "✅ Histórico de tratamento carregado:",

@@ -1,6 +1,9 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useGameStore } from "@/stores/gameStore";
+import { SupabaseService } from "@/services/supabaseService";
+import { useAuth } from "@/hooks/useAuth";
+import { toast } from "sonner";
 
 export interface Robbery {
   id: string;
@@ -8,74 +11,100 @@ export interface Robbery {
   description: string;
   type: "store" | "bank" | "jewelry" | "warehouse" | "mansion" | "casino";
   min_level: number;
-  energy_cost: number;
-  health_cost: number;
   success_rate: number;
   base_reward: number;
   max_reward: number;
+  energy_cost: number;
+  health_cost: number;
   risk_level: number;
-  required_equipment: string[];
-  location: string;
-  available: boolean;
-  cooldown_minutes: number;
-  created_at: string;
+  image_url: string;
 }
 
-// Mock data for robberies until database is properly set up
+// Mock data for robbery types (to be replaced with database queries)
 const mockRobberies: Robbery[] = [
   {
     id: "1",
     name: "Convenience Store",
-    description: "A small convenience store with basic security",
+    description: "A quick and easy robbery with low risk",
     type: "store",
     min_level: 0,
-    energy_cost: 10,
-    health_cost: 0,
     success_rate: 70,
     base_reward: 50,
-    max_reward: 200,
+    max_reward: 150,
+    energy_cost: 5,
+    health_cost: 10,
     risk_level: 1,
-    required_equipment: ["lockpick"],
-    location: "Downtown",
-    available: true,
-    cooldown_minutes: 30,
-    created_at: new Date().toISOString(),
+    image_url: "https://images.unsplash.com/photo-1555636222-cae831e670b3?w=150&h=150&fit=crop",
   },
   {
     id: "2",
-    name: "Gas Station",
-    description: "A gas station with minimal security",
-    type: "store",
-    min_level: 2,
-    energy_cost: 15,
-    health_cost: 5,
-    success_rate: 65,
-    base_reward: 75,
-    max_reward: 300,
-    risk_level: 1,
-    required_equipment: ["lockpick"],
-    location: "Suburbs",
-    available: true,
-    cooldown_minutes: 30,
-    created_at: new Date().toISOString(),
+    name: "Bank",
+    description: "High stakes robbery with massive rewards",
+    type: "bank",
+    min_level: 10,
+    success_rate: 25,
+    base_reward: 500,
+    max_reward: 2000,
+    energy_cost: 20,
+    health_cost: 25,
+    risk_level: 5,
+    image_url: "https://images.unsplash.com/photo-1541354329998-f4d9a9f9297f?w=150&h=150&fit=crop",
   },
   {
     id: "3",
     name: "Jewelry Store",
-    description: "A jewelry store with better security",
+    description: "Steal valuable diamonds and gold",
     type: "jewelry",
     min_level: 5,
-    energy_cost: 25,
-    health_cost: 20,
     success_rate: 50,
     base_reward: 200,
     max_reward: 800,
+    energy_cost: 10,
+    health_cost: 15,
+    risk_level: 3,
+    image_url: "https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=150&h=150&fit=crop",
+  },
+  {
+    id: "4",
+    name: "Warehouse",
+    description: "Loot valuable cargo from a warehouse",
+    type: "warehouse",
+    min_level: 8,
+    success_rate: 60,
+    base_reward: 300,
+    max_reward: 1000,
+    energy_cost: 15,
+    health_cost: 20,
     risk_level: 2,
-    required_equipment: ["lockpick", "crowbar"],
-    location: "Mall District",
-    available: true,
-    cooldown_minutes: 30,
-    created_at: new Date().toISOString(),
+    image_url: "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=150&h=150&fit=crop",
+  },
+  {
+    id: "5",
+    name: "Mansion",
+    description: "Rob a wealthy mansion with luxury items",
+    type: "mansion",
+    min_level: 15,
+    success_rate: 35,
+    base_reward: 800,
+    max_reward: 3000,
+    energy_cost: 25,
+    health_cost: 30,
+    risk_level: 4,
+    image_url: "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=150&h=150&fit=crop",
+  },
+  {
+    id: "6",
+    name: "Casino",
+    description: "The ultimate heist - rob the casino vault",
+    type: "casino",
+    min_level: 25,
+    success_rate: 15,
+    base_reward: 2000,
+    max_reward: 10000,
+    energy_cost: 35,
+    health_cost: 40,
+    risk_level: 6,
+    image_url: "https://images.unsplash.com/photo-1596838132731-3301c3fd4317?w=150&h=150&fit=crop",
   },
 ];
 
@@ -83,6 +112,7 @@ export const useRobberies = () => {
   return useQuery({
     queryKey: ["robberies"],
     queryFn: async () => {
+      // TODO: Replace with actual database query
       return mockRobberies;
     },
   });
@@ -91,6 +121,7 @@ export const useRobberies = () => {
 export const useExecuteRobbery = () => {
   const queryClient = useQueryClient();
   const { updatePlayerStats, updatePlayerMoney } = useGameStore();
+  const { user } = useAuth();
 
   return useMutation({
     mutationFn: async ({
@@ -100,116 +131,41 @@ export const useExecuteRobbery = () => {
       playerId: string;
       robberyId: string;
     }) => {
-      // Find the robbery from mock data
-      const robbery = mockRobberies.find((r) => r.id === robberyId);
-      if (!robbery) {
-        throw new Error("Robbery not found");
+      if (!user?.id) {
+        throw new Error("Authentication required");
       }
 
-      // Get current player data from store
-      const store = useGameStore.getState();
-      const currentPlayer = store.player;
-
-      // Check requirements
-      if (currentPlayer.stats.reputation < robbery.min_level) {
-        throw new Error(`Required reputation: ${robbery.min_level}`);
-      }
-
-      if (currentPlayer.stats.energy < robbery.energy_cost) {
-        throw new Error("Not enough energy");
-      }
-
-      // Calculate success and reward
-      const success = Math.random() * 100 < robbery.success_rate;
-      const reward = success
-        ? Math.floor(
-            Math.random() * (robbery.max_reward - robbery.base_reward) +
-              robbery.base_reward
-          )
-        : 0;
-
-      // Calculate reputation gain (success = +1, failure = +0)
-      const reputationGain = success ? 1 : 0;
-
-      // Calculate wanted level increase
-      const wantedIncrease = robbery.risk_level + 1;
-      const currentWanted = currentPlayer.stats.wantedLevel;
-      const newWanted = Math.min(10, currentWanted + wantedIncrease);
-
-      // Calculate new values
-      const newEnergy = Math.max(
-        0,
-        currentPlayer.stats.energy - robbery.energy_cost
+      // SECURITY: All calculations now happen server-side
+      // This prevents client-side manipulation of game logic
+      const result = await SupabaseService.executeRobbery(
+        playerId,
+        robberyId,
+        user.id
       );
-      const newHealth = Math.max(
-        0,
-        currentPlayer.stats.health -
-          Math.floor(Math.random() * (robbery.health_cost + 1))
-      );
-      const newReputation = currentPlayer.stats.reputation + reputationGain;
-      const newMoney = currentPlayer.stats.money + reward;
 
-      console.log("🔍 Debug - Executando roubo:", {
-        robbery: robbery.name,
-        currentEnergy: currentPlayer.stats.energy,
-        newEnergy,
-        currentHealth: currentPlayer.stats.health,
-        newHealth,
-        currentReputation: currentPlayer.stats.reputation,
-        newReputation,
-        currentWanted,
-        newWanted,
-        reward,
-        success,
-      });
-
-      // Update database
-      const updateData = {
-        energy: newEnergy,
-        health: newHealth,
-        money: newMoney,
-        reputation: newReputation,
-        updated_at: new Date().toISOString(),
-      };
-
-      console.log("🔍 Debug - Dados para atualizar:", updateData);
-
-      const { error: updateError } = await supabase
-        .from("players")
-        .update(updateData)
-        .eq("id", playerId);
-
-      if (updateError) {
-        console.error("❌ Erro ao atualizar player:", updateError);
-        console.error("❌ Dados que tentou atualizar:", updateData);
-        throw updateError;
-      }
-
-      console.log("✅ Player atualizado no banco!");
-
-      // Update local store
+      // Update local store with server-calculated values
       updatePlayerStats({
-        energy: newEnergy,
-        health: newHealth,
-        reputation: newReputation,
-        wantedLevel: newWanted,
+        energy: result.newStats.energy,
+        health: result.newStats.health,
+        reputation: result.newStats.reputation,
+        wantedLevel: result.newStats.wantedLevel,
       });
 
-      if (reward > 0) {
-        updatePlayerMoney(reward);
+      updatePlayerMoney(result.reward);
+
+      // Show result to user
+      if (result.success) {
+        toast.success(
+          `🎯 Robbery successful! Gained $${result.reward.toLocaleString()}`,
+          { duration: 5000 }
+        );
+      } else {
+        toast.error("💥 Robbery failed! You escaped empty-handed.", {
+          duration: 5000,
+        });
       }
 
-      console.log("✅ Store local atualizado!");
-
-      return {
-        success,
-        reward,
-        reputation_gained: reputationGain,
-        wanted_increase: wantedIncrease,
-        energy_spent: robbery.energy_cost,
-        health_spent: Math.floor(Math.random() * (robbery.health_cost + 1)),
-        robbery,
-      };
+      return result;
     },
     onSuccess: () => {
       // Invalidate queries to refresh UI

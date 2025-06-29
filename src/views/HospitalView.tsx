@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   Ambulance,
   HeartPulse,
@@ -129,7 +129,7 @@ const HospitalView = ({
       // Jogador se recuperou - só se já estava hospitalizado e tinha uma razão
       handleRecovery();
     }
-  }, [recoveryTime, isPlayerHospitalized, hospitalizationReason]);
+  }, [recoveryTime, isPlayerHospitalized, hospitalizationReason, handleRecovery]);
 
   // Monitorar cooldown e aplicar efeitos quando acabar
   useEffect(() => {
@@ -209,10 +209,11 @@ const HospitalView = ({
     maxEnergy,
     energyRecover,
     updatePlayerStats,
+    getTreatmentResult,
   ]);
 
   // Função para obter o resultado do tratamento
-  const getTreatmentResult = (treatment: string) => {
+  const getTreatmentResult = useCallback((treatment: string) => {
     switch (treatment) {
       case "Cura":
         return `+${maxHealth - health} HP`;
@@ -225,7 +226,7 @@ const HospitalView = ({
       default:
         return "Concluído";
     }
-  };
+  }, [maxHealth, health, surgeryReduce, energyRecover]);
 
   // Função para formatar tempo
   const formatTime = (seconds: number) => {
@@ -234,7 +235,7 @@ const HospitalView = ({
     return `${mins}:${secs.toString().padStart(2, "0")}`;
   };
 
-  const handleRecovery = () => {
+  const handleRecovery = useCallback(() => {
     console.log("🏥 DEBUG: handleRecovery chamado");
     // Restaurar saúde e remover hospitalização
     const newHealth = Math.min(maxHealth, health + 30);
@@ -255,7 +256,7 @@ const HospitalView = ({
     toast.success("🏥 Você se recuperou e foi liberado do hospital!", {
       duration: 5000,
     });
-  };
+  }, [maxHealth, health, addiction, updatePlayerStats]);
 
   const startCooldown = (treatment: string) => {
     setActiveTreatment(treatment);

@@ -1,9 +1,10 @@
 import React, { useState } from "react";
 import { X, Eye, EyeOff, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 import { useGameStore } from "@/stores/gameStore";
 import { SupabaseService } from "@/services/supabaseService";
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/integrations/supabase/client";
 
 interface RegisterModalProps {
   isOpen: boolean;
@@ -29,10 +30,40 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({
   const { signUp, error, clearError } = useAuth();
   const { setUserId } = useGameStore();
 
+  // Input sanitization function
+  const sanitizeInput = (input: string): string => {
+    return input
+      .trim()
+      .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '') // Remove script tags
+      .replace(/[<>]/g, '') // Remove < and > characters
+      .replace(/javascript:/gi, '') // Remove javascript: protocol
+      .replace(/on\w+\s*=/gi, ''); // Remove event handlers
+  };
+
+  // Email validation function
+  const isValidEmail = (email: string): boolean => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email) && email.length <= 254; // RFC 5321 limit
+  };
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    
+    // Sanitize input based on field type
+    let sanitizedValue = value;
+    if (name === 'username' || name === 'email') {
+      sanitizedValue = sanitizeInput(value);
+    }
+    
+    // Length limits for security
+    const maxLengths = { username: 50, email: 254, password: 128, confirmPassword: 128 };
+    if (sanitizedValue.length > maxLengths[name as keyof typeof maxLengths]) {
+      return; // Don't update if exceeds length
+    }
+    
     setFormData((prev) => ({
       ...prev,
-      [e.target.name]: e.target.value,
+      [name]: sanitizedValue,
     }));
   };
 
@@ -41,15 +72,70 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({
     setIsLoading(true);
     clearError();
 
-    // Validation
-    if (formData.password !== formData.confirmPassword) {
-      alert("As senhas não coincidem!");
+    // Comprehensive input validation
+    if (!formData.username.trim()) {
+      toast.error("Nome de usuário é obrigatório!");
       setIsLoading(false);
       return;
     }
 
-    if (formData.password.length < 6) {
-      alert("A senha deve ter pelo menos 6 caracteres!");
+    if (formData.username.length < 3) {
+      toast.error("Nome de usuário deve ter pelo menos 3 caracteres!");
+      setIsLoading(false);
+      return;
+    }
+
+    if (!isValidEmail(formData.email)) {
+      toast.error("Por favor, digite um email válido!");
+      setIsLoading(false);
+      return;
+    }
+
+    if (formData.password !== formData.confirmPassword) {
+      toast.error("As senhas não coincidem!");
+      setIsLoading(false);
+      return;
+    }
+
+    // Stronger password validation
+    if (formData.password.length < 12) {
+      toast.error("A senha deve ter pelo menos 12 caracteres!");
+      setIsLoading(false);
+      return;
+    }
+
+    if (!/[A-Z]/.test(formData.password)) {
+      toast.error("A senha deve conter pelo menos uma letra maiúscula!");
+      setIsLoading(false);
+      return;
+    }
+
+    if (!/[a-z]/.test(formData.password)) {
+      toast.error("A senha deve conter pelo menos uma letra minúscula!");
+      setIsLoading(false);
+      return;
+    }
+
+    if (!/[0-9]/.test(formData.password)) {
+      toast.error("A senha deve conter pelo menos um número!");
+      setIsLoading(false);
+      return;
+    }
+
+    if (!/[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(formData.password)) {
+      toast.error("A senha deve conter pelo menos um caractere especial!");
+      setIsLoading(false);
+      return;
+    }
+
+    // Check for common weak passwords
+    const commonPasswords = [
+      "123456789012", "password1234", "admin123456", "qwerty123456",
+      "letmein12345", "welcome12345", "senha1234567"
+    ];
+    
+    if (commonPasswords.includes(formData.password.toLowerCase())) {
+      toast.error("Esta senha é muito comum. Escolha uma senha mais segura!");
       setIsLoading(false);
       return;
     }

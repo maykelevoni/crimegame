@@ -64,7 +64,7 @@ export const useNightlifeConsumables = () => {
       console.log("🔍 DEBUG: Buscando consumíveis do nightlife...");
 
       const { data, error } = await supabase
-        .from("nightlife_consumables" as any)
+        .from("inventory")
         .select("*")
         .eq("available", true)
         .order("price", { ascending: true });
@@ -88,7 +88,7 @@ export const useNightlifeVenues = () => {
       console.log("🔍 DEBUG: Buscando venues do nightlife...");
 
       const { data, error } = await supabase
-        .from("nightlife_venues" as any)
+        .from("inventory")
         .select("*")
         .eq("available", true)
         .order("money_cost", { ascending: true });
@@ -112,7 +112,7 @@ export const useNightlifeCharacters = (venueId?: string) => {
       console.log("🔍 DEBUG: Buscando characters do nightlife...");
 
       let query = supabase
-        .from("nightlife_characters" as any)
+        .from("prostitutes")
         .select("*")
         .eq("available", true);
 
@@ -152,7 +152,7 @@ export const useConsumeItem = () => {
 
       // 1. Buscar informações do consumível
       const { data: consumable, error: consumableError } = await supabase
-        .from("nightlife_consumables" as any)
+        .from("inventory")
         .select("*")
         .eq("id", consumableId)
         .single();
@@ -166,7 +166,7 @@ export const useConsumeItem = () => {
 
       console.log(
         "📊 DEBUG: Effects do consumível:",
-        (consumable as any).effects
+        consumable.effects
       );
 
       // 2. Verificar se o jogador tem dinheiro suficiente
@@ -188,25 +188,22 @@ export const useConsumeItem = () => {
       }
       if (!player) throw new Error("Jogador não encontrado");
 
-      // Usar any para contornar erros de tipo
-      const playerData = player as any;
+      const playerData = player;
 
       console.log("💰 DEBUG: Verificando dinheiro...");
       console.log("Dinheiro atual:", playerData.money);
-      console.log("Preço do item:", (consumable as any).price);
+      console.log("Preço do item:", consumable.price);
 
-      if (playerData.money < (consumable as any).price) {
+      if (playerData.money < consumable.price) {
         throw new Error(
-          `Dinheiro insuficiente! Você tem $${playerData.money.toLocaleString()} mas precisa de $${(
-            consumable as any
-          ).price.toLocaleString()}`
+          `Dinheiro insuficiente! Você tem $${playerData.money.toLocaleString()} mas precisa de $${consumable.price.toLocaleString()}`
         );
       }
 
       // Verificar se a energia está cheia e o item dá energia positiva
       if (
-        (consumable as any).effects.energy &&
-        (consumable as any).effects.energy > 0 &&
+        consumable.effects.energy &&
+        consumable.effects.energy > 0 &&
         playerData.energy >= playerData.max_energy
       ) {
         throw new Error(
@@ -219,12 +216,12 @@ export const useConsumeItem = () => {
       console.log("Energia máxima:", playerData.max_energy);
       console.log(
         "Efeito de energia do item:",
-        (consumable as any).effects.energy
+        consumable.effects.energy
       );
 
       // 3. Calcular novos valores dos stats
-      const effects = (consumable as any).effects;
-      const newMoney = playerData.money - (consumable as any).price;
+      const effects = consumable.effects;
+      const newMoney = playerData.money - consumable.price;
       const newHealth = Math.max(
         0,
         Math.min(
@@ -263,7 +260,7 @@ export const useConsumeItem = () => {
       }
 
       // Se o item é droga, aumenta a chance
-      if ((consumable as any).type === "drug") {
+      if (consumable.type === "drug") {
         overdoseChance *= 2;
       }
 
@@ -288,7 +285,7 @@ export const useConsumeItem = () => {
       // Determinar tipo de doença baseado no tipo de consumível
       if (diseaseChance > 0 && Math.random() * 100 < diseaseChance) {
         isDisease = true;
-        if ((consumable as any).type === "drink") {
+        if (consumable.type === "drink") {
           diseaseType = "cirrose";
           console.log("🍺 DEBUG: CIRROSE DETECTADA!");
         } else {
@@ -403,7 +400,7 @@ export const useConsumeItem = () => {
 
       // Mostrar notificação de sucesso
       const { consumable } = data;
-      const effects = (consumable as any).effects;
+      const effects = consumable.effects;
 
       if (isOverdose) {
         toast.error(
@@ -415,7 +412,7 @@ export const useConsumeItem = () => {
 
       if (isDisease) {
         const diseaseMessage =
-          (consumable as any).type === "drink"
+          consumable.type === "drink"
             ? `🍺 CIRROSE! Você foi hospitalizado! Muito álcool causou cirrose hepática`
             : `💋 DST! Você foi hospitalizado! Contratou uma doença sexualmente transmissível`;
 
@@ -425,7 +422,7 @@ export const useConsumeItem = () => {
         return;
       }
 
-      let message = `🍺 Você consumiu ${(consumable as any).name}!`;
+      let message = `🍺 Você consumiu ${consumable.name}!`;
       if (effects.energy) {
         const energyText =
           effects.energy >= 0 ? `+${effects.energy}` : `${effects.energy}`;

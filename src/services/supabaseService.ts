@@ -18,6 +18,21 @@ import {
 } from "@/lib/typeMappers";
 
 export class SupabaseService {
+  // Security helper function
+  private static async verifyPlayerOwnership(playerId: string, userId: string): Promise<void> {
+    const { data: player, error } = await supabase
+      .from("players")
+      .select("user_id")
+      .eq("id", playerId)
+      .single();
+
+    if (error) throw new Error("Player not found");
+    
+    if (player?.user_id !== userId) {
+      throw new Error("Unauthorized: You can only access your own player data");
+    }
+  }
+
   // Player Services
   static async createPlayer(name: string, userId: string): Promise<Player> {
     const playerData = createNewPlayerData(name, userId);
@@ -89,6 +104,19 @@ export class SupabaseService {
     updates: Partial<Player>,
     userId: string
   ): Promise<Player> {
+    // SECURITY: First verify that the user owns this player record
+    const { data: existingPlayer, error: checkError } = await supabase
+      .from("players")
+      .select("user_id")
+      .eq("id", id)
+      .single();
+
+    if (checkError) throw new Error("Player not found");
+    
+    if (existingPlayer?.user_id !== userId) {
+      throw new Error("Unauthorized: You can only update your own player data");
+    }
+
     const supabaseUpdates = mapGamePlayerToSupabasePlayer(
       updates as Player,
       userId
@@ -101,15 +129,21 @@ export class SupabaseService {
         updated_at: new Date().toISOString(),
       } as any) // eslint-disable-line @typescript-eslint/no-explicit-any
       .eq("id", id)
+      .eq("user_id", userId) // Double-check with user_id as well
       .select()
       .single();
 
     if (error) throw error;
+    if (!data) throw new Error("Update failed - unauthorized or player not found");
+    
     return mapSupabasePlayerToGamePlayer(data);
   }
 
   // Inventory Services
-  static async getPlayerInventory(playerId: string): Promise<Item[]> {
+  static async getPlayerInventory(playerId: string, userId: string): Promise<Item[]> {
+    // SECURITY: Verify user owns this player
+    await this.verifyPlayerOwnership(playerId, userId);
+
     const { data, error } = await supabase
       .from("inventory")
       .select("*")
@@ -125,8 +159,12 @@ export class SupabaseService {
   static async addItemToInventory(
     playerId: string,
     itemId: string,
-    quantity: number = 1
+    quantity: number = 1,
+    userId: string
   ): Promise<void> {
+    // SECURITY: Verify user owns this player
+    await this.verifyPlayerOwnership(playerId, userId);
+
     // Verificar se o item já existe no inventário
     const { data: existingItem } = await supabase
       .from("inventory")
@@ -159,8 +197,14 @@ export class SupabaseService {
   }
 
   // Business Services
-  static async getPlayerBusinesses(): Promise<Business[]> {
-    const { data, error } = await supabase.from("businesses").select("*");
+  static async getPlayerBusinesses(playerId: string, userId: string): Promise<Business[]> {
+    // SECURITY: Verify user owns this player
+    await this.verifyPlayerOwnership(playerId, userId);
+
+    const { data, error } = await supabase
+      .from("businesses")
+      .select("*")
+      .eq("player_id", playerId); // Only get businesses owned by this player
 
     if (error) throw error;
     return (
@@ -169,8 +213,13 @@ export class SupabaseService {
   }
 
   static async buyBusiness(
-    business: Omit<Business, "id" | "created_at" | "updated_at">
+    business: Omit<Business, "id" | "created_at" | "updated_at">,
+    playerId: string,
+    userId: string
   ): Promise<Business> {
+    // SECURITY: Verify user owns this player
+    await this.verifyPlayerOwnership(playerId, userId);
+
     const { data, error } = await supabase
       .from("businesses")
       .insert({
@@ -179,6 +228,7 @@ export class SupabaseService {
         income: business.income,
         price: business.price,
         description: `Owned by player`,
+        player_id: playerId, // Associate business with the player
       })
       .select()
       .single();
@@ -188,7 +238,9 @@ export class SupabaseService {
   }
 
   // Crime History Services
-  static async getCrimeHistory(playerId: string): Promise<TreatmentHistory[]> {
+  static async getCrimeHistory(playerId: string, userId: string): Promise<TreatmentHistory[]> {
+    // SECURITY: Verify user owns this player
+    await this.verifyPlayerOwnership(playerId, userId);
     const { data, error } = await supabase
       .from("crime_history")
       .select("*")
@@ -208,8 +260,11 @@ export class SupabaseService {
     playerId: string,
     crimeId: string,
     reward: number,
-    success: boolean
+    success: boolean,
+    userId: string
   ): Promise<void> {
+    // SECURITY: Verify user owns this player
+    await this.verifyPlayerOwnership(playerId, userId);
     const { error } = await supabase.from("crime_history").insert({
       player_id: playerId,
       crime_id: crimeId,
@@ -220,8 +275,36 @@ export class SupabaseService {
     if (error) throw error;
   }
 
+  // Secure Game Logic Services (server-side calculations)
+  static async executeRobbery(
+    playerId: string,
+    robberyId: string,
+    userId: string
+  ): Promise<{
+    success: boolean;
+    reward: number;
+    newStats: {
+      energy: number;
+      health: number;
+      reputation: number;
+      wantedLevel: number;
+      money: number;
+    };
+  }> {
+    const { data, error } = await supabase.rpc('execute_robbery', {
+      player_id_param: playerId,
+      robbery_id_param: robberyId,
+      user_id_param: userId,
+    });
+
+    if (error) throw error;
+    return data;
+  }
+
   // Player Stats Services (agora unificado com player)
-  static async getPlayerStats(playerId: string): Promise<PlayerStats | null> {
+  static async getPlayerStats(playerId: string, userId: string): Promise<PlayerStats | null> {
+    // SECURITY: Verify user owns this player
+    await this.verifyPlayerOwnership(playerId, userId);
     const { data, error } = await supabase
       .from("players")
       .select("*")
@@ -249,8 +332,11 @@ export class SupabaseService {
 
   // Treatment History Services - usando crime_history como fallback
   static async getTreatmentHistory(
-    playerId: string
+    playerId: string,
+    userId: string
   ): Promise<TreatmentHistory[]> {
+    // SECURITY: Verify user owns this player
+    await this.verifyPlayerOwnership(playerId, userId);
     try {
       const { data, error } = await supabase
         .from("crime_history")
