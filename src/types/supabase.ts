@@ -310,7 +310,12 @@ export interface Database {
       [_ in never]: never;
     };
     Functions: {
-      [_ in never]: never;
+      get_user_email_by_player_name: {
+        Args: {
+          player_name_param: string;
+        };
+        Returns: string | null;
+      };
     };
     Enums: {
       [_ in never]: never;

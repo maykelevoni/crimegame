@@ -433,13 +433,13 @@ export const useGameStore = create<GameStore>()(
         try {
           set({ syncStatus: "syncing" });
 
-          console.log("🔄 Carregando dados do jogo para usuário:", userId);
+          console.log("🔄 Loading game data for user:", userId);
 
           // Load player data by user_id
           const player = await SupabaseService.getPlayerByUserId(userId);
           if (player) {
-            console.log("✅ Player encontrado:", player.name);
-            console.log("🔍 Debug - Player stats carregados:", {
+            console.log("✅ Player found:", player.name);
+            console.log("🔍 Debug - Player stats loaded:", {
               health: player.stats.health,
               energy: player.stats.energy,
               reputation: player.stats.reputation,
@@ -452,7 +452,7 @@ export const useGameStore = create<GameStore>()(
               player.id,
               userId
             );
-            console.log("✅ Inventário carregado:", inventory.length, "itens");
+            console.log("✅ Inventory loaded:", inventory.length, "items");
 
             // Load businesses
             const businesses = await SupabaseService.getPlayerBusinesses(
@@ -460,9 +460,9 @@ export const useGameStore = create<GameStore>()(
               userId
             );
             console.log(
-              "✅ Negócios carregados:",
+              "✅ Businesses loaded:",
               businesses.length,
-              "negócios"
+              "businesses"
             );
 
             // Load treatment history
@@ -471,14 +471,14 @@ export const useGameStore = create<GameStore>()(
               userId
             );
             console.log(
-              "✅ Histórico de tratamento carregado:",
+              "✅ Treatment history loaded:",
               treatmentHistory.length,
-              "registros"
+              "records"
             );
 
             // Load game session
             const gameSession = await SupabaseService.getGameSession(player.id);
-            console.log("✅ Sessão do jogo carregada");
+            console.log("✅ Game session loaded");
 
             set((state) => ({
               player: {
@@ -510,14 +510,15 @@ export const useGameStore = create<GameStore>()(
               syncStatus: "idle",
             }));
 
-            // Setup realtime sync após carregar dados com sucesso
+            // Setup realtime sync after successfully loading data
             get().setupRealtimeSync(userId);
           } else {
             console.log("📝 Criando novo player...");
-            const newPlayer = await SupabaseService.createPlayer(
-              "Player",
-              userId
-            );
+            try {
+              const newPlayer = await SupabaseService.createPlayer(
+                "Player",
+                userId
+              );
             console.log("✅ Novo player criado:", newPlayer.name);
 
             set((state) => ({
@@ -552,9 +553,41 @@ export const useGameStore = create<GameStore>()(
 
             // Setup realtime sync após criar player com sucesso
             get().setupRealtimeSync(userId);
+            } catch (playerError: any) {
+              console.error("❌ Erro ao criar player:", playerError);
+              // If player already exists (duplicate key), try to load it
+              if (playerError.code === '23505') {
+                console.log("⚠️ Player já existe, tentando carregar...");
+                // Wait a bit and try to load the player again
+                setTimeout(async () => {
+                  try {
+                    const existingPlayer = await SupabaseService.getPlayerByUserId(userId);
+                    if (existingPlayer) {
+                      console.log("✅ Player existente carregado:", existingPlayer.name);
+                      set((state) => ({
+                        player: {
+                          ...state.player,
+                          id: existingPlayer.id,
+                          name: existingPlayer.name,
+                          avatarUrl: existingPlayer.avatarUrl,
+                          stats: existingPlayer.stats,
+                        },
+                        syncStatus: "idle",
+                      }));
+                      get().setupRealtimeSync(userId);
+                    }
+                  } catch (retryError) {
+                    console.error("❌ Error loading existing player:", retryError);
+                    set({ syncStatus: "error" });
+                  }
+                }, 500);
+              } else {
+                set({ syncStatus: "error" });
+              }
+            }
           }
         } catch (error) {
-          console.error("❌ Erro ao carregar dados do jogo:", error);
+          console.error("❌ Error loading game data:", error);
           set({ syncStatus: "error" });
         }
       },
@@ -585,7 +618,7 @@ export const useGameStore = create<GameStore>()(
       },
 
       setupRealtimeSync: (userId) => {
-        // Limpar inscrições anteriores primeiro
+        // Clear previous subscriptions first
         get().clearRealtimeSync();
 
         // Subscribe to player changes
@@ -798,7 +831,7 @@ export const useGameStore = create<GameStore>()(
     {
       name: "urban-hustle-game",
       partialize: (state) => ({
-        // Não persistir dados do player - sempre carregar do banco
+        // Don't persist player data - always load from database
         // player: state.player,
         equipped: state.equipped,
         inventory: state.inventory,

@@ -33,6 +33,51 @@ export class SupabaseService {
     }
   }
 
+  // Authentication Helper - Get user email by player name
+  static async getUserEmailByPlayerName(playerName: string): Promise<string | null> {
+    try {
+      // First try the RPC function if it exists
+      const { data, error } = await supabase.rpc('get_user_email_by_player_name', {
+        player_name_param: playerName
+      });
+
+      if (error) {
+        console.warn("RPC function not available, using fallback method:", error);
+        // Fallback: Direct query approach (less secure but works without RPC)
+        return await this.getUserEmailByPlayerNameFallback(playerName);
+      }
+
+      return data;
+    } catch (error) {
+      console.warn("RPC function failed, using fallback method:", error);
+      return await this.getUserEmailByPlayerNameFallback(playerName);
+    }
+  }
+
+  // Fallback method when RPC is not available
+  private static async getUserEmailByPlayerNameFallback(playerName: string): Promise<string | null> {
+    try {
+      // This approach only works if RLS allows it, but is our fallback
+      const { data: player, error: playerError } = await supabase
+        .from("players")
+        .select("user_id")
+        .eq("name", playerName)
+        .maybeSingle();
+
+      if (playerError || !player) {
+        console.log("Player not found:", playerName);
+        return null;
+      }
+
+      // We can't directly query auth.users from the client, so we'll return a special indicator
+      // The auth hook will need to handle this differently
+      return `__LOOKUP_USER_ID__${player.user_id}`;
+    } catch (error) {
+      console.error("Error in fallback player lookup:", error);
+      return null;
+    }
+  }
+
   // Player Services
   static async createPlayer(name: string, userId: string): Promise<Player> {
     const playerData = createNewPlayerData(name, userId);

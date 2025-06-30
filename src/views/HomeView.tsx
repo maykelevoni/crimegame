@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { toast } from "sonner";
 import {
   MapPin,
   Users,
@@ -114,7 +115,9 @@ const HomeView = ({ onViewChange }: HomeViewProps) => {
     if (!canCollectReward) return;
 
     // Simular recompensa diária
-    alert("🎉 Daily Reward Collected!\n💰 +$500\n💊 +20 HP\n⚡ +30 Energy");
+    toast.success("🎉 Daily Reward Collected! 💰 +$500, 💊 +20 HP, ⚡ +30 Energy", {
+      duration: 3000
+    });
 
     // Salvar timestamp da última coleta
     const now = Date.now();

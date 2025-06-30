@@ -129,7 +129,7 @@ function AppContent() {
       <div className="min-h-screen bg-cyber-dark flex items-center justify-center">
         <div className="text-center">
           <LoadingSpinner size="lg" />
-          <p className="text-cyber-blue mt-4">Carregando dados do jogador...</p>
+          <p className="text-cyber-blue mt-4">Loading player data...</p>
         </div>
       </div>
     );

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { X, Eye, EyeOff, Loader2 } from "lucide-react";
+import { X, Eye, EyeOff, Loader2, Info, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 import { useGameStore } from "@/stores/gameStore";
@@ -15,7 +15,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
   onClose,
   onSwitchToRegister,
 }) => {
-  const [email, setEmail] = useState("");
+  const [playerName, setPlayerName] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -33,10 +33,9 @@ export const LoginModal: React.FC<LoginModalProps> = ({
       .replace(/on\w+\s*=/gi, ''); // Remove event handlers
   };
 
-  // Email validation function
-  const isValidEmail = (email: string): boolean => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email) && email.length <= 254;
+  // Player name validation function
+  const isValidPlayerName = (name: string): boolean => {
+    return name.trim().length >= 3 && name.trim().length <= 50;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -45,29 +44,29 @@ export const LoginModal: React.FC<LoginModalProps> = ({
     clearError();
 
     // Input validation
-    if (!email.trim()) {
-      toast.error("Email é obrigatório!");
+    if (!playerName.trim()) {
+      toast.error("Player name is required!");
       setIsLoading(false);
       return;
     }
 
-    if (!isValidEmail(email)) {
-      toast.error("Por favor, digite um email válido!");
+    if (!isValidPlayerName(playerName)) {
+      toast.error("Player name must be between 3-50 characters!");
       setIsLoading(false);
       return;
     }
 
     if (!password.trim()) {
-      toast.error("Senha é obrigatória!");
+      toast.error("Password is required!");
       setIsLoading(false);
       return;
     }
 
     // Sanitize inputs
-    const sanitizedEmail = sanitizeInput(email);
+    const sanitizedPlayerName = sanitizeInput(playerName);
     
     try {
-      const result = await signIn(sanitizedEmail, password);
+      const result = await signIn(sanitizedPlayerName, password);
       if (result.success) {
         setUserId(result.data?.user?.id || null);
         onClose();
@@ -95,34 +94,59 @@ export const LoginModal: React.FC<LoginModalProps> = ({
         {/* Header */}
         <div className="text-center mb-6">
           <h2 className="text-2xl font-bold text-white mb-2">Login</h2>
-          <p className="text-cyber-blue/80">Entre no mundo do crime urbano</p>
+          <p className="text-cyber-blue/80">Enter the world of urban crime</p>
         </div>
 
         {/* Error message */}
         {error && (
           <div className="bg-red-500/20 border border-red-500/50 rounded-lg p-3 mb-4">
-            <p className="text-red-400 text-sm">{error}</p>
+            <div className="flex items-start gap-2">
+              <AlertCircle size={16} className="text-red-400 mt-0.5 flex-shrink-0" />
+              <div>
+                <p className="text-red-400 text-sm">{error}</p>
+                <p className="text-red-300 text-xs mt-1">
+                  💡 Check if your player name and password are correct
+                </p>
+              </div>
+            </div>
           </div>
         )}
+        
+        {/* Game info tip */}
+        <div className="bg-cyber-blue/10 border border-cyber-blue/20 rounded-lg p-3 mb-4">
+          <div className="flex items-start gap-2">
+            <Info size={14} className="text-cyber-blue mt-0.5 flex-shrink-0" />
+            <div className="text-xs text-cyber-blue/80">
+              <p className="font-medium mb-1">🎮 Welcome to Crime Game!</p>
+              <p className="text-cyber-blue/60">
+                This is an urban strategy game. Build your criminal empire, 
+                make deals and dominate the city streets!
+              </p>
+            </div>
+          </div>
+        </div>
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label
-              htmlFor="email"
+              htmlFor="playerName"
               className="block text-sm font-medium text-cyber-blue mb-2"
             >
-              Email
+              Player Name or Email
             </label>
             <input
-              type="email"
-              id="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              type="text"
+              id="playerName"
+              value={playerName}
+              onChange={(e) => setPlayerName(e.target.value)}
               className="w-full bg-black/50 border border-cyber-blue/30 rounded-lg px-4 py-3 text-white placeholder-cyber-blue/50 focus:outline-none focus:border-cyber-blue transition-colors"
-              placeholder="seu@email.com"
+              placeholder="Your player name or email"
               required
             />
+            <p className="text-cyber-blue/60 text-xs mt-1">
+              💡 You can now login with your player name or email address
+            </p>
           </div>
 
           <div>
@@ -130,7 +154,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
               htmlFor="password"
               className="block text-sm font-medium text-cyber-blue mb-2"
             >
-              Senha
+              Password
             </label>
             <div className="relative">
               <input
@@ -154,6 +178,9 @@ export const LoginModal: React.FC<LoginModalProps> = ({
                 )}
               </button>
             </div>
+            <p className="text-cyber-blue/60 text-xs mt-1">
+              💡 Forgot your password? Create a new account for now
+            </p>
           </div>
 
           {/* Submit button */}
@@ -165,10 +192,10 @@ export const LoginModal: React.FC<LoginModalProps> = ({
             {isLoading ? (
               <>
                 <Loader2 size={20} className="animate-spin" />
-                Entrando...
+                Signing in...
               </>
             ) : (
-              "Entrar"
+              "Sign In"
             )}
           </button>
         </form>
@@ -176,12 +203,12 @@ export const LoginModal: React.FC<LoginModalProps> = ({
         {/* Footer */}
         <div className="mt-6 text-center">
           <p className="text-cyber-blue/80 text-sm">
-            Não tem uma conta?{" "}
+            Don't have an account?{" "}
             <button
               onClick={onSwitchToRegister}
               className="text-cyber-blue hover:text-white transition-colors font-medium"
             >
-              Registre-se
+              Register
             </button>
           </p>
         </div>

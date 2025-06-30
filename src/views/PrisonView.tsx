@@ -4,8 +4,8 @@ import { Gavel, Siren, Users, Handshake, Angry } from "lucide-react";
 
 interface PrisonViewProps {
   isPlayerImprisoned: boolean;
-  onAttemptBribe: () => boolean; // Retorna true em sucesso
-  onAttemptRiot: () => boolean; // Retorna true em sucesso
+  onAttemptBribe: () => boolean; // Returns true on success
+  onAttemptRiot: () => boolean; // Returns true on success
 }
 
 const PrisonView = ({
@@ -16,41 +16,40 @@ const PrisonView = ({
   const [feedback, setFeedback] = useState("");
 
   const handleBribe = () => {
-    setFeedback("Tentando subornar o guarda...");
+    setFeedback("Trying to bribe the guard...");
     setTimeout(() => {
       const success = onAttemptBribe();
       setFeedback(
         success
-          ? "Suborno aceito! Você está livre."
-          : "Suborno falhou! Sua pena aumentou."
+          ? "Bribe accepted! You are free."
+          : "Bribe failed! Your sentence increased."
       );
     }, 1500);
   };
 
   const handleRiot = () => {
-    setFeedback("Iniciando um motim...");
+    setFeedback("Starting a riot...");
     setTimeout(() => {
       const success = onAttemptRiot();
       setFeedback(
         success
-          ? "Motim bem-sucedido! Você escapou no caos."
-          : "Motim falhou! Você foi capturado e sua pena dobrou."
+          ? "Riot successful! You escaped in the chaos."
+          : "Riot failed! You were captured and your sentence doubled."
       );
     }, 1500);
   };
 
   if (isPlayerImprisoned) {
     return (
-      <BaseView title="Prisão">
+      <BaseView title="Prison">
         <div className="cyber-border p-4 text-center">
           <Siren
             size={48}
             className="mx-auto text-red-500 mb-4 animate-pulse"
           />
-          <h3 className="text-2xl font-bold mb-2">Você está preso!</h3>
+          <h3 className="text-2xl font-bold mb-2">You are imprisoned!</h3>
           <p className="text-white/70 mb-6">
-            Suas ações estão bloqueadas. Tente encontrar uma saída ou cumpra sua
-            pena.
+            Your actions are blocked. Try to find a way out or serve your sentence.
           </p>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <button
@@ -58,16 +57,16 @@ const PrisonView = ({
               className="flex flex-col items-center justify-center p-4 bg-yellow-500/20 hover:bg-yellow-500/30 rounded-lg transition-colors"
             >
               <Handshake size={32} className="mb-2 text-yellow-400" />
-              <span className="font-semibold">Subornar Guarda</span>
-              <span className="text-xs text-white/60">(10% de chance)</span>
+              <span className="font-semibold">Bribe Guard</span>
+              <span className="text-xs text-white/60">(10% chance)</span>
             </button>
             <button
               onClick={handleRiot}
               className="flex flex-col items-center justify-center p-4 bg-red-500/20 hover:bg-red-500/30 rounded-lg transition-colors"
             >
               <Angry size={32} className="mb-2 text-red-400" />
-              <span className="font-semibold">Começar um Motim</span>
-              <span className="text-xs text-white/60">(30% de chance)</span>
+              <span className="font-semibold">Start a Riot</span>
+              <span className="text-xs text-white/60">(30% chance)</span>
             </button>
           </div>
           {feedback && (
@@ -81,26 +80,26 @@ const PrisonView = ({
   }
 
   return (
-    <BaseView title="Prisão">
+    <BaseView title="Prison">
       <div className="cyber-border p-4">
-        <h3 className="text-xl font-semibold mb-4">Visitar Presos</h3>
+        <h3 className="text-xl font-semibold mb-4">Visit Prisoners</h3>
         <p className="text-white/70 mb-4">
-          Você não está preso. Você pode visitar outros detentos.
+          You are not imprisoned. You can visit other inmates.
         </p>
         <div className="space-y-3">
           <div className="flex items-center justify-between p-3 bg-cyber-dark-medium rounded-lg">
             <div className="flex items-center gap-3">
               <Users size={24} className="text-cyan-400" />
               <div>
-                <h4 className="font-semibold">Membro da Gangue X</h4>
-                <p className="text-xs text-white/60">Pena: 3 dias restantes</p>
+                <h4 className="font-semibold">Gang X Member</h4>
+                <p className="text-xs text-white/60">Sentence: 3 days remaining</p>
               </div>
             </div>
             <button className="px-4 py-1 text-sm bg-cyan-500/20 hover:bg-cyan-500/30 rounded-lg transition-colors">
-              Conversar
+              Chat
             </button>
           </div>
-          {/* Adicionar mais presos aqui */}
+          {/* Add more prisoners here */}
         </div>
       </div>
     </BaseView>

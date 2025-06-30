@@ -50,8 +50,8 @@ const HospitalView = ({
   const [recoveryTime, setRecoveryTime] = useState(0);
   const [hospitalizationReason, setHospitalizationReason] = useState("");
   const [history, setHistory] = useState([
-    { type: "Cura", value: "+35 HP", date: "Hoje, 08:00" },
-    { type: "Detox", value: "-10% Addiction", date: "Ontem, 22:15" },
+    { type: "Heal", value: "+35 HP", date: "Today, 08:00" },
+    { type: "Detox", value: "-10% Addiction", date: "Yesterday, 22:15" },
   ]);
 
   const healCost = 500;
@@ -125,8 +125,8 @@ const HospitalView = ({
       isPlayerHospitalized &&
       hospitalizationReason
     ) {
-      console.log("🏥 DEBUG: Jogador se recuperou - chamando handleRecovery");
-      // Jogador se recuperou - só se já estava hospitalizado e tinha uma razão
+      console.log("🏥 DEBUG: Player recovered - calling handleRecovery");
+      // Player recovered - only if already hospitalized and had a reason
       handleRecovery();
     }
   }, [recoveryTime, isPlayerHospitalized, hospitalizationReason, handleRecovery]);
@@ -142,11 +142,11 @@ const HospitalView = ({
     } else if (cooldown === 0 && activeTreatment) {
       // Aplicar efeitos quando o tratamento acabar
       switch (activeTreatment) {
-        case "Cura": {
+        case "Heal": {
           const newHealth = maxHealth;
           setHealth(newHealth);
           updatePlayerStats({ health: newHealth });
-          toast.success("💚 Tratamento concluído! Saúde restaurada.", {
+          toast.success("💚 Treatment completed! Health restored.", {
             duration: 3000,
           });
           break;
@@ -156,27 +156,27 @@ const HospitalView = ({
           const newAddiction = Math.max(0, addiction - 20);
           setAddiction(newAddiction);
           updatePlayerStats({ addiction: newAddiction });
-          toast.success("💊 Tratamento concluído! Vício reduzido em 20%.", {
+          toast.success("💊 Treatment completed! Addiction reduced by 20%.", {
             duration: 3000,
           });
           break;
         }
 
-        case "Cirurgia": {
+        case "Surgery": {
           const newWanted = Math.max(0, wanted - surgeryReduce);
           setWanted(newWanted);
           updatePlayerStats({ wantedLevel: newWanted });
-          toast.success("🔪 Cirurgia concluída! Wanted level reduzido.", {
+          toast.success("🔪 Surgery completed! Wanted level reduced.", {
             duration: 3000,
           });
           break;
         }
 
-        case "Energia": {
+        case "Energy": {
           const newEnergy = Math.min(maxEnergy, energy + energyRecover);
           setEnergy(newEnergy);
           updatePlayerStats({ energy: newEnergy });
-          toast.success("⚡ Tratamento concluído! Energia restaurada.", {
+          toast.success("⚡ Treatment completed! Energy restored.", {
             duration: 3000,
           });
           break;
@@ -215,16 +215,16 @@ const HospitalView = ({
   // Função para obter o resultado do tratamento
   const getTreatmentResult = useCallback((treatment: string) => {
     switch (treatment) {
-      case "Cura":
+      case "Heal":
         return `+${maxHealth - health} HP`;
       case "Detox":
         return "-20% Addiction";
-      case "Cirurgia":
+      case "Surgery":
         return `-${surgeryReduce} Wanted`;
-      case "Energia":
-        return `+${energyRecover} Energia`;
+      case "Energy":
+        return `+${energyRecover} Energy`;
       default:
-        return "Concluído";
+        return "Completed";
     }
   }, [maxHealth, health, surgeryReduce, energyRecover]);
 
@@ -236,12 +236,12 @@ const HospitalView = ({
   };
 
   const handleRecovery = useCallback(() => {
-    console.log("🏥 DEBUG: handleRecovery chamado");
-    // Restaurar saúde e remover hospitalização
+    console.log("🏥 DEBUG: handleRecovery called");
+    // Restore health and remove hospitalization
     const newHealth = Math.min(maxHealth, health + 30);
     const newAddiction = Math.max(0, addiction - 10);
 
-    console.log("🏥 DEBUG: Atualizando player stats - isHospitalized: false");
+    console.log("🏥 DEBUG: Updating player stats - isHospitalized: false");
     updatePlayerStats({
       health: newHealth,
       addiction: newAddiction,
@@ -251,9 +251,9 @@ const HospitalView = ({
     setHealth(newHealth);
     setAddiction(newAddiction);
     setHospitalizationReason("");
-    setRecoveryTime(0); // Resetar o timer
+    setRecoveryTime(0); // Reset the timer
 
-    toast.success("🏥 Você se recuperou e foi liberado do hospital!", {
+    toast.success("🏥 You have recovered and been discharged from the hospital!", {
       duration: 5000,
     });
   }, [maxHealth, health, addiction, updatePlayerStats]);
@@ -267,23 +267,23 @@ const HospitalView = ({
     if (money >= healCost && health < maxHealth && cooldown === 0) {
       const newMoney = money - healCost;
 
-      // Atualizar apenas o dinheiro imediatamente
+      // Update only money immediately
       setMoney(newMoney);
       updatePlayerStats({
         money: newMoney,
       });
 
-      // Acelerar recuperação imediatamente
-      setRecoveryTime(Math.max(0, recoveryTime - 2 * 60)); // Reduz 2 minutos
+      // Speed up recovery immediately
+      setRecoveryTime(Math.max(0, recoveryTime - 2 * 60)); // Reduces 2 minutes
 
       setHistory([
-        { type: "Cura", value: "Em tratamento...", date: "Agora" },
+        { type: "Heal", value: "In treatment...", date: "Now" },
         ...history,
       ]);
-      startCooldown("Cura");
+      startCooldown("Heal");
 
       toast.success(
-        "💚 Tratamento iniciado! Saúde será restaurada em 2 minutos.",
+        "💚 Treatment started! Health will be restored in 2 minutes.",
         { duration: 3000 }
       );
     }
@@ -293,23 +293,23 @@ const HospitalView = ({
     if (money >= detoxCost && addiction > 0 && cooldown === 0) {
       const newMoney = money - detoxCost;
 
-      // Atualizar apenas o dinheiro imediatamente
+      // Update only money immediately
       setMoney(newMoney);
       updatePlayerStats({
         money: newMoney,
       });
 
-      // Acelerar recuperação imediatamente
-      setRecoveryTime(Math.max(0, recoveryTime - 3 * 60)); // Reduz 3 minutos
+      // Speed up recovery immediately
+      setRecoveryTime(Math.max(0, recoveryTime - 3 * 60)); // Reduces 3 minutes
 
       setHistory([
-        { type: "Detox", value: "Em tratamento...", date: "Agora" },
+        { type: "Detox", value: "In treatment...", date: "Now" },
         ...history,
       ]);
       startCooldown("Detox");
 
       toast.success(
-        "💊 Tratamento iniciado! Vício será reduzido em 3 minutos.",
+        "💊 Treatment started! Addiction will be reduced in 3 minutes.",
         { duration: 3000 }
       );
     }
@@ -319,20 +319,20 @@ const HospitalView = ({
     if (money >= surgeryCost && wanted > 0 && cooldown === 0) {
       const newMoney = money - surgeryCost;
 
-      // Atualizar apenas o dinheiro imediatamente
+      // Update only money immediately
       setMoney(newMoney);
       updatePlayerStats({
         money: newMoney,
       });
 
       setHistory([
-        { type: "Cirurgia", value: "Em tratamento...", date: "Agora" },
+        { type: "Surgery", value: "In treatment...", date: "Now" },
         ...history,
       ]);
-      startCooldown("Cirurgia");
+      startCooldown("Surgery");
 
       toast.success(
-        "🔪 Cirurgia iniciada! Wanted level será reduzido em 2 minutos.",
+        "🔪 Surgery started! Wanted level will be reduced in 2 minutes.",
         { duration: 3000 }
       );
     }
@@ -342,7 +342,7 @@ const HospitalView = ({
     if (money >= energyCost && energy < maxEnergy && cooldown === 0) {
       const newMoney = money - energyCost;
 
-      // Atualizar apenas o dinheiro imediatamente
+      // Update only money immediately
       setMoney(newMoney);
       updatePlayerStats({
         money: newMoney,
@@ -350,16 +350,16 @@ const HospitalView = ({
 
       setHistory([
         {
-          type: "Soro Energético",
-          value: "Em tratamento...",
-          date: "Agora",
+          type: "Energy Serum",
+          value: "In treatment...",
+          date: "Now",
         },
         ...history,
       ]);
-      startCooldown("Energia");
+      startCooldown("Energy");
 
       toast.success(
-        "⚡ Tratamento iniciado! Energia será restaurada em 2 minutos.",
+        "⚡ Treatment started! Energy will be restored in 2 minutes.",
         { duration: 3000 }
       );
     }
@@ -514,7 +514,7 @@ const HospitalView = ({
               }`}
             >
               <HeartPulse size={32} className="mb-2 text-green-400" />
-              <span className="font-semibold">Curar Ferimentos</span>
+              <span className="font-semibold">Heal Wounds</span>
               <span className="text-xs text-white/60">
                 (${healCost} | {cooldownTime} min | -2 min recuperação)
               </span>
@@ -529,7 +529,7 @@ const HospitalView = ({
               }`}
             >
               <Pill size={32} className="mb-2 text-orange-400" />
-              <span className="font-semibold">Fazer Detox</span>
+              <span className="font-semibold">Detox Treatment</span>
               <span className="text-xs text-white/60">
                 (${detoxCost} | {detoxTime} min | -3 min recuperação)
               </span>
@@ -573,7 +573,7 @@ const HospitalView = ({
             <div className="p-3 bg-gray-800/20 border border-gray-600/30 rounded-lg">
               <div className="flex items-center gap-2 mb-1">
                 <Pill size={16} className="text-orange-400" />
-                <span className="text-white/60">Vício:</span>
+                <span className="text-white/60">Addiction:</span>
               </div>
               <span className="text-orange-400 font-bold">{addiction}%</span>
             </div>
@@ -775,10 +775,10 @@ const HospitalView = ({
                   <span className="px-2 py-0.5 rounded text-xs font-bold text-white bg-yellow-500">
                     Surgery
                   </span>
-                  <h3 className="font-bold text-white">Cirurgia Plástica</h3>
+                  <h3 className="font-bold text-white">Plastic Surgery</h3>
                 </div>
                 <p className="text-sm text-white/70 mb-3">
-                  Reduz wanted level em {surgeryReduce}
+                  Reduces wanted level by {surgeryReduce}
                 </p>
                 <div className="grid grid-cols-2 gap-2 text-sm">
                   <div className="flex items-center gap-1">
@@ -821,10 +821,10 @@ const HospitalView = ({
                   <span className="px-2 py-0.5 rounded text-xs font-bold text-white bg-blue-500">
                     Energy
                   </span>
-                  <h3 className="font-bold text-white">Soro Energético</h3>
+                  <h3 className="font-bold text-white">Energy Serum</h3>
                 </div>
                 <p className="text-sm text-white/70 mb-3">
-                  Restaura {energyRecover} pontos de energia
+                  Restores {energyRecover} energy points
                 </p>
                 <div className="grid grid-cols-2 gap-2 text-sm">
                   <div className="flex items-center gap-1">

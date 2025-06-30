@@ -88,8 +88,8 @@ const mockShopItems: ShopItem[] = [
   },
   {
     id: "d63e3c2c-7fcc-473f-ab38-011b4fa5da01", // UUID válido
-    name: "Colete Militar",
-    description: "Proteção avançada para missões perigosas",
+    name: "Military Vest",
+    description: "Advanced protection for dangerous missions",
     price: 3500,
     type: "armor",
     rarity: "rare",

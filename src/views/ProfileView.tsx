@@ -169,7 +169,7 @@ export default function ProfileView() {
     return (
       <BaseView title="Profile & Inventory">
         <div className="text-center py-8">
-          <p className="text-white/60">Carregando dados do jogador...</p>
+          <p className="text-white/60">Loading player data...</p>
         </div>
       </BaseView>
     );

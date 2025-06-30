@@ -85,7 +85,7 @@ export const AnimatedList: React.FC<{
   );
 };
 
-// Componente para transições de página
+// Component for page transitions
 export const PageTransition: React.FC<{
   children: React.ReactNode;
   className?: string;

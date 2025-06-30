@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { SupabaseService } from "@/services/supabaseService";
 import type { User, Session } from "@supabase/supabase-js";
 
 export interface AuthState {
@@ -67,9 +68,44 @@ export const useAuth = () => {
     return () => subscription.unsubscribe();
   }, []);
 
-  const signIn = async (email: string, password: string) => {
+  const signIn = async (playerNameOrEmail: string, password: string) => {
     try {
       setAuthState((prev) => ({ ...prev, loading: true, error: null }));
+
+      let email = playerNameOrEmail;
+      
+      // Check if input looks like an email (contains @)
+      if (!playerNameOrEmail.includes('@')) {
+        // It's a player name, lookup email from localStorage first
+        const userMap = JSON.parse(localStorage.getItem('crimegame_users') || '{}');
+        const localEmail = userMap[playerNameOrEmail];
+        
+        if (localEmail) {
+          email = localEmail;
+        } else {
+          // Try database lookup as fallback
+          console.log("Looking up player name in database:", playerNameOrEmail);
+          const dbEmail = await SupabaseService.getUserEmailByPlayerName(playerNameOrEmail);
+          if (dbEmail && !dbEmail.startsWith('__LOOKUP_USER_ID__')) {
+            email = dbEmail;
+          } else if (dbEmail && dbEmail.startsWith('__LOOKUP_USER_ID__')) {
+            // We got a user_id but can't get email directly, try a different approach
+            setAuthState((prev) => ({
+              ...prev,
+              error: "Player found but email lookup failed. Please use your email address to login.",
+              loading: false,
+            }));
+            return { success: false, error: "Player found but email lookup failed. Please use your email address to login." };
+          } else {
+            setAuthState((prev) => ({
+              ...prev,
+              error: "Player not found. Please check your username or use your email address.",
+              loading: false,
+            }));
+            return { success: false, error: "Player not found. Please check your username or use your email address." };
+          }
+        }
+      }
 
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
@@ -83,6 +119,13 @@ export const useAuth = () => {
           loading: false,
         }));
         return { success: false, error: error.message };
+      }
+
+      // Store successful username-email mapping for future use
+      if (playerNameOrEmail !== email && !playerNameOrEmail.includes('@')) {
+        const userMap = JSON.parse(localStorage.getItem('crimegame_users') || '{}');
+        userMap[playerNameOrEmail] = email;
+        localStorage.setItem('crimegame_users', JSON.stringify(userMap));
       }
 
       return { success: true, data };
@@ -118,7 +161,7 @@ export const useAuth = () => {
           error.message.includes("too many requests")
         ) {
           const errorMessage =
-            "Limite de tentativas excedido. Aguarde alguns minutos antes de tentar novamente.";
+            "Attempt limit exceeded. Wait a few minutes before trying again.";
           setAuthState((prev) => ({
             ...prev,
             error: errorMessage,

@@ -26,35 +26,35 @@ const RobberyView = () => {
   const executeRobbery = useExecuteRobbery();
   const { player } = useGameStore();
 
-  // Funções para mensagens aleatórias
+  // Functions for random messages
   const getRandomSuccessMessage = () => {
     const messages = [
-      "Foi mais fácil que tirar doce de criança! 🍭",
-      "Smooth como seda! Ninguém viu nada... 😎",
-      "Perfeito! Agora você é uma lenda nas ruas! 👑",
-      "Mission accomplished! Dinheiro no bolso! 💰",
-      "Como um ninja na noite! Silencioso e eficiente! 🥷",
-      "Boom! Mais um golpe perfeito! 🎯",
-      "Os policiais ainda estão procurando... 😂",
-      "Você nasceu para isso! Talento natural! ⭐",
-      "Clean getaway! Ninguém vai te pegar! 🏃‍♂️",
-      "A arte do roubo em sua forma mais pura! 🎨",
+      "Easier than taking candy from a baby! 🍭",
+      "Smooth as silk! Nobody saw anything... 😎",
+      "Perfect! Now you're a street legend! 👑",
+      "Mission accomplished! Money in your pocket! 💰",
+      "Like a ninja in the night! Silent and efficient! 🥷",
+      "Boom! Another perfect heist! 🎯",
+      "The cops are still looking... 😂",
+      "You were born for this! Natural talent! ⭐",
+      "Clean getaway! Nobody will catch you! 🏃‍♂️",
+      "The art of theft in its purest form! 🎨",
     ];
     return messages[Math.floor(Math.random() * messages.length)];
   };
 
   const getRandomFailureMessage = () => {
     const messages = [
-      "Ops! Alguém esqueceu de desligar o alarme... 🚨",
-      "Parece que a sorte não estava do seu lado hoje! 🍀",
-      "O segurança estava mais atento que o normal! 👮‍♂️",
-      "Melhor sorte na próxima vez, parceiro! 🤞",
-      "Alguém deve ter visto você chegando... 👀",
-      "O timing estava um pouco off! ⏰",
-      "Nem sempre dá certo, faz parte do jogo! 🎲",
-      "A polícia chegou mais rápido que esperado! 🚔",
-      "Alguém ligou para a polícia! Traidor! 😤",
-      "Melhor treinar mais antes da próxima tentativa! 💪",
+      "Oops! Someone forgot to turn off the alarm... 🚨",
+      "Seems like luck wasn't on your side today! 🍀",
+      "The security guard was more attentive than usual! 👮‍♂️",
+      "Better luck next time, partner! 🤞",
+      "Someone must have seen you coming... 👀",
+      "The timing was a bit off! ⏰",
+      "It doesn't always work out, it's part of the game! 🎲",
+      "The police arrived faster than expected! 🚔",
+      "Someone called the police! Traitor! 😤",
+      "Better train more before the next attempt! 💪",
     ];
     return messages[Math.floor(Math.random() * messages.length)];
   };

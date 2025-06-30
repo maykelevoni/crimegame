@@ -40,6 +40,7 @@ import BusinessView from "../views/BusinessView";
 import bgImage from "../assets/bg.png";
 import { useGameStore } from "../stores/gameStore";
 import { useResponsive } from "../hooks/useResponsive";
+import { LoadingSpinner } from "./ui/LoadingSpinner";
 import type { Alert } from "@/types/game";
 
 export function GameInterface() {
@@ -54,6 +55,18 @@ export function GameInterface() {
   } = useGameStore();
 
   const { isMobile, isTablet } = useResponsive();
+
+  // Early return if player is not loaded yet
+  if (!player) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-cyber-dark text-white">
+        <div className="text-center">
+          <LoadingSpinner size="lg" />
+          <p className="text-cyber-blue mt-4">Loading player data...</p>
+        </div>
+      </div>
+    );
+  }
 
   const mainActions = [
     {
@@ -124,7 +137,7 @@ export function GameInterface() {
   ];
 
   // Only show Prison if wanted level is high
-  if (player.stats.wantedLevel >= 70) {
+  if (player && player.stats && player.stats.wantedLevel >= 70) {
     mainActions.push({
       id: "prison",
       icon: Lock,
@@ -151,20 +164,22 @@ export function GameInterface() {
     setActiveView(view);
   };
 
-  // Sistema de alertas com tom de zoeira
+  // Alert system
   const getAlerts = (): Alert[] => {
     const alerts: Alert[] = [];
 
-    // Saúde baixa
+    if (!player || !player.stats) return alerts;
+
+    // Low health
     if (player.stats.health < 30 && !dismissedAlerts.includes("health")) {
       alerts.push({
         id: "health",
         type: "warning",
         icon: HeartPulse,
         message: isMobile
-          ? "Tá quase morto! Vai pro hospital!"
-          : "Tá quase morto, seu zumbi! Vai pro hospital antes que vire pó!",
-        action: "Ir ao Hospital",
+          ? "Almost dead! Go to hospital!"
+          : "Almost dead, you zombie! Go to hospital before you turn to dust!",
+        action: "Go to Hospital",
         color: "text-red-400",
         bgColor: "bg-red-500/20",
         borderColor: "border-red-500/50",
@@ -172,16 +187,16 @@ export function GameInterface() {
       });
     }
 
-    // Energia baixa
+    // Low energy
     if (player.stats.energy < 20 && !dismissedAlerts.includes("energy")) {
       alerts.push({
         id: "energy",
         type: "warning",
         icon: Zap,
         message: isMobile
-          ? "Tá sem energia! Vai curtir!"
-          : "Tá mais lento que lesma na areia! Vai curtir na nightlife pra pegar energia!",
-        action: "Ir à Nightlife",
+          ? "Out of energy! Go party!"
+          : "Slower than a snail in sand! Go to nightlife to get energy!",
+        action: "Go to Nightlife",
         color: "text-yellow-400",
         bgColor: "bg-yellow-500/20",
         borderColor: "border-yellow-500/50",
@@ -189,16 +204,16 @@ export function GameInterface() {
       });
     }
 
-    // Vício alto
+    // High addiction
     if (player.stats.addiction > 70 && !dismissedAlerts.includes("addiction")) {
       alerts.push({
         id: "addiction",
         type: "warning",
         icon: Pill,
         message: isMobile
-          ? "Tá viciado! Vai se tratar!"
-          : "Tá viciado que nem rato em laboratório! Vai pro hospital se tratar!",
-        action: "Ir ao Hospital",
+          ? "You're addicted! Get treatment!"
+          : "Addicted like a lab rat! Go to hospital for treatment!",
+        action: "Go to Hospital",
         color: "text-cyan-400",
         bgColor: "bg-cyan-500/20",
         borderColor: "border-cyan-500/50",
@@ -206,16 +221,16 @@ export function GameInterface() {
       });
     }
 
-    // Procurado alto
+    // High wanted level
     if (player.stats.wantedLevel > 80 && !dismissedAlerts.includes("wanted")) {
       alerts.push({
         id: "wanted",
         type: "warning",
         icon: Siren,
         message: isMobile
-          ? "A polícia tá te caçando! Vai se esconder!"
-          : "A polícia tá te caçando que nem cachorro atrás de osso! Vai se esconder!",
-        action: "Ir à Prisão",
+          ? "Police are hunting you! Go hide!"
+          : "Police are hunting you like a dog after a bone! Go hide!",
+        action: "Go to Prison",
         color: "text-orange-400",
         bgColor: "bg-orange-500/20",
         borderColor: "border-orange-500/50",
@@ -227,13 +242,13 @@ export function GameInterface() {
   };
 
   const renderView = () => {
-    console.log("🏥 DEBUG: Verificando status de hospitalização...");
-    console.log("isImprisoned:", player.stats.isImprisoned);
-    console.log("isHospitalized:", player.stats.isHospitalized);
+    console.log("🏥 DEBUG: Checking hospitalization status...");
+    console.log("isImprisoned:", player?.stats?.isImprisoned);
+    console.log("isHospitalized:", player?.stats?.isHospitalized);
     console.log("activeView:", activeView);
 
-    if (player.stats.isImprisoned) {
-      console.log("🔒 DEBUG: Jogador está na prisão");
+    if (player?.stats?.isImprisoned) {
+      console.log("🔒 DEBUG: Player is in prison");
       return (
         <PrisonView
           isPlayerImprisoned={true}
@@ -256,14 +271,12 @@ export function GameInterface() {
       );
     }
 
-    if (player.stats.isHospitalized) {
-      console.log(
-        "🏥 DEBUG: Jogador está hospitalizado - mostrando HospitalView"
-      );
+    if (player?.stats?.isHospitalized) {
+      console.log("🏥 DEBUG: Player is hospitalized - showing HospitalView");
       return (
         <HospitalView
           isPlayerHospitalized={true}
-          playerStatus={player.stats}
+          playerStatus={player?.stats}
           onStartTreatment={(type) => {
             // Treatment logic will be handled by the hospital view
           }}
@@ -271,10 +284,7 @@ export function GameInterface() {
       );
     }
 
-    console.log(
-      "🏠 DEBUG: Jogador está livre - mostrando view normal:",
-      activeView
-    );
+    console.log("🏠 DEBUG: Player is free - showing normal view:", activeView);
 
     switch (activeView) {
       case "home":
@@ -289,9 +299,9 @@ export function GameInterface() {
         return (
           <HospitalView
             isPlayerHospitalized={false}
-            playerStatus={player.stats}
+            playerStatus={player?.stats}
             onStartTreatment={() => {
-              /* Ação de tratamento não é chamada na visita */
+              /* Treatment action is not called on visit */
             }}
           />
         );
@@ -303,8 +313,8 @@ export function GameInterface() {
         return (
           <PrisonView
             isPlayerImprisoned={false}
-            onAttemptBribe={() => false /* Não pode subornar ao visitar */}
-            onAttemptRiot={() => false /* Não pode iniciar motim ao visitar */}
+            onAttemptBribe={() => false /* Cannot bribe when visiting */}
+            onAttemptRiot={() => false /* Cannot start riot when visiting */}
           />
         );
       case "news":
@@ -377,12 +387,12 @@ export function GameInterface() {
           backgroundAttachment: "fixed",
         }}
       >
-        {/* Overlay escuro para melhorar legibilidade */}
+        {/* Dark overlay to improve readability */}
         <div className="absolute inset-0 bg-black/60 pointer-events-none"></div>
 
-        {/* Conteúdo principal com z-index para ficar sobre o overlay */}
+        {/* Main content with z-index to stay above overlay */}
         <div className="relative z-10">
-          {/* Sistema de Alertas */}
+          {/* Alert System */}
           {getAlerts().map((alert) => {
             const Icon = alert.icon;
             return (

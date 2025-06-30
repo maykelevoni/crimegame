@@ -178,15 +178,15 @@ export const useConsumeItem = () => {
         .eq("id", playerId)
         .single();
 
-      console.log("👤 DEBUG: Buscando jogador...");
-      console.log("Player encontrado:", player);
+      console.log("👤 DEBUG: Searching for player...");
+      console.log("Player found:", player);
       console.log("Player error:", playerError);
 
       if (playerError) {
-        console.error("❌ Erro ao buscar jogador:", playerError);
+        console.error("❌ Error fetching player:", playerError);
         throw playerError;
       }
-      if (!player) throw new Error("Jogador não encontrado");
+      if (!player) throw new Error("Player not found");
 
       const playerData = player;
 
@@ -340,7 +340,7 @@ export const useConsumeItem = () => {
         })
         .eq("id", playerId);
 
-      console.log("💾 DEBUG: Atualizando jogador...");
+      console.log("💾 DEBUG: Updating player...");
       console.log("isOverdose:", isOverdose);
       console.log("isDisease:", isDisease);
       console.log("is_hospitalized será:", isOverdose || isDisease);
@@ -486,7 +486,7 @@ export const useVisitVenue = () => {
         .single();
 
       if (playerError) throw playerError;
-      if (!player) throw new Error("Jogador não encontrado");
+      if (!player) throw new Error("Player not found");
 
       if (player.money < venue.money_cost) {
         throw new Error(

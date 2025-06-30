@@ -50,7 +50,7 @@ export const LoadingOverlay: React.FC<{ text?: string }> = ({
   );
 };
 
-// Loading skeleton para cards
+// Loading skeleton for cards
 export const LoadingSkeleton: React.FC<{ className?: string }> = ({
   className = "",
 }) => {

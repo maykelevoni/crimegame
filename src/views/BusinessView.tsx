@@ -34,8 +34,8 @@ interface Business {
 const businesses: Business[] = [
   {
     id: "restaurant",
-    name: "Restaurante Italiano",
-    description: "Restaurante elegante no centro da cidade",
+    name: "Italian Restaurant",
+    description: "Elegant restaurant downtown",
     image:
       "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=150&h=150&fit=crop",
     price: 50000,
@@ -51,7 +51,7 @@ const businesses: Business[] = [
   {
     id: "nightclub",
     name: "Nightclub Neon",
-    description: "Clube noturno de luxo com shows ao vivo",
+    description: "Luxury nightclub with live shows",
     image:
       "https://images.unsplash.com/photo-1566733971017-fc977c5c2f3a?w=150&h=150&fit=crop",
     price: 150000,
@@ -66,8 +66,8 @@ const businesses: Business[] = [
   },
   {
     id: "shop",
-    name: "Loja de Conveniência",
-    description: "Loja 24h no bairro residencial",
+    name: "Convenience Store",
+    description: "24-hour store in residential neighborhood",
     image:
       "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=150&h=150&fit=crop",
     price: 25000,
@@ -82,8 +82,8 @@ const businesses: Business[] = [
   },
   {
     id: "factory",
-    name: "Fábrica de Armas",
-    description: "Produção de armas ilegais de alta qualidade",
+    name: "Weapons Factory",
+    description: "Production of high-quality illegal weapons",
     image:
       "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=150&h=150&fit=crop",
     price: 500000,
@@ -98,8 +98,8 @@ const businesses: Business[] = [
   },
   {
     id: "casino",
-    name: "Cassino Dourado",
-    description: "Cassino de luxo com jogos de azar",
+    name: "Golden Casino",
+    description: "Luxury casino with gambling games",
     image:
       "https://images.unsplash.com/photo-1511512578047-dfb367046420?w=150&h=150&fit=crop",
     price: 1000000,
@@ -208,7 +208,7 @@ const BusinessView = () => {
               {ownedBusinesses
                 .reduce((total, b) => total + b.income, 0)
                 .toLocaleString()}
-              /hora
+              /hour
             </span>
           </div>
         </div>
@@ -219,7 +219,7 @@ const BusinessView = () => {
         <div className="mb-6">
           <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
             <CheckCircle size={24} className="text-green-400" />
-            Seus Negócios
+            Your Businesses
           </h2>
           <div className="grid gap-4">
             {ownedBusinesses.map((business) => (
@@ -245,7 +245,7 @@ const BusinessView = () => {
                     </p>
                     <div className="grid grid-cols-3 gap-4 text-sm">
                       <div>
-                        <span className="text-white/60">Nível:</span>
+                        <span className="text-white/60">Level:</span>
                         <div className="flex items-center gap-2">
                           <span className="text-white font-bold">
                             {business.level}/{business.maxLevel}
@@ -261,7 +261,7 @@ const BusinessView = () => {
                         </div>
                       </div>
                       <div>
-                        <span className="text-white/60">Funcionários:</span>
+                        <span className="text-white/60">Employees:</span>
                         <div className="flex items-center gap-2">
                           <span className="text-white font-bold">
                             {business.employees}/{business.maxEmployees}
@@ -277,7 +277,7 @@ const BusinessView = () => {
                         </div>
                       </div>
                       <div>
-                        <span className="text-white/60">Segurança:</span>
+                        <span className="text-white/60">Security:</span>
                         <div className="flex items-center gap-2">
                           <span className="text-white font-bold">
                             {business.security}%
@@ -295,7 +295,7 @@ const BusinessView = () => {
                     </div>
                     <div className="mt-3 p-2 bg-green-500/10 border border-green-500/30 rounded">
                       <span className="text-green-400 font-bold">
-                        +${business.income.toLocaleString()}/hora
+                        +${business.income.toLocaleString()}/hour
                       </span>
                     </div>
                   </div>
@@ -310,7 +310,7 @@ const BusinessView = () => {
       <div>
         <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
           <Building2 size={24} className="text-blue-400" />
-          Negócios Disponíveis
+          Available Businesses
         </h2>
         <div className="grid gap-4">
           {businesses
@@ -341,15 +341,15 @@ const BusinessView = () => {
                     </p>
                     <div className="flex items-center justify-between">
                       <div className="text-sm">
-                        <span className="text-white/60">Preço:</span>
+                        <span className="text-white/60">Price:</span>
                         <span className="text-white font-bold ml-2">
                           ${business.price.toLocaleString()}
                         </span>
                       </div>
                       <div className="text-sm">
-                        <span className="text-white/60">Renda:</span>
+                        <span className="text-white/60">Income:</span>
                         <span className="text-green-400 font-bold ml-2">
-                          +${business.income.toLocaleString()}/hora
+                          +${business.income.toLocaleString()}/hour
                         </span>
                       </div>
                     </div>
@@ -383,25 +383,25 @@ const BusinessView = () => {
             <p className="text-white/70 mb-4">{selectedBusiness.description}</p>
             <div className="space-y-3 mb-6">
               <div className="flex justify-between">
-                <span className="text-white/60">Preço:</span>
+                <span className="text-white/60">Price:</span>
                 <span className="text-white font-bold">
                   ${selectedBusiness.price.toLocaleString()}
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-white/60">Renda por hora:</span>
+                <span className="text-white/60">Income per hour:</span>
                 <span className="text-green-400 font-bold">
                   +${selectedBusiness.income.toLocaleString()}
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-white/60">Funcionários:</span>
+                <span className="text-white/60">Employees:</span>
                 <span className="text-white">
                   {selectedBusiness.employees}/{selectedBusiness.maxEmployees}
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-white/60">Segurança:</span>
+                <span className="text-white/60">Security:</span>
                 <span className="text-white">{selectedBusiness.security}%</span>
               </div>
             </div>
@@ -416,14 +416,14 @@ const BusinessView = () => {
                 }`}
               >
                 {playerMoney >= selectedBusiness.price
-                  ? "Comprar Negócio"
-                  : "Dinheiro Insuficiente"}
+                  ? "Buy Business"
+                  : "Insufficient Money"}
               </button>
               <button
                 onClick={() => setSelectedBusiness(null)}
                 className="py-3 px-4 border border-white/30 rounded-lg text-white hover:bg-white/10"
               >
-                Cancelar
+                Cancel
               </button>
             </div>
           </div>

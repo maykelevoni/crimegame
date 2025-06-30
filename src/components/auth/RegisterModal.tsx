@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { X, Eye, EyeOff, Loader2 } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { X, Eye, EyeOff, Loader2, Info, Check, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 import { useGameStore } from "@/stores/gameStore";
@@ -26,6 +26,15 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [usernameStatus, setUsernameStatus] = useState<'idle' | 'checking' | 'available' | 'taken'>('idle');
+  const [passwordStrength, setPasswordStrength] = useState({
+    length: false,
+    uppercase: false,
+    lowercase: false,
+    number: false,
+    special: false,
+    notCommon: true
+  });
 
   const { signUp, error, clearError } = useAuth();
   const { setUserId } = useGameStore();
@@ -45,6 +54,74 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email) && email.length <= 254; // RFC 5321 limit
   };
+
+  // Username availability check
+  const checkUsernameAvailability = async (username: string) => {
+    if (username.length < 3) {
+      setUsernameStatus('idle');
+      return;
+    }
+
+    setUsernameStatus('checking');
+    try {
+      const { data, error } = await supabase
+        .from('players')
+        .select('name')
+        .eq('name', username)
+        .maybeSingle();
+        
+      if (error) {
+        console.error('Error checking username:', error);
+        setUsernameStatus('idle');
+      } else if (data) {
+        // Username exists
+        setUsernameStatus('taken');
+      } else {
+        // No user found, username is available
+        setUsernameStatus('available');
+      }
+    } catch (error) {
+      console.error('Error checking username:', error);
+      setUsernameStatus('idle');
+    }
+  };
+
+  // Password strength checker
+  const checkPasswordStrength = (password: string) => {
+    // Check for common weak passwords
+    const commonPasswords = [
+      "123456789012", "password1234", "admin123456", "qwerty123456",
+      "letmein12345", "welcome12345", "senha1234567"
+    ];
+
+    const strength = {
+      length: password.length >= 12,
+      uppercase: /[A-Z]/.test(password),
+      lowercase: /[a-z]/.test(password),
+      number: /[0-9]/.test(password),
+      special: /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(password),
+      notCommon: !commonPasswords.includes(password.toLowerCase())
+    };
+    setPasswordStrength(strength);
+  };
+
+  // Debounced username check
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (formData.username.trim()) {
+        checkUsernameAvailability(formData.username.trim());
+      }
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [formData.username]);
+
+  // Password strength check on change
+  useEffect(() => {
+    if (formData.password) {
+      checkPasswordStrength(formData.password);
+    }
+  }, [formData.password]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -74,56 +151,43 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({
 
     // Comprehensive input validation
     if (!formData.username.trim()) {
-      toast.error("Nome de usuário é obrigatório!");
+      toast.error("Username is required!");
       setIsLoading(false);
       return;
     }
 
     if (formData.username.length < 3) {
-      toast.error("Nome de usuário deve ter pelo menos 3 caracteres!");
+      toast.error("Username must be at least 3 characters!");
+      setIsLoading(false);
+      return;
+    }
+
+    if (!formData.email.trim()) {
+      toast.error("Email is required!");
       setIsLoading(false);
       return;
     }
 
     if (!isValidEmail(formData.email)) {
-      toast.error("Por favor, digite um email válido!");
+      toast.error("Please enter a valid email!");
+      setIsLoading(false);
+      return;
+    }
+
+    if (!formData.password.trim()) {
+      toast.error("Password is required!");
+      setIsLoading(false);
+      return;
+    }
+
+    if (formData.password.length < 12) {
+      toast.error("Password must be at least 12 characters!");
       setIsLoading(false);
       return;
     }
 
     if (formData.password !== formData.confirmPassword) {
-      toast.error("As senhas não coincidem!");
-      setIsLoading(false);
-      return;
-    }
-
-    // Stronger password validation
-    if (formData.password.length < 12) {
-      toast.error("A senha deve ter pelo menos 12 caracteres!");
-      setIsLoading(false);
-      return;
-    }
-
-    if (!/[A-Z]/.test(formData.password)) {
-      toast.error("A senha deve conter pelo menos uma letra maiúscula!");
-      setIsLoading(false);
-      return;
-    }
-
-    if (!/[a-z]/.test(formData.password)) {
-      toast.error("A senha deve conter pelo menos uma letra minúscula!");
-      setIsLoading(false);
-      return;
-    }
-
-    if (!/[0-9]/.test(formData.password)) {
-      toast.error("A senha deve conter pelo menos um número!");
-      setIsLoading(false);
-      return;
-    }
-
-    if (!/[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(formData.password)) {
-      toast.error("A senha deve conter pelo menos um caractere especial!");
+      toast.error("Passwords do not match!");
       setIsLoading(false);
       return;
     }
@@ -135,7 +199,7 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({
     ];
     
     if (commonPasswords.includes(formData.password.toLowerCase())) {
-      toast.error("Esta senha é muito comum. Escolha uma senha mais segura!");
+      toast.error("This password is too common. Choose a more secure password!");
       setIsLoading(false);
       return;
     }
@@ -157,60 +221,43 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({
 
         console.log("Player created:", player);
 
-        // Create player stats
-        await supabase.from("player_stats").insert({
-          player_id: result.data.user.id,
-          health: 100,
-          max_health: 100,
-          energy: 100,
-          max_energy: 100,
-          addiction: 0,
-          reputation: 0,
-          money: 0, // Start with 0 money as requested
-          wanted_level: 0,
-          is_imprisoned: false,
-          is_hospitalized: false,
-        });
-
         console.log("Player stats created successfully");
-        setUserId(result.data.user.id);
-        onClose();
+        
+        // Store username-email mapping for login
+        const userMap = JSON.parse(localStorage.getItem('crimegame_users') || '{}');
+        userMap[formData.username] = formData.email;
+        localStorage.setItem('crimegame_users', JSON.stringify(userMap));
+        
+        // Small delay to ensure database operations complete
+        setTimeout(() => {
+          setUserId(result.data.user.id);
+          onClose();
+        }, 100);
       } else {
         console.error("SignUp failed:", result.error);
 
-        // Tratamento específico para rate limit
-        if (
-          result.error &&
-          (result.error.includes("rate limit") ||
-            result.error.includes("too many requests"))
-        ) {
-          alert(
-            "Limite de tentativas excedido. Aguarde alguns minutos antes de tentar novamente."
-          );
+        // Rate limit handling
+        if (result.error && result.error.includes("rate limit")) {
+          toast.error("Too many registration attempts. Please wait a few minutes before trying again.");
+        } else if (result.error && result.error.includes("already registered")) {
+          toast.error("This email is already registered. Try logging in instead.");
         } else {
-          alert(`Erro no registro: ${result.error}`);
+          toast.error(result.error || "Registration failed. Please try again.");
         }
       }
-    } catch (error: unknown) {
+    } catch (error) {
       console.error("Registration error:", error);
-
-      // Tratamento específico para rate limit
-      if (error && typeof error === "object" && "message" in error) {
-        const errorMessage = (error as Error).message;
-        if (
-          errorMessage.includes("rate limit") ||
-          errorMessage.includes("too many requests")
-        ) {
-          alert(
-            "Limite de tentativas excedido. Aguarde alguns minutos antes de tentar novamente."
-          );
+      
+      if (error instanceof Error) {
+        if (error.message.includes("rate limit")) {
+          toast.error("Too many attempts. Please wait before trying again.");
+        } else if (error.message.includes("already exists") || error.message.includes("duplicate")) {
+          toast.error("Username or email already exists. Please choose different ones.");
         } else {
-          alert(`Erro no registro: ${errorMessage}`);
+          toast.error(`Registration error: ${error.message}`);
         }
-      } else if (typeof error === "object") {
-        alert(`Erro no registro: ${JSON.stringify(error)}`);
       } else {
-        alert(`Erro no registro: ${String(error)}`);
+        toast.error(`Registration error: ${String(error)}`);
       }
     } finally {
       setIsLoading(false);
@@ -232,9 +279,9 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({
 
         {/* Header */}
         <div className="text-center mb-6">
-          <h2 className="text-2xl font-bold text-white mb-2">Registro</h2>
+          <h2 className="text-2xl font-bold text-white mb-2">Register</h2>
           <p className="text-cyber-blue/80">
-            Crie sua conta e comece sua jornada
+            Create your account and start your journey
           </p>
         </div>
 
@@ -252,18 +299,45 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({
               htmlFor="username"
               className="block text-sm font-medium text-cyber-blue mb-2"
             >
-              Nome do Jogador
+              Player Name
             </label>
-            <input
-              type="text"
-              id="username"
-              name="username"
-              value={formData.username}
-              onChange={handleChange}
-              className="w-full bg-black/50 border border-cyber-blue/30 rounded-lg px-4 py-3 text-white placeholder-cyber-blue/50 focus:outline-none focus:border-cyber-blue transition-colors"
-              placeholder="Seu nome no jogo"
-              required
-            />
+            <div className="relative">
+              <input
+                type="text"
+                id="username"
+                name="username"
+                value={formData.username}
+                onChange={handleChange}
+                className="w-full bg-black/50 border border-cyber-blue/30 rounded-lg px-4 py-3 pr-10 text-white placeholder-cyber-blue/50 focus:outline-none focus:border-cyber-blue transition-colors"
+                placeholder="Choose your player name"
+                required
+                minLength={3}
+                maxLength={50}
+              />
+              {/* Username status indicator */}
+              <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                {usernameStatus === 'checking' && (
+                  <Loader2 size={16} className="text-cyber-blue animate-spin" />
+                )}
+                {usernameStatus === 'available' && (
+                  <Check size={16} className="text-green-400" />
+                )}
+                {usernameStatus === 'taken' && (
+                  <AlertCircle size={16} className="text-red-400" />
+                )}
+              </div>
+            </div>
+            <div className="flex items-center gap-2 mt-1">
+              <p className="text-cyber-blue/60 text-xs">
+                💡 Choose a unique name for your criminal career
+              </p>
+              {usernameStatus === 'available' && (
+                <span className="text-green-400 text-xs">✓ Available</span>
+              )}
+              {usernameStatus === 'taken' && (
+                <span className="text-red-400 text-xs">✗ Taken</span>
+              )}
+            </div>
           </div>
 
           <div>
@@ -280,9 +354,13 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({
               value={formData.email}
               onChange={handleChange}
               className="w-full bg-black/50 border border-cyber-blue/30 rounded-lg px-4 py-3 text-white placeholder-cyber-blue/50 focus:outline-none focus:border-cyber-blue transition-colors"
-              placeholder="seu@email.com"
+              placeholder="your@email.com"
               required
+              maxLength={254}
             />
+            <p className="text-cyber-blue/60 text-xs mt-1">
+              💡 You'll use your player name to login, not this email
+            </p>
           </div>
 
           <div>
@@ -290,7 +368,7 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({
               htmlFor="password"
               className="block text-sm font-medium text-cyber-blue mb-2"
             >
-              Senha
+              Password
             </label>
             <div className="relative">
               <input
@@ -300,8 +378,10 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({
                 value={formData.password}
                 onChange={handleChange}
                 className="w-full bg-black/50 border border-cyber-blue/30 rounded-lg px-4 py-3 pr-12 text-white placeholder-cyber-blue/50 focus:outline-none focus:border-cyber-blue transition-colors"
-                placeholder="••••••••"
+                placeholder="••••••••••••"
                 required
+                minLength={12}
+                maxLength={128}
               />
               <button
                 type="button"
@@ -315,6 +395,32 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({
                 )}
               </button>
             </div>
+            
+            {/* Password strength indicator */}
+            {formData.password && (
+              <div className="mt-2 space-y-1">
+                <div className="flex flex-wrap gap-2 text-xs">
+                  <span className={passwordStrength.length ? "text-green-400" : "text-red-400"}>
+                    {passwordStrength.length ? "✓" : "✗"} 12+ chars
+                  </span>
+                  <span className={passwordStrength.uppercase ? "text-green-400" : "text-red-400"}>
+                    {passwordStrength.uppercase ? "✓" : "✗"} Uppercase
+                  </span>
+                  <span className={passwordStrength.lowercase ? "text-green-400" : "text-red-400"}>
+                    {passwordStrength.lowercase ? "✓" : "✗"} Lowercase
+                  </span>
+                  <span className={passwordStrength.number ? "text-green-400" : "text-red-400"}>
+                    {passwordStrength.number ? "✓" : "✗"} Number
+                  </span>
+                  <span className={passwordStrength.special ? "text-green-400" : "text-red-400"}>
+                    {passwordStrength.special ? "✓" : "✗"} Special
+                  </span>
+                  <span className={passwordStrength.notCommon ? "text-green-400" : "text-red-400"}>
+                    {passwordStrength.notCommon ? "✓" : "✗"} Not common
+                  </span>
+                </div>
+              </div>
+            )}
           </div>
 
           <div>
@@ -322,7 +428,7 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({
               htmlFor="confirmPassword"
               className="block text-sm font-medium text-cyber-blue mb-2"
             >
-              Confirmar Senha
+              Confirm Password
             </label>
             <div className="relative">
               <input
@@ -332,8 +438,9 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({
                 value={formData.confirmPassword}
                 onChange={handleChange}
                 className="w-full bg-black/50 border border-cyber-blue/30 rounded-lg px-4 py-3 pr-12 text-white placeholder-cyber-blue/50 focus:outline-none focus:border-cyber-blue transition-colors"
-                placeholder="••••••••"
+                placeholder="••••••••••••"
                 required
+                maxLength={128}
               />
               <button
                 type="button"
@@ -347,21 +454,48 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({
                 )}
               </button>
             </div>
+            {formData.confirmPassword && (
+              <p className={`text-xs mt-1 ${
+                formData.password === formData.confirmPassword 
+                  ? "text-green-400" 
+                  : "text-red-400"
+              }`}>
+                {formData.password === formData.confirmPassword 
+                  ? "✓ Passwords match" 
+                  : "✗ Passwords don't match"
+                }
+              </p>
+            )}
+          </div>
+
+          {/* Security tip */}
+          <div className="bg-cyber-blue/10 border border-cyber-blue/20 rounded-lg p-3">
+            <div className="flex items-start gap-2">
+              <Info size={14} className="text-cyber-blue mt-0.5 flex-shrink-0" />
+              <div className="text-xs text-cyber-blue/80">
+                <p className="font-medium mb-1">🔐 Security Tips:</p>
+                <ul className="text-cyber-blue/60 space-y-0.5">
+                  <li>• Use a unique password you don't use anywhere else</li>
+                  <li>• Your password must be at least 12 characters</li>
+                  <li>• Include uppercase, lowercase, numbers and symbols</li>
+                </ul>
+              </div>
+            </div>
           </div>
 
           {/* Submit button */}
           <button
             type="submit"
-            disabled={isLoading}
+            disabled={isLoading || usernameStatus === 'taken'}
             className="w-full bg-gradient-to-r from-cyber-blue to-cyber-purple text-white font-bold py-3 px-4 rounded-lg hover:from-cyber-purple hover:to-cyber-blue transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
             {isLoading ? (
               <>
                 <Loader2 size={20} className="animate-spin" />
-                Criando conta...
+                Creating Account...
               </>
             ) : (
-              "Criar Conta"
+              "Create Account"
             )}
           </button>
         </form>
@@ -369,12 +503,12 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({
         {/* Footer */}
         <div className="mt-6 text-center">
           <p className="text-cyber-blue/80 text-sm">
-            Já tem uma conta?{" "}
+            Already have an account?{" "}
             <button
               onClick={onSwitchToLogin}
               className="text-cyber-blue hover:text-white transition-colors font-medium"
             >
-              Faça login
+              Login
             </button>
           </p>
         </div>
