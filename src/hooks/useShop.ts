@@ -197,7 +197,7 @@ export const useBuyItem = () => {
 
       if (player.money < totalCost) {
         throw new Error(
-          `Dinheiro insuficiente! Você tem $${player.money.toLocaleString()} mas precisa de $${totalCost.toLocaleString()}`
+          `Insufficient money! You have $${player.money.toLocaleString()} but need $${totalCost.toLocaleString()}`
         );
       }
 
@@ -278,7 +278,7 @@ export const useBuyMultipleItems = () => {
 
       if (player.money < totalCost) {
         throw new Error(
-          `Dinheiro insuficiente! Você tem $${player.money.toLocaleString()} mas precisa de $${totalCost.toLocaleString()}`
+          `Insufficient money! You have $${player.money.toLocaleString()} but need $${totalCost.toLocaleString()}`
         );
       }
 

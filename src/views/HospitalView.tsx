@@ -33,7 +33,7 @@ const HospitalView = ({
   playerStatus,
   onStartTreatment,
 }: HospitalViewProps) => {
-  console.log("🏥 DEBUG: HospitalView renderizado");
+  console.log("🏥 DEBUG: HospitalView rendered");
   console.log("isPlayerHospitalized:", isPlayerHospitalized);
   console.log("playerStatus:", playerStatus);
 
@@ -422,22 +422,22 @@ const HospitalView = ({
     const getHospitalizationTitle = () => {
       switch (hospitalizationReason) {
         case "overdose":
-          return "Você está internado por OVERDOSE!";
+          return "You are hospitalized for OVERDOSE!";
         case "disease":
-          return "Você está internado por DOENÇA!";
+          return "You are hospitalized for DISEASE!";
         default:
-          return "Você está internado!";
+          return "You are hospitalized!";
       }
     };
 
     const getHospitalizationDescription = () => {
       switch (hospitalizationReason) {
         case "overdose":
-          return "Sua overdose foi grave. Você precisa de tratamento intensivo para se recuperar.";
+          return "Your overdose was severe. You need intensive treatment to recover.";
         case "disease":
-          return "Você contraiu uma doença. Precisa de tratamento médico especializado.";
+          return "You contracted a disease. You need specialized medical treatment.";
         default:
-          return "Sua saúde está muito baixa. Você precisa se tratar para poder sair.";
+          return "Your health is very low. You need treatment to be able to leave.";
       }
     };
 

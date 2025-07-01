@@ -67,18 +67,18 @@ const NightlifeView = () => {
 
   const handleConsumeItem = async (consumable: NightlifeConsumable) => {
     if (!player?.id) {
-      toast.error("Jogador não encontrado");
+      toast.error("Player not found");
       return;
     }
 
-    // Verificar se a energia está cheia e o item dá energia positiva
+    // Check if energy is full and item gives positive energy
     if (
       consumable.effects.energy &&
       consumable.effects.energy > 0 &&
       player.stats.energy >= player.stats.maxEnergy
     ) {
       toast.error(
-        `Energia já está cheia! Você tem ${player.stats.energy}/${player.stats.maxEnergy} de energia`
+        `Energy is already full! You have ${player.stats.energy}/${player.stats.maxEnergy} energy`
       );
       return;
     }
@@ -97,7 +97,7 @@ const NightlifeView = () => {
 
   const handleVisitVenue = async (venue: NightlifeVenue) => {
     if (!player?.id) {
-      toast.error("Jogador não encontrado");
+      toast.error("Player not found");
       return;
     }
 
@@ -232,7 +232,7 @@ const NightlifeView = () => {
                             </p>
                             {isEnergyFull && (
                               <p className="text-xs text-red-400">
-                                Energia cheia
+                                Energy full
                               </p>
                             )}
                             {overdoseRisk !== "NENHUM" && (
@@ -340,7 +340,7 @@ const NightlifeView = () => {
                             )}
                             {isEnergyFull && (
                               <p className="text-xs text-red-400">
-                                Energia cheia
+                                Energy full
                               </p>
                             )}
                             {overdoseRisk !== "NENHUM" && (

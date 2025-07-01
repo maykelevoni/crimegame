@@ -211,7 +211,7 @@ export default function ProfileView() {
       selectedItem.id;
 
   function handleUse(item: Item) {
-    setUsedMessage(`Você usou: ${item.name}!`);
+    setUsedMessage(`You used: ${item.name}!`);
     setUsedItemId(item.id);
     setConsumedIds((prev) => [...prev, item.id]);
   }

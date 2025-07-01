@@ -89,13 +89,13 @@ export const useAuth = () => {
           if (dbEmail && !dbEmail.startsWith('__LOOKUP_USER_ID__')) {
             email = dbEmail;
           } else if (dbEmail && dbEmail.startsWith('__LOOKUP_USER_ID__')) {
-            // We got a user_id but can't get email directly, try a different approach
+            // We got a user_id but can't get email directly, inform user to use email
             setAuthState((prev) => ({
               ...prev,
-              error: "Player found but email lookup failed. Please use your email address to login.",
+              error: "Username found! Please login using your email address instead of username.",
               loading: false,
             }));
-            return { success: false, error: "Player found but email lookup failed. Please use your email address to login." };
+            return { success: false, error: "Username found! Please login using your email address instead of username." };
           } else {
             setAuthState((prev) => ({
               ...prev,

@@ -37,32 +37,32 @@ const TopStatusBar: React.FC<TopStatusBarProps> = ({
   const status = [
     {
       icon: <Heart size={18} color="#FF4D4F" />,
-      label: "Vida",
+      label: "Health",
       value: `${health}/${maxHealth}`,
     },
     {
       icon: <Zap size={18} color="#FFD600" />,
-      label: "Energia",
+      label: "Energy",
       value: `${energy}/${maxEnergy}`,
     },
     {
       icon: <Pill size={18} color="#00fff7" />,
-      label: "Vício",
+      label: "Addiction",
       value: `${addiction}%`,
     },
     {
       icon: <Star size={18} color="#9945ff" />,
-      label: "Reputação",
+      label: "Reputation",
       value: `${reputation}`,
     },
     {
       icon: <DollarSign size={18} color="#30E3DF" />,
-      label: "Dinheiro",
+      label: "Money",
       value: `$${money.toLocaleString()}`,
     },
     {
       icon: <AlertTriangle size={18} color="#FF8800" />,
-      label: "Procurado",
+      label: "Wanted",
       value: `${wantedLevel}`,
     },
   ];

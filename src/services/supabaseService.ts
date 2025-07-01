@@ -61,7 +61,7 @@ export class SupabaseService {
       const { data: player, error: playerError } = await supabase
         .from("players")
         .select("user_id")
-        .eq("name", playerName)
+        .eq("username", playerName)
         .maybeSingle();
 
       if (playerError || !player) {
@@ -97,7 +97,7 @@ export class SupabaseService {
   }
 
   static async getPlayerByUserId(userId: string): Promise<Player | null> {
-    console.log("🔍 Buscando player para user_id:", userId);
+    console.log("🔍 Searching for player with user_id:", userId);
 
     const { data, error } = await supabase
       .from("players")
@@ -106,7 +106,7 @@ export class SupabaseService {
       .single();
 
     if (error) {
-      console.error("❌ Erro na query do Supabase:", {
+      console.error("❌ Error in Supabase query:", {
         message: error.message,
         code: error.code,
         details: error.details,
@@ -196,8 +196,8 @@ export class SupabaseService {
 
     if (error) throw error;
 
-    // Por enquanto, retornar array vazio até implementar a lógica correta
-    // TODO: Implementar join com tabela items quando os tipos estiverem atualizados
+    // For now, return empty array until implementing correct logic
+    // TODO: Implement join with items table when types are updated
     return [];
   }
 

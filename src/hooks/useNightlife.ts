@@ -196,26 +196,26 @@ export const useConsumeItem = () => {
 
       if (playerData.money < consumable.price) {
         throw new Error(
-          `Dinheiro insuficiente! Você tem $${playerData.money.toLocaleString()} mas precisa de $${consumable.price.toLocaleString()}`
+          `Insufficient money! You have $${playerData.money.toLocaleString()} but need $${consumable.price.toLocaleString()}`
         );
       }
 
-      // Verificar se a energia está cheia e o item dá energia positiva
+      // Check if energy is full and item gives positive energy
       if (
         consumable.effects.energy &&
         consumable.effects.energy > 0 &&
         playerData.energy >= playerData.max_energy
       ) {
         throw new Error(
-          `Energia já está cheia! Você tem ${playerData.energy}/${playerData.max_energy} de energia`
+          `Energy is already full! You have ${playerData.energy}/${playerData.max_energy} energy`
         );
       }
 
-      console.log("⚡ DEBUG: Verificando energia...");
-      console.log("Energia atual:", playerData.energy);
-      console.log("Energia máxima:", playerData.max_energy);
+      console.log("⚡ DEBUG: Checking energy...");
+      console.log("Current energy:", playerData.energy);
+      console.log("Max energy:", playerData.max_energy);
       console.log(
-        "Efeito de energia do item:",
+        "Item energy effect:",
         consumable.effects.energy
       );
 
@@ -490,13 +490,13 @@ export const useVisitVenue = () => {
 
       if (player.money < venue.money_cost) {
         throw new Error(
-          `Dinheiro insuficiente! Você tem $${player.money.toLocaleString()} mas precisa de $${venue.money_cost.toLocaleString()}`
+          `Insufficient money! You have $${player.money.toLocaleString()} but need $${venue.money_cost.toLocaleString()}`
         );
       }
 
       if (player.energy < venue.energy_cost) {
         throw new Error(
-          `Energia insuficiente! Você tem ${player.energy} mas precisa de ${venue.energy_cost}`
+          `Insufficient energy! You have ${player.energy} but need ${venue.energy_cost}`
         );
       }
 

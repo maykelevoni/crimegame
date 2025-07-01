@@ -66,8 +66,8 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({
     try {
       const { data, error } = await supabase
         .from('players')
-        .select('name')
-        .eq('name', username)
+        .select('username')
+        .eq('username', username)
         .maybeSingle();
         
       if (error) {
