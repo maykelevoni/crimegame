@@ -406,49 +406,102 @@ export const useConsumeItem = () => {
       const effects = consumable.effects;
 
       if (isOverdose) {
+        toast.dismiss(); // Clear previous notifications
+        
+        const overdoseMessages = [
+          `💊 FUCK! You overdosed like a junkie! Your body can't handle this shit anymore!`,
+          `☠️ DAMN! Too much dope, you druggie bastard! Hospital time before you die!`,
+          `🚑 SHIT! Your addiction is out of control! You almost killed yourself, you addict!`,
+          `💀 OVERDOSE! Your body is shutting down from all the drugs! Time to get clean, motherfucker!`,
+          `🏥 TOO MUCH! You pushed your limits too far! Your veins are burning with poison!`
+        ];
+        const randomOverdoseMsg = overdoseMessages[Math.floor(Math.random() * overdoseMessages.length)];
+        
         toast.error(
-          `💊 OVERDOSE! Você foi hospitalizado! Vício muito alto (${newStats.addiction}%) causou overdose`,
+          `${randomOverdoseMsg} (Addiction: ${newStats.addiction}%)`,
           { duration: 8000 }
         );
         return;
       }
 
       if (isDisease) {
-        const diseaseMessage =
-          consumable.type === "drink"
-            ? `🍺 CIRROSE! Você foi hospitalizado! Muito álcool causou cirrose hepática`
-            : `💋 DST! Você foi hospitalizado! Contratou uma doença sexualmente transmissível`;
+        toast.dismiss(); // Clear previous notifications
+        
+        const drinkDiseaseMessages = [
+          `🍺 LIVER FAILURE! You drank yourself into a coma! Your liver is fucked!`,
+          `🤮 CIRRHOSIS! Too much booze destroyed your liver! You're pissing blood!`,
+          `🍻 ALCOHOL POISONING! Your body is rejecting all that cheap alcohol!`,
+          `🥃 LIVER DAMAGE! You're an alcoholic piece of shit! Hospital time!`
+        ];
+        
+        const drugDiseaseMessages = [
+          `💉 INFECTED NEEDLE! You caught something nasty from dirty drug gear!`,
+          `🦠 DRUG DISEASE! Those street drugs were contaminated with nasty shit!`,
+          `😷 HEPATITIS! Sharing needles like a dumbass gave you a disease!`,
+          `🏥 INFECTION! Your drug habit gave you a serious medical condition!`
+        ];
+        
+        const diseaseMessages = consumable.type === "drink" ? drinkDiseaseMessages : drugDiseaseMessages;
+        const randomDiseaseMsg = diseaseMessages[Math.floor(Math.random() * diseaseMessages.length)];
 
-        toast.error(`${diseaseMessage} (Vício: ${newStats.addiction}%)`, {
+        toast.error(`${randomDiseaseMsg} (Addiction: ${newStats.addiction}%)`, {
           duration: 8000,
         });
         return;
       }
 
-      let message = `🍺 Você consumiu ${consumable.name}!`;
-      if (effects.energy) {
-        const energyText =
-          effects.energy >= 0 ? `+${effects.energy}` : `${effects.energy}`;
-        message += ` ${energyText} Energia`;
+      toast.dismiss(); // Clear previous notifications
+      
+      // Different messages for drinks vs drugs
+      if (consumable.type === "drink") {
+        const drinkMessages = [
+          `🍺 You chugged that ${consumable.name} like a fucking alcoholic! Bottoms up, booze hound!`,
+          `🍻 ${consumable.name} went down smooth! Getting wasted feels so good!`,
+          `🥃 That ${consumable.name} hit the spot! Your liver is screaming but who gives a shit!`,
+          `🍷 You downed that ${consumable.name} like a pro drunk! Cheers to being a lush!`,
+          `🍸 ${consumable.name} was delicious! Nothing like liquid courage to fuel your addiction!`
+        ];
+        const randomDrinkMsg = drinkMessages[Math.floor(Math.random() * drinkMessages.length)];
+        
+        let effectsText = "";
+        if (effects.energy) {
+          const energyText = effects.energy >= 0 ? `+${effects.energy}` : `${effects.energy}`;
+          effectsText += ` ${energyText} Energy`;
+        }
+        if (effects.addiction) {
+          effectsText += `, +${effects.addiction}% Addiction`;
+        }
+        if (effects.health) {
+          const healthText = effects.health >= 0 ? `+${effects.health}` : `${effects.health}`;
+          effectsText += `, ${healthText} Health`;
+        }
+        
+        toast.success(`${randomDrinkMsg}${effectsText}`, { duration: 4000 });
+      } else {
+        const drugMessages = [
+          `💊 You popped that ${consumable.name} like a junkie! Let the high begin, druggie!`,
+          `💉 ${consumable.name} is coursing through your veins! You're getting fucked up!`,
+          `🚬 That ${consumable.name} hit different! Your brain is fried but you love it!`,
+          `💀 ${consumable.name} is some strong shit! You're flying high, you addict!`,
+          `🔥 You just took ${consumable.name} and it's fire! Time to get completely wasted!`
+        ];
+        const randomDrugMsg = drugMessages[Math.floor(Math.random() * drugMessages.length)];
+        
+        let effectsText = "";
+        if (effects.energy) {
+          const energyText = effects.energy >= 0 ? `+${effects.energy}` : `${effects.energy}`;
+          effectsText += ` ${energyText} Energy`;
+        }
+        if (effects.addiction) {
+          effectsText += `, +${effects.addiction}% Addiction`;
+        }
+        if (effects.health) {
+          const healthText = effects.health >= 0 ? `+${effects.health}` : `${effects.health}`;
+          effectsText += `, ${healthText} Health`;
+        }
+        
+        toast.success(`${randomDrugMsg}${effectsText}`, { duration: 4000 });
       }
-      if (effects.addiction) {
-        message += `, +${effects.addiction}% Vício`;
-      }
-      if (effects.health) {
-        const healthText =
-          effects.health >= 0 ? `+${effects.health}` : `${effects.health}`;
-        message += `, ${healthText} Vida`;
-      }
-      if (effects.reputation) {
-        const repText =
-          effects.reputation >= 0
-            ? `+${effects.reputation}`
-            : `${effects.reputation}`;
-        message += `, ${repText} Reputação`;
-      }
-
-      console.log("📢 DEBUG: Mensagem de toast:", message);
-      toast.success(message);
     },
     onError: (error) => {
       toast.error(
@@ -623,27 +676,50 @@ export const useVisitVenue = () => {
       const { venue } = data;
 
       if (isDisease) {
+        toast.dismiss(); // Clear previous notifications
+        
+        const diseaseMessages = [
+          `🦠 FUCK! You caught an STD from a dirty whore! Your dick is burning! Hospital time!`,
+          `💉 SHIT! That bitch gave you the clap! Your junk is fucked up - straight to the hospital!`,
+          `🔥 DAMN! Your cock caught something nasty! Should've wrapped it up, you horny bastard!`,
+          `🏥 OOPS! That slut infected your dick! Time to get your diseased meat treated!`,
+          `😷 YIKES! You picked up some nasty STD! Your addiction made you careless, now you're hospitalized!`
+        ];
+        const randomDiseaseMsg = diseaseMessages[Math.floor(Math.random() * diseaseMessages.length)];
+        
         toast.error(
-          `💋 STD CONTRACTED! You were hospitalized! Visiting ${venue.name} caused a sexually transmitted disease (Addiction: ${newStats.addiction}%)`,
+          `${randomDiseaseMsg} (Addiction: ${newStats.addiction}%)`,
           { duration: 8000 }
         );
         return;
       }
 
+      toast.dismiss(); // Clear previous notifications
+      
       const effects = venue.effects || {};
       
       if (venue.type === "companion") {
-        let message = `💋 You visited ${venue.name}!`;
+        const venueMessages = [
+          `🔥 You fucked some hot sluts at ${venue.name}! Your balls are empty but your energy is full!`,
+          `💦 What a wild ride at ${venue.name}! Those whores drained your wallet but filled your energy tank!`,
+          `🍑 You banged some fine bitches at ${venue.name}! Best money you ever spent on pussy!`,
+          `💋 ${venue.name} delivered! Those prostitutes know how to work a cock and boost your energy!`,
+          `🔞 Holy shit! ${venue.name} was amazing! Your dick is satisfied and your energy is recharged!`
+        ];
+        const randomVenueMsg = venueMessages[Math.floor(Math.random() * venueMessages.length)];
+        
+        let effectsText = "";
         if (effects.energy && effects.energy > 0) {
-          message += ` +${effects.energy} Energy`;
+          effectsText += ` +${effects.energy} Energy`;
         }
         if (effects.addiction && effects.addiction > 0) {
-          message += `, +${effects.addiction}% Addiction`;
+          effectsText += `, +${effects.addiction}% Addiction`;
         }
         if (wantedIncrease > 0) {
-          message += `, +${wantedIncrease} Wanted Level`;
+          effectsText += `, +${wantedIncrease} Wanted Level`;
         }
-        toast.success(message);
+        
+        toast.success(`${randomVenueMsg}${effectsText}`, { duration: 6000 });
       } else {
         let message = `🎉 You visited ${venue.name}!`;
         if (effects.energy && effects.energy > 0) {

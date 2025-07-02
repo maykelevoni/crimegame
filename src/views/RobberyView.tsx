@@ -26,35 +26,35 @@ const RobberyView = () => {
   const executeRobbery = useExecuteRobbery();
   const { player } = useGameStore();
 
-  // Functions for random messages
+  // Functions for random explicit messages
   const getRandomSuccessMessage = () => {
     const messages = [
-      "Easier than taking candy from a baby! 🍭",
-      "Smooth as silk! Nobody saw anything... 😎",
-      "Perfect! Now you're a street legend! 👑",
-      "Mission accomplished! Money in your pocket! 💰",
-      "Like a ninja in the night! Silent and efficient! 🥷",
-      "Boom! Another perfect heist! 🎯",
-      "The cops are still looking... 😂",
-      "You were born for this! Natural talent! ⭐",
-      "Clean getaway! Nobody will catch you! 🏃‍♂️",
-      "The art of theft in its purest form! 🎨",
+      "FUCK YEAH! You robbed those bitches blind! Easy money, motherfucker! 💰",
+      "Holy shit! You pulled that heist like a fucking pro! Nobody saw a damn thing! 😎",
+      "BADASS! You just became the king of crime! Those pussies didn't know what hit them! 👑",
+      "DAMN! You cleaned out those suckers! Time to spend that dirty money! 🔥",
+      "Like a fucking ghost! In and out without those idiots noticing! 🥷",
+      "BOOM! Another successful robbery! You're a criminal mastermind! 🎯",
+      "The cops are scratching their asses while you're counting cash! 😂",
+      "Born to steal! You're a natural-born thief, you beautiful bastard! ⭐",
+      "Clean fucking getaway! Those losers will never catch you! 🏃‍♂️",
+      "Robbery perfection! You just wrote the book on how to steal shit! 🎨",
     ];
     return messages[Math.floor(Math.random() * messages.length)];
   };
 
   const getRandomFailureMessage = () => {
     const messages = [
-      "Oops! Someone forgot to turn off the alarm... 🚨",
-      "Seems like luck wasn't on your side today! 🍀",
-      "The security guard was more attentive than usual! 👮‍♂️",
-      "Better luck next time, partner! 🤞",
-      "Someone must have seen you coming... 👀",
-      "The timing was a bit off! ⏰",
-      "It doesn't always work out, it's part of the game! 🎲",
-      "The police arrived faster than expected! 🚔",
-      "Someone called the police! Traitor! 😤",
-      "Better train more before the next attempt! 💪",
+      "SHIT! The fucking alarm went off! You screwed that up, dumbass! 🚨",
+      "Bad luck, asshole! Sometimes crime doesn't pay! 🍀",
+      "The security guard wasn't sleeping on the job! Tough shit! 👮‍♂️",
+      "You fucked up! Try again when you grow some balls! 🤞",
+      "Someone spotted your stupid ass! Learn to be more sneaky! 👀",
+      "Timing was shit! You rushed it like an amateur! ⏰",
+      "Sometimes you win, sometimes you lose! That's crime, bitch! 🎲",
+      "The pigs showed up too fast! Your intel was garbage! 🚔",
+      "Some snitch called the cops! Can't trust anyone these days! 😤",
+      "Get better at this shit! Practice makes perfect, you rookie! 💪",
     ];
     return messages[Math.floor(Math.random() * messages.length)];
   };
@@ -76,55 +76,64 @@ const RobberyView = () => {
       setTimeout(() => {
         setIsExecuting(false);
 
+        // Dismiss any existing toasts to prevent stacking
+        toast.dismiss();
+        
         // Show detailed result notifications with delay
         if (result.success) {
-          // Success notification with detailed info
+          // Success notification with explicit language
           toast.success(
             <div className="space-y-1">
+              <div className="text-green-400 font-bold text-lg">
+                🔥 ROBBERY SUCCESS! 🔥
+              </div>
               <div className="text-green-400">
-                💰 Stolen: ${result.reward.toLocaleString()}
+                💰 Cash stolen: ${result.reward.toLocaleString()}
               </div>
               <div className="text-yellow-400">
-                ⚡ Energy spent: {result.energy_spent}
+                ⚡ Energy used: {result.energy_spent}
               </div>
               <div className="text-red-400">
-                ❤️ Health lost: {result.health_spent}
+                🩸 Health lost: {result.health_spent}
               </div>
               <div className="text-blue-400">
-                ⭐ Reputation gained: +{result.reputation_gained}
+                ⭐ Rep gained: +{result.reputation_gained}
               </div>
               <div className="text-red-400">
-                🚨 Wanted level: +{result.wanted_increase}
+                🚨 Heat level: +{result.wanted_increase}
               </div>
-              <div className="text-sm text-gray-400 mt-2">
+              <div className="text-sm text-white mt-2 font-bold">
                 {getRandomSuccessMessage()}
               </div>
             </div>,
             {
-              duration: 3000, // 3 seconds
+              duration: 4000, // 4 seconds for success
             }
           );
         } else {
-          // Failure notification with costs
+          // Failure notification with explicit language
           toast.error(
             <div className="space-y-1">
-              <div className="text-red-400">💸 No money gained</div>
+              <div className="text-red-400 font-bold text-lg">
+                💥 ROBBERY FAILED! 💥
+              </div>
+              <div className="text-red-400">💸 No cash stolen</div>
               <div className="text-yellow-400">
-                ⚡ Energy spent: {result.energy_spent}
+                ⚡ Energy wasted: {result.energy_spent}
               </div>
               <div className="text-red-400">
-                ❤️ Health lost: {result.health_spent}
+                🩸 Health lost: {result.health_spent}
               </div>
-              <div className="text-gray-400">⭐ No reputation gained</div>
+              <div className="text-gray-400">⭐ No rep gained</div>
               <div className="text-red-400">
-                🚨 Wanted level: +{result.wanted_increase}
+                🚨 Heat level: +{result.wanted_increase}
               </div>
-              <div className="text-sm text-gray-400 mt-2">
+              <div className="text-sm text-white mt-2 font-bold">
                 {getRandomFailureMessage()}
               </div>
             </div>,
             {
-              duration: 3000, // 3 seconds
+              duration: 4000, // 4 seconds for failure
             }
           );
         }

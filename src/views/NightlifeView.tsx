@@ -111,6 +111,67 @@ const NightlifeView = () => {
     }
   };
 
+  const handleHireCompanion = async (character: NightlifeCharacter) => {
+    if (!player?.id) {
+      toast.error("Player not found");
+      return;
+    }
+
+    console.log("💋 DEBUG: Hiring companion:", character.name);
+
+    // Check if player has enough money
+    if (player.stats.money < character.price) {
+      toast.error(`Not enough money! You need $${character.price} but have $${player.stats.money}`);
+      return;
+    }
+
+    // Check if player has enough energy (companions require some energy)
+    const energyCost = character.energy_cost || 10;
+    if (player.stats.energy < energyCost) {
+      toast.error(`Not enough energy! You need ${energyCost} energy but have ${player.stats.energy}`);
+      return;
+    }
+
+    try {
+      // Use the visit venue mutation with the character's venue
+      await visitVenueMutation.mutateAsync({
+        playerId: player.id,
+        venueId: character.venue_id,
+      });
+
+      // Show success message for hiring specific companion
+      const fixedEffects = {
+        energy: character.name === "Carmen" ? 10 : 
+               character.name === "Maria" ? 15 :
+               character.name === "Sophia" ? 25 :
+               character.name === "Isabella" ? 40 : 15,
+        addiction: character.name === "Carmen" ? 3 : 
+                  character.name === "Maria" ? 5 :
+                  character.name === "Sophia" ? 8 :
+                  character.name === "Isabella" ? 12 : 5,
+      };
+
+      toast.dismiss(); // Clear previous notifications
+      
+      const dirtyMessages = [
+        `🔥 You fucked ${character.name}! Wild and dirty!`,
+        `💦 ${character.name} gave you the ride of your life!`,
+        `🍑 You banged ${character.name} hard and rough!`,
+        `💋 ${character.name} satisfied all your dirty desires!`,
+        `🔞 You had wild sex with ${character.name}!`
+      ];
+      
+      const randomMessage = dirtyMessages[Math.floor(Math.random() * dirtyMessages.length)];
+      
+      toast.success(
+        `${randomMessage} +${fixedEffects.energy} Energy, +${fixedEffects.addiction}% Addiction`,
+        { duration: 5000 }
+      );
+    } catch (error) {
+      // Error already handled in hook
+    }
+  };
+
   const handleEnterVenue = (venue: NightlifeVenue) => {
     console.log("🏢 DEBUG: Setting selected venue:", venue);
     setSelectedVenue(venue);
@@ -153,7 +214,7 @@ const NightlifeView = () => {
                   ? "Bars"
                   : activeTab === "rave"
                   ? "Raves"
-                  : "Companions"}
+                  : "Prostitutes"}
               </span>
             </button>
           </div>
@@ -392,12 +453,12 @@ const NightlifeView = () => {
           {activeTab === "companion" && (
             <div>
               <h3 className="text-xl font-bold mb-4 text-cyber-pink">
-                💋 Available Companions
+                💋 Available Prostitutes
               </h3>
               {charactersLoading ? (
                 <div className="text-center py-8">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-cyber-blue mx-auto"></div>
-                  <p className="mt-2">Loading companions...</p>
+                  <p className="mt-2">Loading prostitutes...</p>
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -407,6 +468,7 @@ const NightlifeView = () => {
                       <div
                         key={character.id}
                         className="cyber-border p-4 bg-cyber-dark hover:scale-105 transition-transform cursor-pointer"
+                        onClick={() => handleHireCompanion(character)}
                       >
                         <div className="flex items-start gap-4">
                           <img
@@ -427,22 +489,42 @@ const NightlifeView = () => {
                               {character.description}
                             </p>
                             <div className="flex gap-2 text-xs">
-                              {character.effects.energy && (
-                                <span className="bg-blue-500/20 text-blue-400 px-2 py-1 rounded">
-                                  {character.effects.energy >= 0 ? "+" : ""}
-                                  {character.effects.energy} Energia
-                                </span>
-                              )}
-                              {character.effects.addiction && (
-                                <span className="bg-red-500/20 text-red-400 px-2 py-1 rounded">
-                                  +{character.effects.addiction}% Vício
-                                </span>
-                              )}
-                              {character.effects.reputation && (
-                                <span className="bg-green-500/20 text-green-400 px-2 py-1 rounded">
-                                  +{character.effects.reputation} Reputação
-                                </span>
-                              )}
+                              {(() => {
+                                // Fix companion effects - they should give positive energy and addiction
+                                const fixedEffects = {
+                                  energy: character.name === "Carmen" ? 10 : 
+                                         character.name === "Maria" ? 15 :
+                                         character.name === "Sophia" ? 25 :
+                                         character.name === "Isabella" ? 40 : 
+                                         Math.abs(character.effects.energy || 0),
+                                  addiction: character.name === "Carmen" ? 3 : 
+                                            character.name === "Maria" ? 5 :
+                                            character.name === "Sophia" ? 8 :
+                                            character.name === "Isabella" ? 12 : 
+                                            (character.effects.addiction || 0),
+                                  reputation: character.effects.reputation || 0
+                                };
+                                
+                                return (
+                                  <>
+                                    {fixedEffects.energy > 0 && (
+                                      <span className="bg-blue-500/20 text-blue-400 px-2 py-1 rounded">
+                                        +{fixedEffects.energy} Energy
+                                      </span>
+                                    )}
+                                    {fixedEffects.addiction > 0 && (
+                                      <span className="bg-red-500/20 text-red-400 px-2 py-1 rounded">
+                                        +{fixedEffects.addiction}% Addiction
+                                      </span>
+                                    )}
+                                    {fixedEffects.reputation > 0 && (
+                                      <span className="bg-green-500/20 text-green-400 px-2 py-1 rounded">
+                                        +{fixedEffects.reputation} Reputation
+                                      </span>
+                                    )}
+                                  </>
+                                );
+                              })()}
                             </div>
                           </div>
                         </div>
@@ -489,7 +571,7 @@ const NightlifeView = () => {
                   : "text-white/60 hover:text-white"
               }`}
             >
-              👤 Companions
+              💋 Prostitutes
             </button>
           </div>
 
@@ -591,12 +673,12 @@ const NightlifeView = () => {
           {activeTab === "companion" && (
             <div>
               <h3 className="text-xl font-bold mb-4 text-cyber-blue">
-                👤 Companions
+                💋 Prostitutes
               </h3>
               {venuesLoading ? (
                 <div className="text-center py-8">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-cyber-blue mx-auto"></div>
-                  <p className="mt-2">Loading companion venues...</p>
+                  <p className="mt-2">Loading prostitution venues...</p>
                 </div>
               ) : (
                 <div className="space-y-6">
