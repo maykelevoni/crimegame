@@ -101,14 +101,20 @@ export default function ShopItemCard({
         </div>
         <p className="text-xs text-white/60 line-clamp-2">{item.description}</p>
         <div className="flex flex-wrap gap-1">
-          {Object.entries(item.stats).map(([stat, value]) => (
-            <span
-              key={stat}
-              className="text-xs px-2 py-1 bg-cyber-blue/10 border border-cyber-blue/20 rounded"
-            >
-              {stat}: +{value}
-            </span>
-          ))}
+          {Object.entries(item.effects || {}).map(([stat, value]) => {
+            if (!value) return null;
+            return (
+              <span
+                key={stat}
+                className="text-xs px-2 py-1 bg-cyber-blue/10 border border-cyber-blue/20 rounded"
+              >
+                {stat === 'success_boost' ? 'Success' : 
+                 stat === 'escape_boost' ? 'Escape' : 
+                 stat === 'health_protection' ? 'Protection' : 
+                 stat.charAt(0).toUpperCase() + stat.slice(1)}: +{value}{stat.includes('boost') || stat.includes('protection') ? '%' : ''}
+              </span>
+            );
+          })}
         </div>
         <div className="flex items-center justify-between pt-2">
           <div className="flex items-center gap-1">

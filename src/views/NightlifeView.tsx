@@ -125,12 +125,7 @@ const NightlifeView = () => {
       return;
     }
 
-    // Check if player has enough energy (companions require some energy)
-    const energyCost = character.energy_cost || 10;
-    if (player.stats.energy < energyCost) {
-      toast.error(`Not enough energy! You need ${energyCost} energy but have ${player.stats.energy}`);
-      return;
-    }
+    // Companions no longer require energy - they give energy instead
 
     try {
       // Use the visit venue mutation with the character's venue
@@ -710,7 +705,7 @@ const NightlifeView = () => {
                                 {venue.description}
                               </p>
                               <div className="text-xs text-white/40 mb-2">
-                                Cost: ${venue.money_cost} | Energy: {venue.energy_cost}
+                                Cost: ${venue.money_cost} | Energy: +{venue.effects?.energy || 0}
                               </div>
                               <button
                                 onClick={() => {

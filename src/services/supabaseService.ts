@@ -324,10 +324,20 @@ export class SupabaseService {
   static async executeRobbery(
     playerId: string,
     robberyId: string,
-    userId: string
+    userId: string,
+    equipmentBonuses?: {
+      success_boost: number;
+      escape_boost: number;
+      health_protection: number;
+      damage: number;
+    }
   ): Promise<{
     success: boolean;
     reward: number;
+    energy_spent: number;
+    health_spent: number;
+    reputation_gained: number;
+    wanted_increase: number;
     newStats: {
       energy: number;
       health: number;
@@ -336,14 +346,127 @@ export class SupabaseService {
       money: number;
     };
   }> {
-    const { data, error } = await supabase.rpc('execute_robbery', {
-      player_id_param: playerId,
-      robbery_id_param: robberyId,
-      user_id_param: userId,
-    });
+    // SECURITY: Verify user owns this player
+    await this.verifyPlayerOwnership(playerId, userId);
 
-    if (error) throw error;
-    return data;
+    // Get current player stats
+    const { data: player, error: playerError } = await supabase
+      .from("players")
+      .select("*")
+      .eq("id", playerId)
+      .single();
+
+    if (playerError) throw playerError;
+    if (!player) throw new Error("Player not found");
+
+    // Get robbery data (using mock data for now) - Reduced rewards for better balance
+    const mockRobberies = [
+      {
+        id: "1", name: "Convenience Store", success_rate: 70, base_reward: 25, max_reward: 75,
+        energy_cost: 5, health_cost: 10, risk_level: 1
+      },
+      {
+        id: "2", name: "Bank", success_rate: 25, base_reward: 200, max_reward: 500,
+        energy_cost: 20, health_cost: 25, risk_level: 5
+      },
+      {
+        id: "3", name: "Jewelry Store", success_rate: 50, base_reward: 75, max_reward: 200,
+        energy_cost: 10, health_cost: 15, risk_level: 3
+      },
+      {
+        id: "4", name: "Warehouse", success_rate: 60, base_reward: 100, max_reward: 300,
+        energy_cost: 15, health_cost: 20, risk_level: 2
+      },
+      {
+        id: "5", name: "Mansion", success_rate: 35, base_reward: 300, max_reward: 800,
+        energy_cost: 25, health_cost: 30, risk_level: 4
+      },
+      {
+        id: "6", name: "Casino", success_rate: 15, base_reward: 500, max_reward: 1500,
+        energy_cost: 35, health_cost: 40, risk_level: 6
+      }
+    ];
+
+    const robbery = mockRobberies.find(r => r.id === robberyId);
+    if (!robbery) throw new Error("Robbery not found");
+
+    // Check requirements - use direct properties from database schema
+    const currentEnergy = player.energy || 0;
+    const currentMoney = player.money || 0;
+    const currentExperience = player.experience || 0;
+    
+    console.log("🎯 DEBUG: Player stats check:", {
+      player,
+      currentEnergy,
+      currentMoney,
+      currentExperience,
+      energyRequired: robbery.energy_cost
+    });
+    
+    if (currentEnergy < robbery.energy_cost) {
+      throw new Error("Not enough energy");
+    }
+
+    // Calculate success chance with equipment bonuses
+    const baseSuccessRate = robbery.success_rate;
+    const successBonus = equipmentBonuses?.success_boost || 0;
+    const finalSuccessRate = Math.min(95, baseSuccessRate + successBonus); // Cap at 95%
+
+    // Calculate if robbery succeeds
+    const success = Math.random() * 100 < finalSuccessRate;
+
+    // Calculate energy costs and rewards
+    const energy_spent = robbery.energy_cost;
+    
+    // Calculate rewards and experience gained
+    let reward = 0;
+    let experience_gained = 0;
+
+    if (success) {
+      reward = Math.floor(Math.random() * (robbery.max_reward - robbery.base_reward) + robbery.base_reward);
+      experience_gained = Math.floor(robbery.risk_level * 5); // 5 exp per risk level
+    }
+
+    // Calculate new stats (only update fields that exist in database)
+    const newStats = {
+      energy: Math.max(0, currentEnergy - energy_spent),
+      money: currentMoney + reward,
+      experience: currentExperience + experience_gained
+    };
+
+    console.log("🎯 DEBUG: New stats calculated:", newStats);
+
+    // Update only the fields that exist in the database
+    const updateData = {
+      money: newStats.money,
+      energy: newStats.energy,
+      experience: newStats.experience
+    };
+
+    console.log("🎯 DEBUG: Update data:", updateData);
+
+    const { error: updateError } = await supabase
+      .from("players")
+      .update(updateData)
+      .eq("id", playerId);
+
+    if (updateError) throw updateError;
+
+    return {
+      success,
+      reward,
+      energy_spent,
+      health_spent: 0, // No health system in current database
+      reputation_gained: experience_gained, // Use experience as reputation for now
+      wanted_increase: 0, // No wanted system in current database
+      newStats: {
+        energy: newStats.energy,
+        health: 100, // Fixed value since no health in DB
+        reputation: newStats.experience, // Use experience as reputation
+        wantedLevel: 0, // Fixed value since no wanted in DB
+        money: newStats.money
+      },
+    };
   }
 
   // Player Stats Services (agora unificado com player)

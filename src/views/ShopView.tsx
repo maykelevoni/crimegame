@@ -33,6 +33,7 @@ import {
 } from "../hooks/useShop";
 import { toast } from "sonner";
 import { useGameStore } from "../stores/gameStore";
+import { supabase } from "@/integrations/supabase/client";
 
 interface CartItem {
   item: ShopItem;
@@ -54,7 +55,8 @@ const ShopView = ({ onBack }: ShopViewProps) => {
   const { data: shopItems = [], isLoading } = useShopItems();
   const buyItemMutation = useBuyItem();
   const buyMultipleItemsMutation = useBuyMultipleItems();
-  const { player } = useGameStore();
+  const { player, updatePlayerMoney } = useGameStore();
+
 
   // Generate shop ID once
   const shopId = useMemo(
@@ -63,11 +65,11 @@ const ShopView = ({ onBack }: ShopViewProps) => {
   );
 
   const categories = [
-    { id: "all", name: "Todos", icon: ShoppingBag },
-    { id: "weapon", name: "Armas", icon: Target },
-    { id: "armor", name: "Armaduras", icon: Shield },
-    { id: "consumable", name: "Consumíveis", icon: Zap },
-    { id: "special", name: "Especiais", icon: Crown },
+    { id: "all", name: "All", icon: ShoppingBag },
+    { id: "weapon", name: "Weapons", icon: Target },
+    { id: "vehicle", name: "Vehicles", icon: TrendingUp },
+    { id: "protection", name: "Protection", icon: Shield },
+    { id: "consumable", name: "Consumables", icon: Zap },
   ];
 
   const getRarityColor = (rarity: string) => {
@@ -126,7 +128,7 @@ const ShopView = ({ onBack }: ShopViewProps) => {
     } else {
       setCart([...cart, { item, quantity: 1 }]);
     }
-    toast.success(`${item.name} foi adicionado ao carrinho`);
+    toast.success(`${item.name} added to cart`);
   };
 
   const removeFromCart = (itemId: string) => {
@@ -145,7 +147,7 @@ const ShopView = ({ onBack }: ShopViewProps) => {
 
   const buyItem = async (item: ShopItem) => {
     if (!player?.id) {
-      toast.error("Jogador não encontrado");
+      toast.error("Player not found");
       return;
     }
 
@@ -156,17 +158,17 @@ const ShopView = ({ onBack }: ShopViewProps) => {
         quantity: 1,
       });
 
-      toast.success(`${item.name} foi comprado com sucesso`);
+      toast.success(`${item.name} purchased successfully!`);
 
       setSelectedItem(null);
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Erro desconhecido");
+      toast.error(error instanceof Error ? error.message : "Unknown error");
     }
   };
 
   const buyCart = async () => {
     if (!player?.id) {
-      toast.error("Jogador não encontrado");
+      toast.error("Player not found");
       return;
     }
 
@@ -181,16 +183,16 @@ const ShopView = ({ onBack }: ShopViewProps) => {
         items,
       });
 
-      console.log("🎉 Compra realizada, mostrando notificação...");
+      console.log("🎉 Purchase completed, showing notification...");
 
       toast.success(
-        `Compra realizada! ${cart.length} itens adicionados ao inventário`
+        `Purchase completed! ${cart.length} items added to inventory`
       );
 
       setCart([]);
       setShowCart(false);
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Erro desconhecido");
+      toast.error(error instanceof Error ? error.message : "Unknown error");
     }
   };
 
@@ -199,7 +201,7 @@ const ShopView = ({ onBack }: ShopViewProps) => {
       <div className="min-h-screen bg-cyber-dark text-white flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cyber-blue mx-auto mb-4"></div>
-          <p>Carregando loja...</p>
+          <p>Loading shop...</p>
         </div>
       </div>
     );
@@ -207,29 +209,34 @@ const ShopView = ({ onBack }: ShopViewProps) => {
 
   return (
     <div className="min-h-screen bg-cyber-dark text-white">
-      {/* Saldo fixo no topo */}
+      {/* Fixed balance at top */}
       <div className="sticky top-0 z-50 bg-cyber-dark/95 border-b border-cyber-blue/20 flex items-center justify-between px-4 py-3">
         <button
           onClick={onBack}
           className="flex items-center gap-2 text-cyber-blue hover:text-cyber-blue-light transition-colors"
         >
           <ArrowLeft size={20} />
-          <span className="font-semibold">Voltar</span>
+          <span className="font-semibold">Back</span>
         </button>
+        
         <div className="flex-1 flex justify-center">
           <span className="text-xl font-bold text-cyber-blue">Shop</span>
         </div>
-        <button
-          onClick={() => setShowCart(true)}
-          className="relative p-2 rounded-lg bg-cyber-blue/20 border border-cyber-blue/30 hover:bg-cyber-blue/30 transition-colors"
-        >
-          <ShoppingCart size={20} className="text-cyber-blue" />
-          {cart.length > 0 && (
-            <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-              {cart.length}
-            </span>
-          )}
-        </button>
+
+        <div className="flex items-center gap-2">
+          {/* Cart Button */}
+          <button
+            onClick={() => setShowCart(true)}
+            className="relative p-2 rounded-lg bg-cyber-blue/20 border border-cyber-blue/30 hover:bg-cyber-blue/30 transition-colors"
+          >
+            <ShoppingCart size={20} className="text-cyber-blue" />
+            {cart.length > 0 && (
+              <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                {cart.length}
+              </span>
+            )}
+          </button>
+        </div>
       </div>
 
       <div className="flex h-full pt-2 lg:pt-16">
@@ -245,29 +252,29 @@ const ShopView = ({ onBack }: ShopViewProps) => {
                 />
                 <input
                   type="text"
-                  placeholder="Buscar itens..."
+                  placeholder="Search items..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="w-full pl-10 pr-4 py-3 bg-cyber-dark-light border border-cyber-blue/30 rounded-lg text-white placeholder-cyber-blue/60 focus:outline-none focus:border-cyber-blue focus:ring-1 focus:ring-cyber-blue"
                 />
               </div>
 
-              {/* Categories */}
-              <div className="flex gap-2 overflow-x-auto pb-2">
+              {/* Categories - Vertical tabs */}
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
                 {categories.map((category) => {
                   const Icon = category.icon;
                   return (
                     <button
                       key={category.id}
                       onClick={() => setSelectedCategory(category.id)}
-                      className={`flex items-center gap-2 px-4 py-2 rounded-lg border transition-all whitespace-nowrap ${
+                      className={`flex flex-col items-center gap-1 px-3 py-3 rounded-xl border transition-all ${
                         selectedCategory === category.id
-                          ? "bg-cyber-blue/20 border-cyber-blue text-cyber-blue"
-                          : "bg-cyber-dark-light border-cyber-blue/30 text-white/70 hover:border-cyber-blue/50"
+                          ? "bg-cyber-blue/20 border-cyber-blue text-cyber-blue shadow-lg"
+                          : "bg-cyber-dark-light border-cyber-blue/20 text-white/70 hover:border-cyber-blue/40 hover:bg-cyber-blue/10"
                       }`}
                     >
-                      <Icon size={16} />
-                      <span className="font-medium">{category.name}</span>
+                      <Icon size={20} />
+                      <span className="text-xs font-medium">{category.name}</span>
                     </button>
                   );
                 })}
@@ -292,7 +299,7 @@ const ShopView = ({ onBack }: ShopViewProps) => {
                   size={48}
                   className="mx-auto mb-4 text-cyber-blue/40"
                 />
-                <p>Nenhum item encontrado</p>
+                <p>No items found</p>
               </div>
             )}
           </div>

@@ -550,7 +550,8 @@ export const useVisitVenue = () => {
         );
       }
 
-      if (player.energy < venue.energy_cost) {
+      // Only check energy cost for non-companion venues
+      if (venue.type !== "companion" && player.energy < venue.energy_cost) {
         throw new Error(
           `Insufficient energy! You have ${player.energy} but need ${venue.energy_cost}`
         );
@@ -559,14 +560,27 @@ export const useVisitVenue = () => {
       // 3. Calcular novos valores dos stats
       const effects = venue.effects || {};
       const newMoney = player.money - venue.money_cost;
-      const newEnergy = Math.max(0, player.energy - venue.energy_cost);
+      
+      // For companion venues (prostitutes), they should give energy, not cost it
+      let newEnergy;
+      if (venue.type === "companion") {
+        // Prostitutes give energy directly, no energy cost
+        newEnergy = Math.max(
+          0,
+          Math.min(player.max_energy, player.energy + (effects.energy || 0))
+        );
+      } else {
+        // Other venues cost energy then potentially give energy
+        const energyAfterCost = Math.max(0, player.energy - venue.energy_cost);
+        newEnergy = Math.max(
+          0,
+          Math.min(player.max_energy, energyAfterCost + (effects.energy || 0))
+        );
+      }
+      
       const newHealth = Math.max(
         0,
         Math.min(player.max_health, player.health + (effects.health || 0))
-      );
-      const newEnergyGain = Math.max(
-        0,
-        Math.min(player.max_energy, newEnergy + (effects.energy || 0))
       );
       const newAddiction = Math.max(
         0,
@@ -625,7 +639,7 @@ export const useVisitVenue = () => {
         .from("players")
         .update({
           money: newMoney,
-          energy: newEnergyGain,
+          energy: newEnergy,
           health: finalHealth,
           addiction: newAddiction,
           reputation: newReputation,
@@ -642,7 +656,7 @@ export const useVisitVenue = () => {
         venue,
         newStats: {
           money: newMoney,
-          energy: newEnergyGain,
+          energy: newEnergy,
           health: finalHealth,
           addiction: newAddiction,
           reputation: newReputation,

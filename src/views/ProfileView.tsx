@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Camera,
   Shirt,
@@ -22,6 +22,7 @@ import BaseView from "./BaseView";
 import { useGameStore } from "../stores/gameStore";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useShopItems } from "../hooks/useShop";
 import type { Item } from "../types/game";
 
 const STATUS_BASE = {
@@ -54,94 +55,78 @@ const TYPE_ICONS = {
 const FILTER_OPTIONS = [
   { key: "all", label: "All Items", icon: <Backpack /> },
   { key: "weapon", label: "Weapons", icon: <Sword /> },
-  { key: "armor", label: "Armor", icon: <Shield /> },
-  { key: "style", label: "Style", icon: <Shirt /> },
-  { key: "accessory", label: "Accessories", icon: <Glasses /> },
+  { key: "protection", label: "Protection", icon: <Shield /> },
+  { key: "vehicle", label: "Vehicles", icon: <TrendingUp /> },
   { key: "consumable", label: "Consumables", icon: <Pill /> },
 ];
 
-export default function ProfileView() {
+export default function InventoryView() {
   const { player } = useGameStore();
 
-  // Buscar inventário do banco
+  // Import shop items hook
+  const { data: shopItems = [] } = useShopItems();
+
+  // Fetch inventory from localStorage (now works with our shop system)
   const { data: inventory = [], isLoading: inventoryLoading } = useQuery({
     queryKey: ["inventory", player?.id],
     queryFn: async () => {
       if (!player?.id) return [];
 
-      const { data: inventoryData, error: inventoryError } = await supabase
-        .from("inventory")
-        .select("*")
-        .eq("player_id", player.id);
-
-      if (inventoryError) throw inventoryError;
-
-      // Mapear nomes conhecidos baseado nos UUIDs dos itens mock
-      const itemNames: { [key: string]: string } = {
-        "0abdc550-bef1-426b-aa5b-e9e375eadf8c": "Faca Tática",
-        "300335fa-d6f9-40a5-8c8c-bb349a5e47ad": "Pistola Desert Eagle",
-        "857d73d2-cce7-46f0-ab13-86167604f13f": "Metralhadora UZI",
-        "6267bd2d-ef3c-4c1c-afca-c698402d9af8": "Faca Tática",
-        "fbaa0d5c-57d7-4c36-9734-c20c1d276eb6": "Taco de Baseball",
-        "0c4ffa62-4fed-4491-bee7-6e6c868e20b0": "Colete Leve",
-        "d63e3c2c-7fcc-473f-ab38-011b4fa5da01": "Colete Militar",
-        "2a5b55fc-1cf9-4b76-aeeb-6daf2ac7ac4f": "Poção de Vida",
-        "42ac8a5d-c8e4-4a15-b7dc-501c815212fc": "Bebida Energética",
-        "666c108d-0cac-4191-80bf-866a369e4f02": "Cocaína Premium",
-        "a1b2c3d4-e5f6-7890-abcd-ef1234567890": "Arma Dourada",
-      };
-
-      const itemImages: { [key: string]: string } = {
-        "0abdc550-bef1-426b-aa5b-e9e375eadf8c":
-          "https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=150&h=150&fit=crop",
-        "300335fa-d6f9-40a5-8c8c-bb349a5e47ad":
-          "https://images.unsplash.com/photo-1518717758536-85ae29035b6d?w=150&h=150&fit=crop",
-        "857d73d2-cce7-46f0-ab13-86167604f13f":
-          "https://images.unsplash.com/photo-1468421870903-4df1664ac249?w=150&h=150&fit=crop",
-        "6267bd2d-ef3c-4c1c-afca-c698402d9af8":
-          "https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=150&h=150&fit=crop",
-        "fbaa0d5c-57d7-4c36-9734-c20c1d276eb6":
-          "https://images.unsplash.com/photo-1544531586-fde5298cdd40?w=150&h=150&fit=crop",
-        "0c4ffa62-4fed-4491-bee7-6e6c868e20b0":
-          "https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=150&h=150&fit=crop",
-        "d63e3c2c-7fcc-473f-ab38-011b4fa5da01":
-          "https://images.unsplash.com/photo-1512436991641-6745cdb1723f?w=150&h=150&fit=crop",
-        "2a5b55fc-1cf9-4b76-aeeb-6daf2ac7ac4f":
-          "https://images.unsplash.com/photo-1587854692152-cbe660dbde88?w=150&h=150&fit=crop",
-        "42ac8a5d-c8e4-4a15-b7dc-501c815212fc":
-          "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=150&h=150&fit=crop",
-        "666c108d-0cac-4191-80bf-866a369e4f02":
-          "https://images.unsplash.com/photo-1587854692152-cbe660dbde88?w=150&h=150&fit=crop",
-        "a1b2c3d4-e5f6-7890-abcd-ef1234567890":
-          "https://images.unsplash.com/photo-1518717758536-85ae29035b6d?w=150&h=150&fit=crop",
-      };
-
-      interface InventoryItem {
-        id: string;
-        player_id: string;
-        quantity: number;
-        weapon_id: string | null;
-        created_at: string;
-        updated_at: string;
+      try {
+        // Get from localStorage
+        const localInventoryKey = `inventory_${player.id}`;
+        const localInventory = JSON.parse(localStorage.getItem(localInventoryKey) || '[]');
+        
+        console.log("👤 DEBUG: ProfileView loading inventory:", localInventory);
+        
+        // Convert localStorage items to ProfileView format using shop items data
+        return localInventory.map((invItem: any) => {
+          const shopItem = shopItems.find(shop => shop.id === invItem.item_id);
+          
+          if (shopItem) {
+            // Map shop item types to ProfileView types
+            const profileType = shopItem.type === "weapon" ? "weapon" :
+                              shopItem.type === "protection" ? "armor" :
+                              shopItem.type === "vehicle" ? "style" : // vehicles go to style for now
+                              "consumable";
+            
+            return {
+              id: invItem.id,
+              name: shopItem.name,
+              description: shopItem.description,
+              type: profileType,
+              rarity: shopItem.rarity === "common" ? "comum" : 
+                     shopItem.rarity === "rare" ? "raro" : 
+                     shopItem.rarity === "epic" ? "épico" : 
+                     shopItem.rarity === "legendary" ? "lendário" : "comum",
+              price: shopItem.price,
+              image: shopItem.image,
+              bonus: shopItem.effects || {},
+              quantity: invItem.quantity,
+              equipped: invItem.equipped || false,
+            };
+          }
+          
+          // Fallback for unknown items
+          return {
+            id: invItem.id,
+            name: `Item ${invItem.item_id?.slice(0, 8) || 'Unknown'}`,
+            description: "Shop item",
+            type: "consumable" as const,
+            rarity: "comum" as const,
+            price: 0,
+            image: "https://images.unsplash.com/photo-1587854692152-cbe660dbde88?w=150&h=150&fit=crop",
+            bonus: {},
+            quantity: invItem.quantity,
+            equipped: invItem.equipped || false,
+          };
+        });
+      } catch (error) {
+        console.error("Error loading inventory from localStorage:", error);
+        return [];
       }
-
-      return inventoryData.map((invItem: InventoryItem) => ({
-        id: invItem.id,
-        name:
-          itemNames[invItem.id] || `Item ${invItem.id.slice(0, 8)}`,
-        description: "Item do inventário",
-        type: "consumable" as const,
-        rarity: "comum" as const,
-        price: 0,
-        image:
-          itemImages[invItem.item_id] ||
-          "https://images.unsplash.com/photo-1587854692152-cbe660dbde88?w=150&h=150&fit=crop",
-        bonus: {},
-        quantity: invItem.quantity,
-        equipped: invItem.equipped,
-      }));
     },
-    enabled: !!player?.id,
+    enabled: !!player?.id && shopItems.length > 0, // Wait for shop items to load first
   });
 
   const [avatar, setAvatar] = useState(
@@ -164,10 +149,57 @@ export default function ProfileView() {
   const [usedItemId, setUsedItemId] = useState<string | null>(null);
   const [consumedIds, setConsumedIds] = useState<string[]>([]);
 
+  // Load equipped items from localStorage when inventory changes
+  useEffect(() => {
+    if (player?.id && inventory.length > 0 && shopItems.length > 0) {
+      const localInventoryKey = `inventory_${player.id}`;
+      const localInventory = JSON.parse(localStorage.getItem(localInventoryKey) || '[]');
+      
+      const equippedFromStorage = {
+        weapon: null as Item | null,
+        armor: null as Item | null,
+        style: null as Item | null,
+        accessory: null as Item | null,
+      };
+      
+      localInventory.forEach((invItem: any) => {
+        if (invItem.equipped) {
+          const shopItem = shopItems.find(shop => shop.id === invItem.item_id);
+          if (shopItem) {
+            const profileType = shopItem.type === "weapon" ? "weapon" :
+                              shopItem.type === "protection" ? "armor" :
+                              shopItem.type === "vehicle" ? "style" : 
+                              null;
+            
+            if (profileType) {
+              equippedFromStorage[profileType as keyof typeof equippedFromStorage] = {
+                id: invItem.id,
+                name: shopItem.name,
+                description: shopItem.description,
+                type: profileType,
+                rarity: shopItem.rarity === "common" ? "comum" : 
+                       shopItem.rarity === "rare" ? "raro" : 
+                       shopItem.rarity === "epic" ? "épico" : 
+                       shopItem.rarity === "legendary" ? "lendário" : "comum",
+                price: shopItem.price,
+                image: shopItem.image,
+                bonus: shopItem.effects || {},
+                quantity: invItem.quantity,
+                equipped: true,
+              };
+            }
+          }
+        }
+      });
+      
+      setEquipped(equippedFromStorage);
+    }
+  }, [inventory, shopItems, player?.id]);
+
   // Verificação de segurança
   if (!player) {
     return (
-      <BaseView title="Profile & Inventory">
+      <BaseView title="Inventory">
         <div className="text-center py-8">
           <p className="text-white/60">Loading player data...</p>
         </div>
@@ -185,21 +217,66 @@ export default function ProfileView() {
     }
   });
 
-  // Filtra itens do inventário real, removendo os consumidos
-  const itemsToShow = inventory.filter(
-    (item) =>
-      (filter === "all" || item.type === filter) &&
-      !consumedIds.includes(item.id)
-  );
+  // Filter inventory items by category, matching shop item types
+  const itemsToShow = inventory.filter((item) => {
+    if (consumedIds.includes(item.id)) return false;
+    if (filter === "all") return true;
+    
+    // Find the shop item to get the correct type
+    const shopItem = shopItems.find(shop => shop.id === item.weapon_id);
+    if (!shopItem) return false;
+    
+    // Match shop item type to filter
+    return shopItem.type === filter;
+  });
 
   function handleEquip(item: Item) {
     if (["weapon", "armor", "style", "accessory"].includes(item.type)) {
+      // Update localStorage
+      if (player?.id) {
+        const localInventoryKey = `inventory_${player.id}`;
+        const existingInventory = JSON.parse(localStorage.getItem(localInventoryKey) || '[]');
+        
+        // Unequip any item of the same type
+        existingInventory.forEach((invItem: any) => {
+          if (invItem.equipped) {
+            const shopItem = shopItems.find(shop => shop.id === invItem.item_id);
+            const itemType = shopItem?.type === "weapon" ? "weapon" :
+                            shopItem?.type === "protection" ? "armor" :
+                            shopItem?.type === "vehicle" ? "style" : "consumable";
+            if (itemType === item.type) {
+              invItem.equipped = false;
+            }
+          }
+        });
+        
+        // Equip the selected item
+        const itemToEquip = existingInventory.find((invItem: any) => invItem.id === item.id);
+        if (itemToEquip) {
+          itemToEquip.equipped = true;
+        }
+        
+        localStorage.setItem(localInventoryKey, JSON.stringify(existingInventory));
+      }
+      
       setEquipped((prev) => ({ ...prev, [item.type]: item }));
       setSelectedItem(null);
     }
   }
 
   function handleUnequip(type: string) {
+    // Update localStorage
+    if (player?.id && equipped[type as keyof typeof equipped]) {
+      const localInventoryKey = `inventory_${player.id}`;
+      const existingInventory = JSON.parse(localStorage.getItem(localInventoryKey) || '[]');
+      
+      const itemToUnequip = existingInventory.find((invItem: any) => invItem.id === equipped[type as keyof typeof equipped]?.id);
+      if (itemToUnequip) {
+        itemToUnequip.equipped = false;
+        localStorage.setItem(localInventoryKey, JSON.stringify(existingInventory));
+      }
+    }
+    
     setEquipped((prev) => ({ ...prev, [type]: null }));
     setSelectedItem(null);
   }
@@ -217,7 +294,7 @@ export default function ProfileView() {
   }
 
   return (
-    <BaseView title="Profile & Inventory">
+    <BaseView title="Inventory">
       {/* Player Info */}
       <div className="mb-6 p-4 bg-gradient-to-r from-cyan-500/20 to-cyan-600/20 border border-cyan-500/30 rounded-xl">
         <div className="flex items-center justify-between">
@@ -243,7 +320,7 @@ export default function ProfileView() {
           <Star size={24} className="text-yellow-400" />
           Equipped Items
         </h2>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-3 gap-4">
           <div className="p-4 bg-red-500/10 border border-red-500/30 rounded-xl">
             <div className="flex items-center gap-2 mb-2">
               <Sword size={16} className="text-red-400" />
@@ -267,7 +344,7 @@ export default function ProfileView() {
           <div className="p-4 bg-blue-500/10 border border-blue-500/30 rounded-xl">
             <div className="flex items-center gap-2 mb-2">
               <Shield size={16} className="text-blue-400" />
-              <span className="text-sm text-white/60">Armor:</span>
+              <span className="text-sm text-white/60">Protection:</span>
             </div>
             {equipped.armor ? (
               <div className="flex items-center gap-2">
@@ -286,8 +363,8 @@ export default function ProfileView() {
           </div>
           <div className="p-4 bg-purple-500/10 border border-purple-500/30 rounded-xl">
             <div className="flex items-center gap-2 mb-2">
-              <Shirt size={16} className="text-purple-400" />
-              <span className="text-sm text-white/60">Style:</span>
+              <TrendingUp size={16} className="text-purple-400" />
+              <span className="text-sm text-white/60">Vehicle:</span>
             </div>
             {equipped.style ? (
               <div className="flex items-center gap-2">
@@ -298,26 +375,6 @@ export default function ProfileView() {
                 />
                 <span className="text-purple-400 font-bold text-sm">
                   {equipped.style.name}
-                </span>
-              </div>
-            ) : (
-              <span className="text-white/40 text-sm">None equipped</span>
-            )}
-          </div>
-          <div className="p-4 bg-cyan-500/10 border border-cyan-500/30 rounded-xl">
-            <div className="flex items-center gap-2 mb-2">
-              <Glasses size={16} className="text-cyan-400" />
-              <span className="text-sm text-white/60">Accessory:</span>
-            </div>
-            {equipped.accessory ? (
-              <div className="flex items-center gap-2">
-                <img
-                  src={equipped.accessory.image}
-                  alt={equipped.accessory.name}
-                  className="w-8 h-8 rounded object-cover"
-                />
-                <span className="text-cyan-400 font-bold text-sm">
-                  {equipped.accessory.name}
                 </span>
               </div>
             ) : (

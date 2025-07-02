@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { toast } from "sonner";
+import { useGameStore } from "../stores/gameStore";
+import { supabase } from "@/integrations/supabase/client";
 import {
   MapPin,
   Users,
@@ -48,6 +50,37 @@ interface HomeViewProps {
 
 const HomeView = ({ onViewChange }: HomeViewProps) => {
   const [lastRewardTime, setLastRewardTime] = useState<number | null>(null);
+  const { player, updatePlayerMoney } = useGameStore();
+
+  const handleAddMoney = async () => {
+    if (!player?.id) {
+      toast.error("Player not found");
+      return;
+    }
+
+    const moneyToAdd = 10000;
+    
+    try {
+      // Update database
+      const { error } = await supabase
+        .from("players")
+        .update({ money: (player.stats.money || 0) + moneyToAdd })
+        .eq("id", player.id);
+
+      if (error) {
+        console.error("Error adding money:", error);
+        toast.error("Failed to add money to database");
+        return;
+      }
+
+      // Update local store
+      updatePlayerMoney(moneyToAdd);
+      toast.success(`💰 Added $${moneyToAdd.toLocaleString()} for testing!`);
+    } catch (error) {
+      console.error("Error adding test money:", error);
+      toast.error("Failed to add test money");
+    }
+  };
   const [timeUntilNextReward, setTimeUntilNextReward] = useState<number>(0);
   const [canCollectReward, setCanCollectReward] = useState<boolean>(true);
 
@@ -392,6 +425,7 @@ const HomeView = ({ onViewChange }: HomeViewProps) => {
               <ChevronRight size={16} className="text-orange-500/50" />
             </div>
           </button>
+
         </div>
 
         {/* City Map */}

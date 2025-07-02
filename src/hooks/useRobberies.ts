@@ -4,6 +4,8 @@ import { useGameStore } from "@/stores/gameStore";
 import { SupabaseService } from "@/services/supabaseService";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
+import { useShopItems } from "./useShop";
+import { useEquippedItems, calculateEquipmentBonuses } from "./useInventory";
 
 export interface Robbery {
   id: string;
@@ -20,7 +22,7 @@ export interface Robbery {
   image_url: string;
 }
 
-// Mock data for robbery types (to be replaced with database queries)
+// Mock data for robbery types (to be replaced with database queries) - Reduced rewards for better balance
 const mockRobberies: Robbery[] = [
   {
     id: "1",
@@ -29,8 +31,8 @@ const mockRobberies: Robbery[] = [
     type: "store",
     min_level: 0,
     success_rate: 70,
-    base_reward: 50,
-    max_reward: 150,
+    base_reward: 25,
+    max_reward: 75,
     energy_cost: 5,
     health_cost: 10,
     risk_level: 1,
@@ -43,8 +45,8 @@ const mockRobberies: Robbery[] = [
     type: "bank",
     min_level: 10,
     success_rate: 25,
-    base_reward: 500,
-    max_reward: 2000,
+    base_reward: 200,
+    max_reward: 500,
     energy_cost: 20,
     health_cost: 25,
     risk_level: 5,
@@ -57,8 +59,8 @@ const mockRobberies: Robbery[] = [
     type: "jewelry",
     min_level: 5,
     success_rate: 50,
-    base_reward: 200,
-    max_reward: 800,
+    base_reward: 75,
+    max_reward: 200,
     energy_cost: 10,
     health_cost: 15,
     risk_level: 3,
@@ -71,8 +73,8 @@ const mockRobberies: Robbery[] = [
     type: "warehouse",
     min_level: 8,
     success_rate: 60,
-    base_reward: 300,
-    max_reward: 1000,
+    base_reward: 100,
+    max_reward: 300,
     energy_cost: 15,
     health_cost: 20,
     risk_level: 2,
@@ -85,8 +87,8 @@ const mockRobberies: Robbery[] = [
     type: "mansion",
     min_level: 15,
     success_rate: 35,
-    base_reward: 800,
-    max_reward: 3000,
+    base_reward: 300,
+    max_reward: 800,
     energy_cost: 25,
     health_cost: 30,
     risk_level: 4,
@@ -99,8 +101,8 @@ const mockRobberies: Robbery[] = [
     type: "casino",
     min_level: 25,
     success_rate: 15,
-    base_reward: 2000,
-    max_reward: 10000,
+    base_reward: 500,
+    max_reward: 1500,
     energy_cost: 35,
     health_cost: 40,
     risk_level: 6,
@@ -121,8 +123,10 @@ export const useRobberies = () => {
 
 export const useExecuteRobbery = () => {
   const queryClient = useQueryClient();
-  const { updatePlayerStats, updatePlayerMoney } = useGameStore();
+  const { updatePlayerStats, updatePlayerMoney, player } = useGameStore();
   const { user } = useAuth();
+  const { data: shopItems = [] } = useShopItems();
+  const { data: equippedItems = [] } = useEquippedItems(player?.id || "");
 
   return useMutation({
     mutationFn: async ({
@@ -136,12 +140,20 @@ export const useExecuteRobbery = () => {
         throw new Error("Authentication required");
       }
 
+      // Calculate equipment bonuses before sending to server
+      const equipmentBonuses = calculateEquipmentBonuses(equippedItems, shopItems);
+      
+      console.log('🎒 Equipment bonuses for robbery:', equipmentBonuses);
+      console.log('🎒 Equipped items:', equippedItems);
+      console.log('🎒 Shop items:', shopItems);
+
       // SECURITY: All calculations now happen server-side
       // This prevents client-side manipulation of game logic
       const result = await SupabaseService.executeRobbery(
         playerId,
         robberyId,
-        user.id
+        user.id,
+        equipmentBonuses
       );
 
       // Update local store with server-calculated values
@@ -150,21 +162,8 @@ export const useExecuteRobbery = () => {
         health: result.newStats.health,
         reputation: result.newStats.reputation,
         wantedLevel: result.newStats.wantedLevel,
+        money: result.newStats.money, // Set total money from database
       });
-
-      updatePlayerMoney(result.reward);
-
-      // Show result to user
-      if (result.success) {
-        toast.success(
-          `🎯 Robbery successful! Gained $${result.reward.toLocaleString()}`,
-          { duration: 5000 }
-        );
-      } else {
-        toast.error("💥 Robbery failed! You escaped empty-handed.", {
-          duration: 5000,
-        });
-      }
 
       return result;
     },

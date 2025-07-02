@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import BaseView from "./BaseView";
 import {
   Building2,
@@ -13,7 +13,13 @@ import {
   X,
   Plus,
   Minus,
+  Factory,
+  Truck,
+  Package,
+  Timer,
 } from "lucide-react";
+import { useGameStore } from "../stores/gameStore";
+import { toast } from "sonner";
 
 interface Business {
   id: string;
@@ -21,172 +27,344 @@ interface Business {
   description: string;
   image: string;
   price: number;
-  income: number;
+  baseIncome: number;
   level: number;
   maxLevel: number;
   employees: number;
   maxEmployees: number;
   security: number;
-  type: "restaurant" | "club" | "shop" | "factory" | "casino";
+  supplies: number;
+  maxSupplies: number;
+  supplyCost: number;
+  upgradeCost: number;
+  type: "counterfeit" | "weapons" | "drugs" | "garage" | "casino";
   owned: boolean;
+  lastCollection?: number;
+  productionRate: number; // products per hour
 }
 
 const businesses: Business[] = [
   {
-    id: "restaurant",
-    name: "Italian Restaurant",
-    description: "Elegant restaurant downtown",
-    image:
-      "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=150&h=150&fit=crop",
-    price: 50000,
-    income: 5000,
+    id: "counterfeit",
+    name: "Counterfeit Cash Factory",
+    description: "Print fake money with high-tech equipment",
+    image: "https://images.unsplash.com/photo-1554672408-17caeb6e8d46?w=150&h=150&fit=crop",
+    price: 75000,
+    baseIncome: 8000,
     level: 1,
-    maxLevel: 10,
-    employees: 5,
-    maxEmployees: 20,
-    security: 30,
-    type: "restaurant",
-    owned: false,
-  },
-  {
-    id: "nightclub",
-    name: "Nightclub Neon",
-    description: "Luxury nightclub with live shows",
-    image:
-      "https://images.unsplash.com/photo-1566733971017-fc977c5c2f3a?w=150&h=150&fit=crop",
-    price: 150000,
-    income: 15000,
-    level: 1,
-    maxLevel: 10,
-    employees: 8,
-    maxEmployees: 25,
-    security: 50,
-    type: "club",
-    owned: false,
-  },
-  {
-    id: "shop",
-    name: "Convenience Store",
-    description: "24-hour store in residential neighborhood",
-    image:
-      "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=150&h=150&fit=crop",
-    price: 25000,
-    income: 2500,
-    level: 1,
-    maxLevel: 10,
+    maxLevel: 5,
     employees: 3,
     maxEmployees: 15,
-    security: 20,
-    type: "shop",
+    security: 40,
+    supplies: 0,
+    maxSupplies: 100,
+    supplyCost: 15000,
+    upgradeCost: 15000,
+    type: "counterfeit",
     owned: false,
+    productionRate: 2,
   },
   {
-    id: "factory",
-    name: "Weapons Factory",
-    description: "Production of high-quality illegal weapons",
-    image:
-      "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=150&h=150&fit=crop",
-    price: 500000,
-    income: 50000,
+    id: "weapons",
+    name: "Weapon Manufacturing",
+    description: "Produce illegal weapons for the black market",
+    image: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=150&h=150&fit=crop",
+    price: 250000,
+    baseIncome: 25000,
     level: 1,
-    maxLevel: 10,
-    employees: 15,
-    maxEmployees: 50,
-    security: 80,
-    type: "factory",
+    maxLevel: 5,
+    employees: 8,
+    maxEmployees: 30,
+    security: 70,
+    supplies: 0,
+    maxSupplies: 100,
+    supplyCost: 40000,
+    upgradeCost: 50000,
+    type: "weapons",
     owned: false,
+    productionRate: 1.5,
+  },
+  {
+    id: "drugs",
+    name: "Drug Lab",
+    description: "Cook and distribute illegal drugs",
+    image: "https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=150&h=150&fit=crop",
+    price: 150000,
+    baseIncome: 18000,
+    level: 1,
+    maxLevel: 5,
+    employees: 5,
+    maxEmployees: 20,
+    security: 60,
+    supplies: 0,
+    maxSupplies: 100,
+    supplyCost: 25000,
+    upgradeCost: 30000,
+    type: "drugs",
+    owned: false,
+    productionRate: 2.5,
+  },
+  {
+    id: "garage",
+    name: "Chop Shop Garage",
+    description: "Steal and modify vehicles for resale",
+    image: "https://images.unsplash.com/photo-1486496572940-2bb2341fdbdf?w=150&h=150&fit=crop",
+    price: 120000,
+    baseIncome: 12000,
+    level: 1,
+    maxLevel: 5,
+    employees: 6,
+    maxEmployees: 25,
+    security: 50,
+    supplies: 0,
+    maxSupplies: 100,
+    supplyCost: 20000,
+    upgradeCost: 25000,
+    type: "garage",
+    owned: false,
+    productionRate: 1.8,
   },
   {
     id: "casino",
-    name: "Golden Casino",
-    description: "Luxury casino with gambling games",
-    image:
-      "https://images.unsplash.com/photo-1511512578047-dfb367046420?w=150&h=150&fit=crop",
-    price: 1000000,
-    income: 100000,
+    name: "Underground Casino",
+    description: "Run illegal gambling operations",
+    image: "https://images.unsplash.com/photo-1511512578047-dfb367046420?w=150&h=150&fit=crop",
+    price: 500000,
+    baseIncome: 50000,
     level: 1,
-    maxLevel: 10,
-    employees: 25,
-    maxEmployees: 100,
-    security: 90,
+    maxLevel: 5,
+    employees: 15,
+    maxEmployees: 50,
+    security: 80,
+    supplies: 0,
+    maxSupplies: 100,
+    supplyCost: 75000,
+    upgradeCost: 100000,
     type: "casino",
     owned: false,
+    productionRate: 1,
   },
 ];
 
 const BusinessView = () => {
-  const [selectedBusiness, setSelectedBusiness] = useState<Business | null>(
-    null
-  );
-  const [showModal, setShowModal] = useState(false);
+  const [selectedBusiness, setSelectedBusiness] = useState<Business | null>(null);
   const [ownedBusinesses, setOwnedBusinesses] = useState<Business[]>([]);
-  const [playerMoney, setPlayerMoney] = useState(1000000);
+  const [showUpgradeConfirm, setShowUpgradeConfirm] = useState<{
+    businessId: string;
+    upgradeType: "level" | "employees" | "security";
+    cost: number;
+    businessName: string;
+  } | null>(null);
+  const [showSupplyConfirm, setShowSupplyConfirm] = useState<{
+    businessId: string;
+    cost: number;
+    businessName: string;
+  } | null>(null);
+  const { player, updatePlayerMoney } = useGameStore();
 
-  const handleBuyBusiness = (business: Business) => {
-    if (playerMoney >= business.price) {
-      setPlayerMoney(playerMoney - business.price);
-      const ownedBusiness = { ...business, owned: true };
-      setOwnedBusinesses([...ownedBusinesses, ownedBusiness]);
-      setSelectedBusiness(null);
+  // Load owned businesses from localStorage when component mounts
+  useEffect(() => {
+    if (player?.id) {
+      const businessKey = `owned_businesses_${player.id}`;
+      const savedBusinesses = localStorage.getItem(businessKey);
+      if (savedBusinesses) {
+        try {
+          const parsed = JSON.parse(savedBusinesses);
+          setOwnedBusinesses(parsed);
+          console.log("📈 DEBUG: Loaded owned businesses:", parsed);
+        } catch (error) {
+          console.error("Error loading owned businesses:", error);
+        }
+      }
+    }
+  }, [player?.id]);
+
+  // Save owned businesses to localStorage whenever they change
+  const saveBusinessesToStorage = (businesses: Business[]) => {
+    if (player?.id) {
+      const businessKey = `owned_businesses_${player.id}`;
+      localStorage.setItem(businessKey, JSON.stringify(businesses));
+      console.log("📈 DEBUG: Saved owned businesses:", businesses);
     }
   };
 
-  const handleUpgradeBusiness = (
+  const handleBuyBusiness = (business: Business) => {
+    const currentMoney = player?.money || player?.stats?.money || 0;
+    if (currentMoney < business.price) {
+      toast.error(`Not enough money! You need $${business.price.toLocaleString()} but have $${currentMoney.toLocaleString()}`);
+      return;
+    }
+
+    toast.dismiss();
+    updatePlayerMoney(-business.price);
+    const ownedBusiness = { 
+      ...business, 
+      owned: true,
+      lastCollection: Date.now(),
+    };
+    const newBusinesses = [...ownedBusinesses, ownedBusiness];
+    setOwnedBusinesses(newBusinesses);
+    saveBusinessesToStorage(newBusinesses);
+    setSelectedBusiness(null);
+    
+    toast.success(`🏢 You bought ${business.name}! Start making that dirty money!`);
+  };
+
+  const requestUpgrade = (
     businessId: string,
     upgradeType: "level" | "employees" | "security"
   ) => {
-    setOwnedBusinesses(
-      ownedBusinesses.map((business) => {
-        if (business.id === businessId) {
-          const upgradeCost = business.price * 0.1;
-          if (playerMoney >= upgradeCost) {
-            setPlayerMoney(playerMoney - upgradeCost);
-            return {
-              ...business,
-              [upgradeType]: Math.min(
-                business[upgradeType] + 1,
-                business.maxLevel
-              ),
-              income: business.income * 1.1,
-            };
-          }
+    const business = ownedBusinesses.find(b => b.id === businessId);
+    if (!business) return;
+
+    // Check if upgrade is possible
+    if (upgradeType === "level" && business.level >= business.maxLevel) {
+      toast.error("Business is already at maximum level!");
+      return;
+    }
+    if (upgradeType === "employees" && business.employees >= business.maxEmployees) {
+      toast.error("Maximum employees reached!");
+      return;
+    }
+    if (upgradeType === "security" && business.security >= 100) {
+      toast.error("Security is already at maximum!");
+      return;
+    }
+
+    const upgradeCost = business.upgradeCost;
+    setShowUpgradeConfirm({
+      businessId,
+      upgradeType,
+      cost: upgradeCost,
+      businessName: business.name
+    });
+  };
+
+  const confirmUpgrade = () => {
+    if (!showUpgradeConfirm) return;
+
+    const { businessId, upgradeType, cost } = showUpgradeConfirm;
+    const currentMoney = player?.money || player?.stats?.money || 0;
+    
+    if (currentMoney < cost) {
+      toast.error(`Not enough money for upgrade! Need $${cost.toLocaleString()}`);
+      setShowUpgradeConfirm(null);
+      return;
+    }
+
+    const newBusinesses = ownedBusinesses.map((business) => {
+      if (business.id === businessId) {
+        toast.dismiss();
+        updatePlayerMoney(-cost);
+        
+        const updated = { ...business };
+        if (upgradeType === "level") {
+          updated.level = Math.min(business.level + 1, business.maxLevel);
+          toast.success(`🔧 ${business.name} upgraded to level ${updated.level}!`);
+        } else if (upgradeType === "employees") {
+          updated.employees = Math.min(business.employees + 5, business.maxEmployees);
+          toast.success(`👥 Hired 5 more employees for ${business.name}!`);
+        } else if (upgradeType === "security") {
+          updated.security = Math.min(business.security + 10, 100);
+          toast.success(`🛡️ Security upgraded for ${business.name}!`);
         }
-        return business;
-      })
-    );
+        
+        return updated;
+      }
+      return business;
+    });
+    
+    setOwnedBusinesses(newBusinesses);
+    saveBusinessesToStorage(newBusinesses);
+    setShowUpgradeConfirm(null);
+  };
+
+  const requestSupplies = (businessId: string) => {
+    const business = ownedBusinesses.find(b => b.id === businessId);
+    if (!business) return;
+
+    if (business.supplies >= business.maxSupplies) {
+      toast.error("Supply storage is full!");
+      return;
+    }
+
+    setShowSupplyConfirm({
+      businessId,
+      cost: business.supplyCost,
+      businessName: business.name
+    });
+  };
+
+  const confirmSupplies = () => {
+    if (!showSupplyConfirm) return;
+
+    const { businessId, cost } = showSupplyConfirm;
+    const currentMoney = player?.money || player?.stats?.money || 0;
+    
+    if (currentMoney < cost) {
+      toast.error(`Not enough money for supplies! Need $${cost.toLocaleString()}`);
+      setShowSupplyConfirm(null);
+      return;
+    }
+
+    const newBusinesses = ownedBusinesses.map((business) => {
+      if (business.id === businessId) {
+        toast.dismiss();
+        updatePlayerMoney(-cost);
+        toast.success(`📦 Supplies purchased for ${business.name}!`);
+        
+        return {
+          ...business,
+          supplies: business.maxSupplies,
+        };
+      }
+      return business;
+    });
+    
+    setOwnedBusinesses(newBusinesses);
+    saveBusinessesToStorage(newBusinesses);
+    setShowSupplyConfirm(null);
+  };
+
+  const calculateCurrentIncome = (business: Business): number => {
+    const levelMultiplier = 1 + (business.level - 1) * 0.3;
+    const employeeMultiplier = 1 + (business.employees / business.maxEmployees) * 0.5;
+    const supplyMultiplier = business.supplies > 0 ? 1 : 0.1; // Very low income without supplies
+    
+    return Math.floor(business.baseIncome * levelMultiplier * employeeMultiplier * supplyMultiplier);
   };
 
   const getBusinessTypeIcon = (type: string) => {
     switch (type) {
-      case "restaurant":
-        return <Building2 size={20} className="text-orange-500" />;
-      case "club":
-        return <Zap size={20} className="text-purple-500" />;
-      case "shop":
+      case "counterfeit":
         return <DollarSign size={20} className="text-green-500" />;
-      case "factory":
+      case "weapons":
         return <Shield size={20} className="text-red-500" />;
+      case "drugs":
+        return <Zap size={20} className="text-purple-500" />;
+      case "garage":
+        return <Truck size={20} className="text-blue-500" />;
       case "casino":
         return <Star size={20} className="text-yellow-500" />;
       default:
-        return <Building2 size={20} className="text-blue-500" />;
+        return <Factory size={20} className="text-gray-500" />;
     }
   };
 
   const getBusinessTypeColor = (type: string) => {
     switch (type) {
-      case "restaurant":
-        return "border-orange-500/30 bg-orange-500/10";
-      case "club":
-        return "border-purple-500/30 bg-purple-500/10";
-      case "shop":
+      case "counterfeit":
         return "border-green-500/30 bg-green-500/10";
-      case "factory":
+      case "weapons":
         return "border-red-500/30 bg-red-500/10";
+      case "drugs":
+        return "border-purple-500/30 bg-purple-500/10";
+      case "garage":
+        return "border-blue-500/30 bg-blue-500/10";
       case "casino":
         return "border-yellow-500/30 bg-yellow-500/10";
       default:
-        return "border-blue-500/30 bg-blue-500/10";
+        return "border-gray-500/30 bg-gray-500/10";
     }
   };
 
@@ -198,7 +376,7 @@ const BusinessView = () => {
           <div className="flex items-center gap-2">
             <DollarSign size={24} className="text-green-400" />
             <span className="text-xl font-bold text-green-400">
-              ${playerMoney.toLocaleString()}
+              ${(player?.money || player?.stats?.money || 0).toLocaleString()}
             </span>
           </div>
           <div className="flex items-center gap-2">
@@ -206,7 +384,7 @@ const BusinessView = () => {
             <span className="text-sm text-green-400">
               +$
               {ownedBusinesses
-                .reduce((total, b) => total + b.income, 0)
+                .reduce((total, b) => total + calculateCurrentIncome(b), 0)
                 .toLocaleString()}
               /hour
             </span>
@@ -252,7 +430,7 @@ const BusinessView = () => {
                           </span>
                           <button
                             onClick={() =>
-                              handleUpgradeBusiness(business.id, "level")
+                              requestUpgrade(business.id, "level")
                             }
                             className="p-1 bg-blue-500/20 rounded hover:bg-blue-500/30"
                           >
@@ -268,7 +446,7 @@ const BusinessView = () => {
                           </span>
                           <button
                             onClick={() =>
-                              handleUpgradeBusiness(business.id, "employees")
+                              requestUpgrade(business.id, "employees")
                             }
                             className="p-1 bg-green-500/20 rounded hover:bg-green-500/30"
                           >
@@ -284,7 +462,7 @@ const BusinessView = () => {
                           </span>
                           <button
                             onClick={() =>
-                              handleUpgradeBusiness(business.id, "security")
+                              requestUpgrade(business.id, "security")
                             }
                             className="p-1 bg-red-500/20 rounded hover:bg-red-500/30"
                           >
@@ -295,7 +473,7 @@ const BusinessView = () => {
                     </div>
                     <div className="mt-3 p-2 bg-green-500/10 border border-green-500/30 rounded">
                       <span className="text-green-400 font-bold">
-                        +${business.income.toLocaleString()}/hour
+                        +${calculateCurrentIncome(business).toLocaleString()}/hour
                       </span>
                     </div>
                   </div>
@@ -349,7 +527,7 @@ const BusinessView = () => {
                       <div className="text-sm">
                         <span className="text-white/60">Income:</span>
                         <span className="text-green-400 font-bold ml-2">
-                          +${business.income.toLocaleString()}/hour
+                          +${(business.baseIncome || 0).toLocaleString()}/hour
                         </span>
                       </div>
                     </div>
@@ -391,7 +569,7 @@ const BusinessView = () => {
               <div className="flex justify-between">
                 <span className="text-white/60">Income per hour:</span>
                 <span className="text-green-400 font-bold">
-                  +${selectedBusiness.income.toLocaleString()}
+                  +${(selectedBusiness.baseIncome || 0).toLocaleString()}
                 </span>
               </div>
               <div className="flex justify-between">
@@ -408,20 +586,78 @@ const BusinessView = () => {
             <div className="flex gap-3">
               <button
                 onClick={() => handleBuyBusiness(selectedBusiness)}
-                disabled={playerMoney < selectedBusiness.price}
+                disabled={(player?.money || player?.stats?.money || 0) < selectedBusiness.price}
                 className={`flex-1 py-3 px-4 rounded-lg font-bold transition-colors ${
-                  playerMoney >= selectedBusiness.price
+                  (player?.money || player?.stats?.money || 0) >= selectedBusiness.price
                     ? "bg-green-500 hover:bg-green-600 text-white"
                     : "bg-gray-500 text-gray-300 cursor-not-allowed"
                 }`}
               >
-                {playerMoney >= selectedBusiness.price
+                {(player?.money || player?.stats?.money || 0) >= selectedBusiness.price
                   ? "Buy Business"
                   : "Insufficient Money"}
               </button>
               <button
                 onClick={() => setSelectedBusiness(null)}
                 className="py-3 px-4 border border-white/30 rounded-lg text-white hover:bg-white/10"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Upgrade Confirmation Modal */}
+      {showUpgradeConfirm && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-gray-900 p-6 rounded-xl border border-cyan-500/30 max-w-sm w-full mx-4">
+            <h3 className="text-xl font-bold text-cyan-400 mb-4">Confirm Upgrade</h3>
+            <p className="text-white mb-4">
+              Upgrade {showUpgradeConfirm.businessName} ({showUpgradeConfirm.upgradeType}) for{" "}
+              <span className="text-green-400 font-bold">
+                ${showUpgradeConfirm.cost.toLocaleString()}
+              </span>?
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={confirmUpgrade}
+                className="flex-1 bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded-lg font-bold"
+              >
+                Confirm
+              </button>
+              <button
+                onClick={() => setShowUpgradeConfirm(null)}
+                className="flex-1 bg-gray-500 hover:bg-gray-600 text-white py-2 px-4 rounded-lg font-bold"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Supply Purchase Confirmation Modal */}
+      {showSupplyConfirm && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-gray-900 p-6 rounded-xl border border-cyan-500/30 max-w-sm w-full mx-4">
+            <h3 className="text-xl font-bold text-cyan-400 mb-4">Confirm Purchase</h3>
+            <p className="text-white mb-4">
+              Buy supplies for {showSupplyConfirm.businessName} for{" "}
+              <span className="text-green-400 font-bold">
+                ${showSupplyConfirm.cost.toLocaleString()}
+              </span>?
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={confirmSupplies}
+                className="flex-1 bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded-lg font-bold"
+              >
+                Confirm
+              </button>
+              <button
+                onClick={() => setShowSupplyConfirm(null)}
+                className="flex-1 bg-gray-500 hover:bg-gray-600 text-white py-2 px-4 rounded-lg font-bold"
               >
                 Cancel
               </button>

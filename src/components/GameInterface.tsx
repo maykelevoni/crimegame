@@ -23,10 +23,11 @@ import {
   DollarSign,
   Siren,
   X,
+  Package,
 } from "lucide-react";
 import HomeView from "../views/HomeView";
 import RobberyView from "../views/RobberyView";
-import ProfileView from "../views/ProfileView";
+import InventoryView from "../views/ProfileView";
 import NewsView from "../views/NewsView";
 import { GameProvider } from "./GameProvider";
 import NightlifeView from "../views/NightlifeView";
@@ -157,7 +158,8 @@ export function GameInterface() {
     { id: "home", icon: Home, label: "Home" },
     { id: "robbery", icon: LocateFixed, label: "Robbery" },
     { id: "shop", icon: ShoppingBag, label: "Shop" },
-    { id: "character", icon: UserCircle, label: "Profile" },
+    { id: "business", icon: Building2, label: "Business" },
+    { id: "character", icon: Package, label: "Inventory" },
   ];
 
   const handleViewChange = (view: string) => {
@@ -322,7 +324,7 @@ export function GameInterface() {
       case "luckywheel":
         return <LuckyWheelView onBack={() => setActiveView("home")} />;
       case "character":
-        return <ProfileView />;
+        return <InventoryView />;
       case "business":
         return <BusinessView />;
       default:
