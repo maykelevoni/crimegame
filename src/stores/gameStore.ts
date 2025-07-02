@@ -123,13 +123,50 @@ export const useGameStore = create<GameStore>()(
 
       // Actions do Player
       updatePlayerStats: (updates) => {
-        console.log("🔍 Debug - updatePlayerStats chamada com:", updates);
+        console.log("🔍 Debug - updatePlayerStats called with:", updates);
 
         set((state) => {
-          const newStats = {
+          let newStats = {
             ...state.player.stats,
             ...updates,
           };
+
+          // Check critical status conditions
+          let statusChecks = {
+            isHospitalized: false,
+            isImprisoned: false,
+            hospitalizationType: null as string | null,
+          };
+
+          // Health = 0 -> Hospitalization  
+          if (newStats.health <= 0) {
+            newStats.health = 0;
+            statusChecks.isHospitalized = true;
+            statusChecks.hospitalizationType = "health";
+            console.log("🏥 Player hospitalized due to health = 0");
+          }
+
+          // Addiction >= 100 -> Hospitalization (overdose/illness)
+          if (newStats.addiction >= 100) {
+            newStats.addiction = 100;
+            statusChecks.isHospitalized = true;
+            statusChecks.hospitalizationType = "overdose";
+            console.log("🏥 Player hospitalized due to overdose/addiction");
+          }
+
+          // Wanted >= 100 -> Prison (chance based)
+          if (newStats.wantedLevel >= 100 && !statusChecks.isHospitalized) {
+            const prisonChance = Math.random();
+            if (prisonChance <= 0.8) { // 80% chance of going to prison
+              statusChecks.isImprisoned = true;
+              newStats.wantedLevel = 0; // Reset wanted level after arrest
+              console.log("🔒 Player sent to prison due to high wanted level");
+            }
+          }
+
+          // Apply status changes
+          newStats.isHospitalized = statusChecks.isHospitalized;
+          newStats.isImprisoned = statusChecks.isImprisoned;
 
           const newPlayer = {
             ...state.player,
@@ -137,16 +174,20 @@ export const useGameStore = create<GameStore>()(
             updatedAt: new Date(),
           };
 
-          console.log("🔍 Debug - Estado anterior:", {
-            reputation: state.player.stats.reputation,
+          console.log("🔍 Debug - Previous state:", {
+            health: state.player.stats.health,
+            addiction: state.player.stats.addiction,
             wantedLevel: state.player.stats.wantedLevel,
-            energy: state.player.stats.energy,
+            isHospitalized: state.player.stats.isHospitalized,
+            isImprisoned: state.player.stats.isImprisoned,
           });
 
-          console.log("🔍 Debug - Novo estado:", {
-            reputation: newStats.reputation,
+          console.log("🔍 Debug - New state:", {
+            health: newStats.health,
+            addiction: newStats.addiction,
             wantedLevel: newStats.wantedLevel,
-            energy: newStats.energy,
+            isHospitalized: newStats.isHospitalized,
+            isImprisoned: newStats.isImprisoned,
           });
 
           return {

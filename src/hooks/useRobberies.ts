@@ -113,7 +113,8 @@ export const useRobberies = () => {
     queryKey: ["robberies"],
     queryFn: async () => {
       // TODO: Replace with actual database query
-      return mockRobberies;
+      // Sort by reputation required (min_level)
+      return mockRobberies.sort((a, b) => a.min_level - b.min_level);
     },
   });
 };

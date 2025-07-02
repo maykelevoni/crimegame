@@ -91,7 +91,7 @@ const NightlifeView = () => {
 
       setSelectedConsumable(null);
     } catch (error) {
-      // Erro já é tratado no hook
+      // Error already handled in hook
     }
   };
 
@@ -107,11 +107,12 @@ const NightlifeView = () => {
         venueId: venue.id,
       });
     } catch (error) {
-      // Erro já é tratado no hook
+      // Error already handled in hook
     }
   };
 
   const handleEnterVenue = (venue: NightlifeVenue) => {
+    console.log("🏢 DEBUG: Setting selected venue:", venue);
     setSelectedVenue(venue);
   };
 
@@ -119,16 +120,22 @@ const NightlifeView = () => {
     setSelectedVenue(null);
   };
 
-  // Filtrar consumíveis por tipo
+  // Filter consumables by type
   const drinks = consumables.filter((item) => item.type === "drink");
   const drugs = consumables.filter((item) => item.type === "drug");
 
-  // Filtrar venues por tipo
+  // Filter venues by type
   const barVenues = venues.filter((venue) => venue.type === "bar");
-  const brothelVenues = venues.filter((venue) => venue.type === "brothel");
+  const companionVenues = venues.filter((venue) => venue.type === "companion");
   const raveVenues = venues.filter((venue) => venue.type === "rave");
 
-  // Se um venue está selecionado, mostra o conteúdo dele
+  // Debug companion venues
+  console.log("🔍 DEBUG: All venues:", venues);
+  console.log("🔍 DEBUG: Companion venues:", companionVenues);
+  console.log("🔍 DEBUG: Active tab:", activeTab);
+  console.log("🔍 DEBUG: Selected venue:", selectedVenue);
+
+  // If a venue is selected, show its content
   if (selectedVenue) {
     return (
       <BaseView title="Nightlife">
@@ -141,12 +148,12 @@ const NightlifeView = () => {
             >
               <ArrowLeft size={20} />
               <span className="font-semibold">
-                Voltar aos{" "}
+                Back to{" "}
                 {activeTab === "bar"
-                  ? "Bares"
+                  ? "Bars"
                   : activeTab === "rave"
                   ? "Raves"
-                  : "Casas"}
+                  : "Companions"}
               </span>
             </button>
           </div>
@@ -382,15 +389,15 @@ const NightlifeView = () => {
             </div>
           )}
 
-          {activeTab === "brothel" && (
+          {activeTab === "companion" && (
             <div>
               <h3 className="text-xl font-bold mb-4 text-cyber-pink">
-                💋 Acompanhantes Disponíveis
+                💋 Available Companions
               </h3>
               {charactersLoading ? (
                 <div className="text-center py-8">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-cyber-blue mx-auto"></div>
-                  <p className="mt-2">Carregando acompanhantes...</p>
+                  <p className="mt-2">Loading companions...</p>
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -475,14 +482,14 @@ const NightlifeView = () => {
               🎵 Rave
             </button>
             <button
-              onClick={() => setActiveTab("brothel")}
+              onClick={() => setActiveTab("companion")}
               className={`px-4 py-2 font-bold transition-colors ${
-                activeTab === "brothel"
+                activeTab === "companion"
                   ? "text-cyber-blue border-b-2 border-cyber-blue"
                   : "text-white/60 hover:text-white"
               }`}
             >
-              💋 Brothel
+              👤 Companions
             </button>
           </div>
 
@@ -581,48 +588,63 @@ const NightlifeView = () => {
             </div>
           )}
 
-          {activeTab === "brothel" && (
+          {activeTab === "companion" && (
             <div>
               <h3 className="text-xl font-bold mb-4 text-cyber-blue">
-                💋 Casas de Encontro
+                👤 Companions
               </h3>
               {venuesLoading ? (
                 <div className="text-center py-8">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-cyber-blue mx-auto"></div>
-                  <p className="mt-2">Carregando casas...</p>
+                  <p className="mt-2">Loading companion venues...</p>
                 </div>
               ) : (
                 <div className="space-y-6">
-                  {brothelVenues.map((venue) => (
-                    <div
-                      key={venue.id}
-                      className="cyber-border p-6 bg-cyber-dark-medium hover:bg-cyber-dark transition-colors"
-                    >
-                      <div className="flex items-center gap-6">
-                        <div className="w-20 h-20 rounded-lg overflow-hidden bg-cyber-dark flex-shrink-0">
-                          <img
-                            src={venue.image_url}
-                            alt={venue.name}
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
-                        <div className="flex-1">
-                          <h4 className="text-xl font-bold text-cyber-pink mb-2">
-                            {venue.name}
-                          </h4>
-                          <p className="text-sm text-white/60 mb-4">
-                            {venue.description}
-                          </p>
-                          <button
-                            onClick={() => handleEnterVenue(venue)}
-                            className="px-6 py-2 bg-cyber-pink text-white font-bold rounded hover:bg-cyber-pink/80 transition-colors"
-                          >
-                            Entrar
-                          </button>
-                        </div>
-                      </div>
+                  {companionVenues.length === 0 ? (
+                    <div className="text-center py-8 text-white/60">
+                      No companion venues found
                     </div>
-                  ))}
+                  ) : (
+                    companionVenues.map((venue) => {
+                      console.log("🏢 DEBUG: Rendering venue:", venue.name, venue);
+                      return (
+                        <div
+                          key={venue.id}
+                          className="cyber-border p-6 bg-cyber-dark-medium hover:bg-cyber-dark transition-colors"
+                        >
+                          <div className="flex items-center gap-6">
+                            <div className="w-20 h-20 rounded-lg overflow-hidden bg-cyber-dark flex-shrink-0">
+                              <img
+                                src={venue.image_url || 'https://images.unsplash.com/photo-1519501025264-65ba15a82390?w=150&h=150&fit=crop'}
+                                alt={venue.name}
+                                className="w-full h-full object-cover"
+                              />
+                            </div>
+                            <div className="flex-1">
+                              <h4 className="text-xl font-bold text-cyber-pink mb-2">
+                                {venue.name}
+                              </h4>
+                              <p className="text-sm text-white/60 mb-4">
+                                {venue.description}
+                              </p>
+                              <div className="text-xs text-white/40 mb-2">
+                                Cost: ${venue.money_cost} | Energy: {venue.energy_cost}
+                              </div>
+                              <button
+                                onClick={() => {
+                                  console.log("🎯 DEBUG: Entering venue:", venue.name);
+                                  handleEnterVenue(venue);
+                                }}
+                                className="px-6 py-2 bg-cyber-pink text-white font-bold rounded hover:bg-cyber-pink/80 transition-colors"
+                              >
+                                Enter
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })
+                  )}
                 </div>
               )}
             </div>

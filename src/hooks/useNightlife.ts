@@ -30,13 +30,16 @@ export interface NightlifeVenue {
   image_url: string;
   energy_cost: number;
   money_cost: number;
-  health_effect: number;
-  energy_effect: number;
-  addiction_effect: number;
-  reputation_effect: number;
-  min_level: number;
+  effects: {
+    energy?: number;
+    addiction?: number;
+    health?: number;
+    reputation?: number;
+    wanted?: number;
+  };
   available: boolean;
   created_at: string;
+  updated_at: string;
 }
 
 export interface NightlifeCharacter {
@@ -61,18 +64,18 @@ export const useNightlifeConsumables = () => {
   return useQuery({
     queryKey: ["nightlife-consumables"],
     queryFn: async () => {
-      console.log("🔍 DEBUG: Buscando consumíveis do nightlife...");
+      console.log("🔍 DEBUG: Fetching nightlife consumables...");
 
       const { data, error } = await supabase
-        .from("inventory")
+        .from("consumables")
         .select("*")
         .eq("available", true)
         .order("price", { ascending: true });
 
-      console.log("📊 DEBUG: Resultado da busca:", { data, error });
+      console.log("📊 DEBUG: Search result:", { data, error });
 
       if (error) {
-        console.error("Erro ao buscar consumíveis:", error);
+        console.error("Error fetching consumables:", error);
         throw error;
       }
 
@@ -85,18 +88,18 @@ export const useNightlifeVenues = () => {
   return useQuery({
     queryKey: ["nightlife-venues"],
     queryFn: async () => {
-      console.log("🔍 DEBUG: Buscando venues do nightlife...");
+      console.log("🔍 DEBUG: Fetching nightlife venues...");
 
       const { data, error } = await supabase
-        .from("inventory")
+        .from("venues")
         .select("*")
         .eq("available", true)
         .order("money_cost", { ascending: true });
 
-      console.log("📊 DEBUG: Resultado da busca venues:", { data, error });
+      console.log("📊 DEBUG: Venues search result:", { data, error });
 
       if (error) {
-        console.error("Erro ao buscar venues:", error);
+        console.error("Error fetching venues:", error);
         throw error;
       }
 
@@ -122,10 +125,10 @@ export const useNightlifeCharacters = (venueId?: string) => {
 
       const { data, error } = await query.order("price", { ascending: true });
 
-      console.log("📊 DEBUG: Resultado da busca characters:", { data, error });
+      console.log("📊 DEBUG: Characters search result:", { data, error });
 
       if (error) {
-        console.error("Erro ao buscar characters:", error);
+        console.error("Error fetching characters:", error);
         throw error;
       }
 
@@ -146,13 +149,13 @@ export const useConsumeItem = () => {
       playerId: string;
       consumableId: string;
     }) => {
-      console.log("🍺 DEBUG: Iniciando consumo de item");
+      console.log("🍺 DEBUG: Starting item consumption");
       console.log("Player ID:", playerId);
       console.log("Consumable ID:", consumableId);
 
-      // 1. Buscar informações do consumível
+      // 1. Fetch consumable information
       const { data: consumable, error: consumableError } = await supabase
-        .from("inventory")
+        .from("consumables")
         .select("*")
         .eq("id", consumableId)
         .single();
@@ -468,7 +471,7 @@ export const useVisitVenue = () => {
     }) => {
       // 1. Buscar informações do venue
       const { data: venue, error: venueError } = await supabase
-        .from("nightlife_venues")
+        .from("venues")
         .select("*")
         .eq("id", venueId)
         .single();
@@ -501,24 +504,68 @@ export const useVisitVenue = () => {
       }
 
       // 3. Calcular novos valores dos stats
+      const effects = venue.effects || {};
       const newMoney = player.money - venue.money_cost;
       const newEnergy = Math.max(0, player.energy - venue.energy_cost);
       const newHealth = Math.max(
         0,
-        Math.min(player.max_health, player.health + venue.health_effect)
+        Math.min(player.max_health, player.health + (effects.health || 0))
       );
       const newEnergyGain = Math.max(
         0,
-        Math.min(player.max_energy, newEnergy + venue.energy_effect)
+        Math.min(player.max_energy, newEnergy + (effects.energy || 0))
       );
       const newAddiction = Math.max(
         0,
-        Math.min(100, player.addiction + venue.addiction_effect)
+        Math.min(100, player.addiction + (effects.addiction || 0))
       );
       const newReputation = Math.max(
         0,
-        player.reputation + venue.reputation_effect
+        player.reputation + (effects.reputation || 0)
       );
+
+      // For companion venues, add wanted level increase and disease chance
+      let newWanted = player.wanted_level || 0;
+      let isDisease = false;
+      let diseaseType = "";
+
+      if (venue.type === "companion") {
+        // Increase wanted level (prostitution is illegal)
+        const baseWantedIncrease = effects.wanted || Math.floor(Math.random() * 3) + 1;
+        newWanted = Math.min(100, newWanted + baseWantedIncrease);
+
+        // Disease chance based on venue quality and addiction level
+        let diseaseChance = 0;
+        if (venue.money_cost <= 50) { // Cheap venues (higher risk)
+          diseaseChance = 15;
+        } else if (venue.money_cost <= 100) { // Medium venues  
+          diseaseChance = 8;
+        } else if (venue.money_cost <= 150) { // Higher-end venues
+          diseaseChance = 5;
+        } else { // Luxury venues (lowest risk)
+          diseaseChance = 2;
+        }
+
+        // Higher addiction increases disease risk
+        if (newAddiction >= 70) {
+          diseaseChance += 10;
+        } else if (newAddiction >= 50) {
+          diseaseChance += 5;
+        }
+
+        if (Math.random() * 100 < diseaseChance) {
+          isDisease = true;
+          diseaseType = "std";
+          console.log("💋 DEBUG: STD CONTRACTED!");
+          console.log("Disease chance:", diseaseChance + "%");
+        }
+      }
+
+      // Calculate final health considering disease
+      let finalHealth = newHealth;
+      if (isDisease) {
+        finalHealth = Math.max(1, newHealth - 15);
+      }
 
       // 4. Atualizar o jogador
       const { error: updateError } = await supabase
@@ -526,9 +573,11 @@ export const useVisitVenue = () => {
         .update({
           money: newMoney,
           energy: newEnergyGain,
-          health: newHealth,
+          health: finalHealth,
           addiction: newAddiction,
           reputation: newReputation,
+          wanted_level: newWanted,
+          is_hospitalized: isDisease, // Hospitalize if contracted disease
           updated_at: new Date().toISOString(),
         })
         .eq("id", playerId);
@@ -541,32 +590,73 @@ export const useVisitVenue = () => {
         newStats: {
           money: newMoney,
           energy: newEnergyGain,
-          health: newHealth,
+          health: finalHealth,
           addiction: newAddiction,
           reputation: newReputation,
+          wantedLevel: newWanted,
         },
+        isDisease,
+        diseaseType,
+        wantedIncrease: venue.type === "companion" ? newWanted - (player.wanted_level || 0) : 0,
       };
     },
     onSuccess: (data) => {
+      // Update game store with new stats
+      const { newStats, isDisease, diseaseType, wantedIncrease } = data;
+      const updateGameStore = useGameStore.getState().updatePlayerStats;
+
+      updateGameStore({
+        money: newStats.money,
+        health: newStats.health,
+        energy: newStats.energy,
+        addiction: newStats.addiction,
+        reputation: newStats.reputation,
+        wantedLevel: newStats.wantedLevel,
+        isHospitalized: isDisease,
+      });
+
       // Invalidar queries relacionadas ao jogador
       queryClient.invalidateQueries({ queryKey: ["player"] });
       queryClient.invalidateQueries({ queryKey: ["game-data"] });
 
       // Mostrar notificação de sucesso
-      const { venue, newStats } = data;
+      const { venue } = data;
 
-      let message = `🎉 Você visitou ${venue.name}!`;
-      if (venue.energy_effect > 0) {
-        message += ` +${venue.energy_effect} Energia`;
-      }
-      if (venue.addiction_effect > 0) {
-        message += `, +${venue.addiction_effect}% Vício`;
-      }
-      if (venue.reputation_effect > 0) {
-        message += `, +${venue.reputation_effect} Reputação`;
+      if (isDisease) {
+        toast.error(
+          `💋 STD CONTRACTED! You were hospitalized! Visiting ${venue.name} caused a sexually transmitted disease (Addiction: ${newStats.addiction}%)`,
+          { duration: 8000 }
+        );
+        return;
       }
 
-      toast.success(message);
+      const effects = venue.effects || {};
+      
+      if (venue.type === "companion") {
+        let message = `💋 You visited ${venue.name}!`;
+        if (effects.energy && effects.energy > 0) {
+          message += ` +${effects.energy} Energy`;
+        }
+        if (effects.addiction && effects.addiction > 0) {
+          message += `, +${effects.addiction}% Addiction`;
+        }
+        if (wantedIncrease > 0) {
+          message += `, +${wantedIncrease} Wanted Level`;
+        }
+        toast.success(message);
+      } else {
+        let message = `🎉 You visited ${venue.name}!`;
+        if (effects.energy && effects.energy > 0) {
+          message += ` +${effects.energy} Energy`;
+        }
+        if (effects.addiction && effects.addiction > 0) {
+          message += `, +${effects.addiction}% Addiction`;
+        }
+        if (effects.reputation && effects.reputation > 0) {
+          message += `, +${effects.reputation} Reputation`;
+        }
+        toast.success(message);
+      }
     },
     onError: (error) => {
       toast.error(

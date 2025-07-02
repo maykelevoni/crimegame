@@ -63,7 +63,7 @@ const HospitalView = ({
   const cooldownTime = 2;
   const detoxTime = 3;
 
-  // Determinar razão da hospitalização e tempo de recuperação
+  // Determine hospitalization reason and recovery time
   useEffect(() => {
     console.log(
       "🏥 DEBUG: useEffect - isPlayerHospitalized:",
@@ -73,42 +73,65 @@ const HospitalView = ({
     );
 
     if (isPlayerHospitalized) {
-      console.log("🏥 DEBUG: Definindo tempo de recuperação...");
-      // Determinar se foi overdose ou doença baseado no vício
+      console.log("🏥 DEBUG: Setting recovery time...");
+      // Determine if it was overdose or disease based on addiction
       if (addiction >= 80) {
         console.log("🏥 DEBUG: Overdose detectada - 5 minutos");
         setHospitalizationReason("overdose");
         setRecoveryTime(5 * 60); // 5 minutos para overdose (em segundos)
       } else if (addiction >= 60) {
-        console.log("🏥 DEBUG: Doença detectada - 3 minutos");
+        console.log("🏥 DEBUG: Disease detected - 3 minutes");
         setHospitalizationReason("disease");
-        setRecoveryTime(3 * 60); // 3 minutos para doença (em segundos)
+        setRecoveryTime(3 * 60); // 3 minutes for disease (in seconds)
       } else {
         console.log("🏥 DEBUG: Ferimento detectado - 2 minutos");
         setHospitalizationReason("injury");
         setRecoveryTime(2 * 60); // 2 minutos para ferimento (em segundos)
       }
     } else {
-      console.log("🏥 DEBUG: Jogador não está hospitalizado - resetando");
+      console.log("🏥 DEBUG: Player not hospitalized - resetting");
       setHospitalizationReason("");
       setRecoveryTime(0);
     }
   }, [isPlayerHospitalized, addiction]);
 
-  // Timer de recuperação
+  const handleRecovery = useCallback(() => {
+    console.log("🏥 DEBUG: handleRecovery called");
+    // Restore health and remove hospitalization
+    const newHealth = 100;
+    const newAddiction = Math.max(0, addiction - 10);
+
+    console.log("🏥 DEBUG: Updating player stats - isHospitalized: false");
+    updatePlayerStats({
+      health: newHealth,
+      addiction: newAddiction,
+      isHospitalized: false,
+    });
+
+    setHealth(newHealth);
+    setAddiction(newAddiction);
+    setHospitalizationReason("");
+    setRecoveryTime(0); // Reset the timer
+
+    toast.success("🏥 You have recovered and been discharged from the hospital!", {
+      duration: 5000,
+    });
+  }, [maxHealth, health, addiction, updatePlayerStats]);
+
+  // Recovery timer
   useEffect(() => {
     console.log(
-      "⏰ DEBUG: Timer de recuperação - isPlayerHospitalized:",
+      "⏰ DEBUG: Recovery timer - isPlayerHospitalized:",
       isPlayerHospitalized,
       "recoveryTime:",
       recoveryTime
     );
 
     if (recoveryTime > 0 && isPlayerHospitalized) {
-      console.log("⏰ DEBUG: Iniciando timer de recuperação");
+      console.log("⏰ DEBUG: Starting recovery timer");
       const timer = setTimeout(() => {
         console.log(
-          "⏰ DEBUG: Timer tick - reduzindo recoveryTime de",
+          "⏰ DEBUG: Timer tick - reducing recoveryTime from",
           recoveryTime,
           "para",
           recoveryTime - 1
@@ -117,7 +140,7 @@ const HospitalView = ({
       }, 1000); // 1 segundo
 
       return () => {
-        console.log("⏰ DEBUG: Limpando timer");
+        console.log("⏰ DEBUG: Clearing timer");
         clearTimeout(timer);
       };
     } else if (
@@ -131,7 +154,22 @@ const HospitalView = ({
     }
   }, [recoveryTime, isPlayerHospitalized, hospitalizationReason, handleRecovery]);
 
-  // Monitorar cooldown e aplicar efeitos quando acabar
+  const getTreatmentResult = useCallback((treatment: string) => {
+    switch (treatment) {
+      case "Heal":
+        return `+${100 - health} HP`;
+      case "Detox":
+        return "-20% Addiction";
+      case "Surgery":
+        return `-${surgeryReduce} Wanted`;
+      case "Energy":
+        return `+${energyRecover} Energy`;
+      default:
+        return "Completed";
+    }
+  }, [maxHealth, health, surgeryReduce, energyRecover]);
+
+  // Monitor cooldown and apply effects when finished
   useEffect(() => {
     if (cooldown > 0) {
       const timer = setTimeout(() => {
@@ -140,10 +178,10 @@ const HospitalView = ({
 
       return () => clearTimeout(timer);
     } else if (cooldown === 0 && activeTreatment) {
-      // Aplicar efeitos quando o tratamento acabar
+      // Apply effects when treatment finishes
       switch (activeTreatment) {
         case "Heal": {
-          const newHealth = maxHealth;
+          const newHealth = 100;
           setHealth(newHealth);
           updatePlayerStats({ health: newHealth });
           toast.success("💚 Treatment completed! Health restored.", {
@@ -183,7 +221,7 @@ const HospitalView = ({
         }
       }
 
-      // Atualizar histórico com o resultado final
+      // Update history with final result
       setHistory((prev) =>
         prev.map((item, index) =>
           index === 0
@@ -212,51 +250,12 @@ const HospitalView = ({
     getTreatmentResult,
   ]);
 
-  // Função para obter o resultado do tratamento
-  const getTreatmentResult = useCallback((treatment: string) => {
-    switch (treatment) {
-      case "Heal":
-        return `+${maxHealth - health} HP`;
-      case "Detox":
-        return "-20% Addiction";
-      case "Surgery":
-        return `-${surgeryReduce} Wanted`;
-      case "Energy":
-        return `+${energyRecover} Energy`;
-      default:
-        return "Completed";
-    }
-  }, [maxHealth, health, surgeryReduce, energyRecover]);
-
-  // Função para formatar tempo
+  // Function to format time
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins}:${secs.toString().padStart(2, "0")}`;
   };
-
-  const handleRecovery = useCallback(() => {
-    console.log("🏥 DEBUG: handleRecovery called");
-    // Restore health and remove hospitalization
-    const newHealth = Math.min(maxHealth, health + 30);
-    const newAddiction = Math.max(0, addiction - 10);
-
-    console.log("🏥 DEBUG: Updating player stats - isHospitalized: false");
-    updatePlayerStats({
-      health: newHealth,
-      addiction: newAddiction,
-      isHospitalized: false,
-    });
-
-    setHealth(newHealth);
-    setAddiction(newAddiction);
-    setHospitalizationReason("");
-    setRecoveryTime(0); // Reset the timer
-
-    toast.success("🏥 You have recovered and been discharged from the hospital!", {
-      duration: 5000,
-    });
-  }, [maxHealth, health, addiction, updatePlayerStats]);
 
   const startCooldown = (treatment: string) => {
     setActiveTreatment(treatment);
@@ -373,7 +372,7 @@ const HospitalView = ({
     }
   };
 
-  // Tratamento de emergência para acelerar recuperação
+  // Emergency treatment to accelerate recovery
   const handleEmergencyTreatment = () => {
     const cost = 2000;
     if (money >= cost) {
@@ -391,15 +390,15 @@ const HospitalView = ({
 
       setHistory([
         {
-          type: "Tratamento de Emergência",
-          value: "-1 min recuperação",
+          type: "Emergency Treatment",
+          value: "-1 min recovery",
           date: "Agora",
         },
         ...history,
       ]);
 
       toast.success(
-        "🚑 Tratamento de emergência aplicado! Recuperação acelerada.",
+        "🚑 Emergency treatment applied! Recovery accelerated.",
         {
           duration: 4000,
         }
@@ -463,12 +462,12 @@ const HospitalView = ({
             {getHospitalizationDescription()}
           </p>
 
-          {/* Tempo de recuperação */}
+          {/* Recovery time */}
           <div className="mb-6 p-4 bg-red-500/20 border border-red-500/30 rounded-xl">
             <div className="flex items-center justify-center gap-2 mb-2">
               <Timer size={24} className="text-red-400" />
               <span className="text-red-400 font-bold text-lg">
-                Tempo de Recuperação: {formatTime(recoveryTime)}
+                Recovery Time: {formatTime(recoveryTime)}
               </span>
             </div>
             {activeTreatment && (
@@ -502,7 +501,7 @@ const HospitalView = ({
             </div>
           </div>
 
-          {/* Tratamentos disponíveis */}
+          {/* Available treatments */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
             <button
               onClick={() => handleTreatment("health")}
@@ -516,7 +515,7 @@ const HospitalView = ({
               <HeartPulse size={32} className="mb-2 text-green-400" />
               <span className="font-semibold">Heal Wounds</span>
               <span className="text-xs text-white/60">
-                (${healCost} | {cooldownTime} min | -2 min recuperação)
+                (${healCost} | {cooldownTime} min | -2 min recovery)
               </span>
             </button>
             <button
@@ -531,12 +530,12 @@ const HospitalView = ({
               <Pill size={32} className="mb-2 text-orange-400" />
               <span className="font-semibold">Detox Treatment</span>
               <span className="text-xs text-white/60">
-                (${detoxCost} | {detoxTime} min | -3 min recuperação)
+                (${detoxCost} | {detoxTime} min | -3 min recovery)
               </span>
             </button>
           </div>
 
-          {/* Tratamento de emergência */}
+          {/* Emergency treatment */}
           <div className="mb-4">
             <button
               onClick={handleEmergencyTreatment}
@@ -550,11 +549,11 @@ const HospitalView = ({
               <div className="flex items-center justify-center gap-2">
                 <AlertTriangle size={24} className="text-red-400" />
                 <span className="font-bold text-red-400">
-                  Tratamento de Emergência
+                  Emergency Treatment
                 </span>
               </div>
               <p className="text-sm text-white/60 mt-1">
-                Acelera recuperação em 1 minuto (${2000})
+                Accelerate recovery by 1 minute (${2000})
               </p>
             </button>
           </div>
@@ -733,7 +732,7 @@ const HospitalView = ({
                   </span>
                   <h3 className="font-bold text-white">Fazer Detox</h3>
                 </div>
-                <p className="text-sm text-white/70 mb-3">Reduz vício em 20%</p>
+                <p className="text-sm text-white/70 mb-3">Reduces addiction by 20%</p>
                 <div className="grid grid-cols-2 gap-2 text-sm">
                   <div className="flex items-center gap-1">
                     <DollarSign size={14} className="text-green-400" />

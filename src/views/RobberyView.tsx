@@ -101,7 +101,7 @@ const RobberyView = () => {
               </div>
             </div>,
             {
-              duration: 6000, // 6 seconds
+              duration: 3000, // 3 seconds
             }
           );
         } else {
@@ -124,7 +124,7 @@ const RobberyView = () => {
               </div>
             </div>,
             {
-              duration: 6000, // 6 seconds
+              duration: 3000, // 3 seconds
             }
           );
         }
