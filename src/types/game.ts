@@ -6,7 +6,10 @@ export interface PlayerStats {
   maxEnergy: number;
   addiction: number;
   reputation: number;
+  level: number;
   money: number;
+  bankBalance?: number;
+  lastInterestClaim?: string; // ISO date string for daily interest tracking
   wantedLevel: number;
   isImprisoned: boolean;
   isHospitalized: boolean;
@@ -195,6 +198,22 @@ export interface ApiResponse<T> {
 // Form Types
 export interface FormData {
   [key: string]: string | number | boolean;
+}
+
+// Level System Types
+export interface LevelReward {
+  type: "money" | "health" | "energy" | "unlock";
+  amount?: number;
+  description: string;
+}
+
+export interface Level {
+  level: number;
+  reputationRequired: number;
+  totalReputation: number;
+  title: string;
+  rewards: LevelReward[];
+  unlocks: string[]; // Feature unlocks like "nightlife", "casino", etc.
 }
 
 // Utility Types

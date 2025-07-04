@@ -359,31 +359,47 @@ export class SupabaseService {
     if (playerError) throw playerError;
     if (!player) throw new Error("Player not found");
 
-    // Get robbery data (using mock data for now) - Reduced rewards for better balance
+    // Mock robbery data with power requirements (matching useRobberies.ts)
     const mockRobberies = [
       {
-        id: "1", name: "Convenience Store", success_rate: 70, base_reward: 25, max_reward: 75,
+        id: "1", name: "Convenience Store", power_required: 10, base_reward: 25, max_reward: 75,
         energy_cost: 5, health_cost: 10, risk_level: 1
       },
       {
-        id: "2", name: "Bank", success_rate: 25, base_reward: 200, max_reward: 500,
-        energy_cost: 20, health_cost: 25, risk_level: 5
+        id: "2", name: "Gas Station", power_required: 25, base_reward: 40, max_reward: 100,
+        energy_cost: 8, health_cost: 12, risk_level: 1
       },
       {
-        id: "3", name: "Jewelry Store", success_rate: 50, base_reward: 75, max_reward: 200,
+        id: "3", name: "Jewelry Store", power_required: 50, base_reward: 75, max_reward: 200,
         energy_cost: 10, health_cost: 15, risk_level: 3
       },
       {
-        id: "4", name: "Warehouse", success_rate: 60, base_reward: 100, max_reward: 300,
+        id: "4", name: "ATM Heist", power_required: 80, base_reward: 120, max_reward: 300,
+        energy_cost: 12, health_cost: 18, risk_level: 2
+      },
+      {
+        id: "5", name: "Warehouse", power_required: 120, base_reward: 100, max_reward: 300,
         energy_cost: 15, health_cost: 20, risk_level: 2
       },
       {
-        id: "5", name: "Mansion", success_rate: 35, base_reward: 300, max_reward: 800,
+        id: "6", name: "Armored Truck", power_required: 200, base_reward: 250, max_reward: 600,
+        energy_cost: 20, health_cost: 25, risk_level: 4
+      },
+      {
+        id: "7", name: "Bank Branch", power_required: 350, base_reward: 400, max_reward: 1000,
+        energy_cost: 25, health_cost: 30, risk_level: 5
+      },
+      {
+        id: "8", name: "Mansion", power_required: 500, base_reward: 300, max_reward: 800,
         energy_cost: 25, health_cost: 30, risk_level: 4
       },
       {
-        id: "6", name: "Casino", success_rate: 15, base_reward: 500, max_reward: 1500,
+        id: "9", name: "Casino Vault", power_required: 750, base_reward: 600, max_reward: 2000,
         energy_cost: 35, health_cost: 40, risk_level: 6
+      },
+      {
+        id: "10", name: "Federal Reserve", power_required: 1200, base_reward: 1000, max_reward: 5000,
+        energy_cost: 50, health_cost: 50, risk_level: 8
       }
     ];
 
@@ -393,13 +409,13 @@ export class SupabaseService {
     // Check requirements - use direct properties from database schema
     const currentEnergy = player.energy || 0;
     const currentMoney = player.money || 0;
-    const currentExperience = player.experience || 0;
+    const currentReputation = player.reputation || 0;
     
     console.log("🎯 DEBUG: Player stats check:", {
       player,
       currentEnergy,
       currentMoney,
-      currentExperience,
+      currentReputation,
       energyRequired: robbery.energy_cost
     });
     
@@ -407,10 +423,50 @@ export class SupabaseService {
       throw new Error("Not enough energy");
     }
 
-    // Calculate success chance with equipment bonuses
-    const baseSuccessRate = robbery.success_rate;
-    const successBonus = equipmentBonuses?.success_boost || 0;
-    const finalSuccessRate = Math.min(95, baseSuccessRate + successBonus); // Cap at 95%
+    // Get robbery power requirement from mock data
+    const robberyData = mockRobberies.find(r => r.id === robberyId);
+    if (!robberyData) throw new Error("Robbery data not found");
+    
+    const crimeRequiredPower = robberyData.power_required;
+    
+    // Calculate player's total power using correct field names
+    const playerReputation = player.reputation || 0;
+    const playerLevel = player.level || 1;
+    const playerWantedLevel = player.wanted_level || 0;
+    const equipmentPower = equipmentBonuses?.success_boost || 0;
+    
+    // Player Power = Reputation + Level*10 + Equipment - Wanted*5
+    const playerTotalPower = playerReputation + (playerLevel * 10) + equipmentPower - (playerWantedLevel * 5);
+    
+    // Success percentage based on power comparison
+    let successChance;
+    if (playerTotalPower >= crimeRequiredPower) {
+      // Player is stronger than crime - high success chance (50-90%)
+      const powerRatio = playerTotalPower / crimeRequiredPower;
+      successChance = Math.min(90, 50 + (powerRatio - 1) * 40);
+    } else {
+      // Player is weaker than crime - low success chance (5-45%)
+      const powerRatio = playerTotalPower / crimeRequiredPower;
+      successChance = Math.max(5, powerRatio * 45);
+    }
+    
+    // Add random luck factor (±10%)
+    const luckFactor = (Math.random() - 0.5) * 20; // ±10% random
+    const finalSuccessRate = Math.min(95, Math.max(5, successChance + luckFactor));
+    
+    console.log("🎯 POWER FORMULA:", {
+      crimeRequiredPower,
+      playerPower: playerTotalPower,
+      breakdown: {
+        reputation: playerReputation,
+        level: playerLevel * 10,
+        equipment: equipmentPower,
+        wanted: -(playerWantedLevel * 5)
+      },
+      baseSuccess: successChance.toFixed(1),
+      luck: luckFactor.toFixed(1),
+      finalSuccess: finalSuccessRate.toFixed(1)
+    });
 
     // Calculate if robbery succeeds
     const success = Math.random() * 100 < finalSuccessRate;
@@ -418,20 +474,20 @@ export class SupabaseService {
     // Calculate energy costs and rewards
     const energy_spent = robbery.energy_cost;
     
-    // Calculate rewards and experience gained
+    // Calculate rewards and reputation gained
     let reward = 0;
-    let experience_gained = 0;
+    let reputation_gained = 0;
 
     if (success) {
       reward = Math.floor(Math.random() * (robbery.max_reward - robbery.base_reward) + robbery.base_reward);
-      experience_gained = Math.floor(robbery.risk_level * 5); // 5 exp per risk level
+      reputation_gained = Math.floor(robbery.risk_level * 5); // 5 rep per risk level
     }
 
     // Calculate new stats (only update fields that exist in database)
     const newStats = {
       energy: Math.max(0, currentEnergy - energy_spent),
       money: currentMoney + reward,
-      experience: currentExperience + experience_gained
+      reputation: currentReputation + reputation_gained
     };
 
     console.log("🎯 DEBUG: New stats calculated:", newStats);
@@ -440,7 +496,7 @@ export class SupabaseService {
     const updateData = {
       money: newStats.money,
       energy: newStats.energy,
-      experience: newStats.experience
+      reputation: newStats.reputation
     };
 
     console.log("🎯 DEBUG: Update data:", updateData);
@@ -457,12 +513,12 @@ export class SupabaseService {
       reward,
       energy_spent,
       health_spent: 0, // No health system in current database
-      reputation_gained: experience_gained, // Use experience as reputation for now
+      reputation_gained,
       wanted_increase: 0, // No wanted system in current database
       newStats: {
         energy: newStats.energy,
         health: 100, // Fixed value since no health in DB
-        reputation: newStats.experience, // Use experience as reputation
+        reputation: newStats.reputation,
         wantedLevel: 0, // Fixed value since no wanted in DB
         money: newStats.money
       },
@@ -490,8 +546,11 @@ export class SupabaseService {
       energy: data.energy || 100,
       maxEnergy: data.max_energy || 100,
       addiction: 0, // Default até adicionar ao schema
-      reputation: 0, // Default até adicionar ao schema
+      reputation: data.reputation || 0,
+      level: data.level || 1,
       money: data.money || 1000,
+      bankBalance: data.bank_balance || 0,
+      lastInterestClaim: data.last_interest_claim,
       wantedLevel: 0, // Default até adicionar ao schema
       isImprisoned: false, // Default até adicionar ao schema
       isHospitalized: false, // Default até adicionar ao schema

@@ -143,6 +143,7 @@ function AppContent() {
         energy={player.stats.energy}
         maxEnergy={player.stats.maxEnergy}
         reputation={player.stats.reputation}
+        level={player.stats.level || 1}
         addiction={player.stats.addiction}
         wantedLevel={player.stats.wantedLevel}
         money={player.stats.money}

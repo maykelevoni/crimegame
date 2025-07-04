@@ -30,6 +30,7 @@ import {
 } from "lucide-react";
 import { useGame } from "../useGameContext";
 import { usePlayer } from "../../hooks/usePlayer";
+import { useGameStore } from "../../stores/gameStore";
 import TopStatusBar from "./TopStatusBar";
 
 interface GameLayoutProps {
@@ -44,7 +45,20 @@ const GameLayout = ({
   onViewChange,
 }: GameLayoutProps) => {
   const { currentPlayerId } = useGame();
-  const { data: player, isLoading } = usePlayer(currentPlayerId);
+  const { data: supabasePlayer, isLoading } = usePlayer(currentPlayerId);
+  const { player } = useGameStore(); // Get player from game store which has proper level calculation
+  
+  // Force level calculation based on current reputation
+  const calculatedLevel = player?.stats?.reputation ? 
+    require("../../utils/levelSystem").calculateLevelFromReputation(player.stats.reputation) : 1;
+  
+  // DEBUG: Log everything
+  console.log("=== GAMELAYOUT DEBUG ===");
+  console.log("player:", player);
+  console.log("player.stats:", player?.stats);
+  console.log("player.stats.reputation:", player?.stats?.reputation);
+  console.log("player.stats.level:", player?.stats?.level);
+  console.log("calculatedLevel:", calculatedLevel);
 
   const navItems = [
     { id: "home", label: "HOME", icon: Home },
@@ -74,13 +88,14 @@ const GameLayout = ({
     { id: "profile", label: "PROFILE", icon: User },
   ];
 
-  if (isLoading || !player) {
+  if (isLoading || !player || !player.id) {
     return (
       <div className="min-h-screen bg-cyber-dark text-white flex items-center justify-center">
         <div className="text-cyber-blue">Loading...</div>
       </div>
     );
   }
+
 
   return (
     <div className="bg-cyber-dark text-white flex flex-col">
@@ -93,6 +108,7 @@ const GameLayout = ({
         maxEnergy={player.stats.maxEnergy}
         addiction={player.stats.addiction}
         reputation={player.stats.reputation}
+        level={calculatedLevel}
         money={player.stats.money}
         wantedLevel={player.stats.wantedLevel}
       />

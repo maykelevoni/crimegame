@@ -18,6 +18,7 @@ interface TopStatusBarProps {
   maxEnergy: number;
   addiction: number;
   reputation: number;
+  level: number;
   money: number;
   wantedLevel: number;
 }
@@ -31,9 +32,16 @@ const TopStatusBar: React.FC<TopStatusBarProps> = ({
   maxEnergy,
   addiction,
   reputation,
+  level,
   money,
   wantedLevel,
 }) => {
+  // DEBUG: Log what TopStatusBar receives
+  console.log("=== TOPSTATUSBAR DEBUG ===");
+  console.log("level prop received:", level);
+  console.log("reputation prop received:", reputation);
+  console.log("money prop received:", money);
+  
   const status = [
     {
       icon: <Heart size={18} color="#FF4D4F" />,
@@ -51,19 +59,14 @@ const TopStatusBar: React.FC<TopStatusBarProps> = ({
       value: `${addiction}%`,
     },
     {
-      icon: <Star size={18} color="#9945ff" />,
-      label: "Reputation",
-      value: `${reputation}`,
-    },
-    {
-      icon: <DollarSign size={18} color="#30E3DF" />,
-      label: "Money",
-      value: `$${money.toLocaleString()}`,
-    },
-    {
       icon: <AlertTriangle size={18} color="#FF8800" />,
       label: "Wanted",
       value: `${wantedLevel}`,
+    },
+    {
+      icon: <Star size={18} color="#9945ff" />,
+      label: "Level",
+      value: `${level}`,
     },
   ];
 
@@ -76,7 +79,7 @@ const TopStatusBar: React.FC<TopStatusBarProps> = ({
         </h1>
       </div>
 
-      {/* Player Info and Status Section */}
+      {/* Player Info Section */}
       <div className="max-w-4xl mx-auto px-4 py-3">
         <div className="flex items-center justify-between">
           {/* Player Info - Left Side */}
@@ -97,48 +100,43 @@ const TopStatusBar: React.FC<TopStatusBarProps> = ({
             </span>
           </div>
 
-          {/* Status - Right Side */}
-          <div className="flex flex-col gap-2">
-            {/* First Row of Status */}
-            <div className="flex gap-2">
-              {status.slice(0, 3).map((s, i) => (
-                <div
-                  key={i}
-                  className="flex items-center gap-1 px-3 py-1.5 rounded cyber-border bg-cyber-dark-lighter/80 min-w-[80px]"
-                >
-                  {s.icon}
-                  <div className="flex flex-col">
-                    <span className="text-xs text-cyber-blue font-bold">
-                      {s.label}
-                    </span>
-                    <span className="text-sm text-white font-mono">
-                      {s.value}
-                    </span>
-                  </div>
-                </div>
-              ))}
+          {/* Reputation, Level and Money - Right Side */}
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-1">
+              <Star size={18} color="#8B5CF6" />
+              <span className="text-purple-400 font-bold">{reputation} Rep</span>
             </div>
-
-            {/* Second Row of Status */}
-            <div className="flex gap-2">
-              {status.slice(3).map((s, i) => (
-                <div
-                  key={i}
-                  className="flex items-center gap-1 px-3 py-1.5 rounded cyber-border bg-cyber-dark-lighter/80 min-w-[80px]"
-                >
-                  {s.icon}
-                  <div className="flex flex-col">
-                    <span className="text-xs text-cyber-blue font-bold">
-                      {s.label}
-                    </span>
-                    <span className="text-sm text-white font-mono">
-                      {s.value}
-                    </span>
-                  </div>
-                </div>
-              ))}
+            <div className="flex items-center gap-1">
+              <Star size={18} color="#9945ff" />
+              <span className="text-purple-400 font-bold">Level {level || "ERROR"}</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <DollarSign size={18} color="#30E3DF" />
+              <span className="text-cyan-400 font-bold">${money.toLocaleString()}</span>
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* Health Bars Section */}
+      <div className="max-w-4xl mx-auto px-4 pb-3">
+        <div className="flex justify-center gap-2">
+          {status.map((s, i) => (
+            <div
+              key={i}
+              className="flex items-center gap-1 px-2 py-1.5 rounded cyber-border bg-cyber-dark-lighter/80 min-w-[70px]"
+            >
+              {s.icon}
+              <div className="flex flex-col">
+                <span className="text-xs text-cyber-blue font-bold">
+                  {s.label}
+                </span>
+                <span className="text-sm text-white font-mono">
+                  {s.value}
+                </span>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     </header>

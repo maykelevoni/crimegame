@@ -9,6 +9,7 @@ import {
   Crosshair,
   Skull,
   TrendingUp,
+  Lock,
 } from "lucide-react";
 import {
   useRobberies,
@@ -201,10 +202,12 @@ const RobberyView = () => {
           {robberies.map((robbery) => {
             const difficultyColor = getDifficultyColor(robbery.risk_level);
             const difficultyText = getDifficultyText(robbery.risk_level);
-            const canExecute =
-              player &&
-              player.stats.reputation >= robbery.min_level &&
-              player.stats.energy >= robbery.energy_cost;
+            // Use the base success rate from robbery data
+            const successChance = robbery.success_rate;
+            
+            const hasRequiredLevel = player && player.stats.level >= robbery.min_level;
+            const hasRequiredEnergy = player && player.stats.energy >= robbery.energy_cost;
+            const canExecute = hasRequiredLevel && hasRequiredEnergy;
 
             return (
               <div
@@ -215,14 +218,23 @@ const RobberyView = () => {
                 )}/30 ${difficultyColor.replace(
                   "bg-",
                   "bg-"
-                )}/10 cursor-pointer hover:scale-[1.02] transition-transform ${
-                  !canExecute ? "opacity-50 cursor-not-allowed" : ""
+                )}/10 transition-transform ${
+                  !hasRequiredLevel 
+                    ? "opacity-40 cursor-not-allowed grayscale" 
+                    : !canExecute 
+                      ? "opacity-70 cursor-not-allowed" 
+                      : "cursor-pointer hover:scale-[1.02]"
                 }`}
                 onClick={() => canExecute && handleStart(robbery)}
               >
                 <div className="flex items-start gap-4">
-                  <div className="w-16 h-16 rounded-lg bg-gradient-to-br from-red-500/20 to-red-600/20 border border-red-500/30 flex items-center justify-center">
+                  <div className="w-16 h-16 rounded-lg bg-gradient-to-br from-red-500/20 to-red-600/20 border border-red-500/30 flex items-center justify-center relative">
                     <Crosshair size={24} className="text-red-400" />
+                    {!hasRequiredLevel && (
+                      <div className="absolute inset-0 bg-black/50 rounded-lg flex items-center justify-center">
+                        <Lock size={20} className="text-gray-300" />
+                      </div>
+                    )}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-2">
@@ -234,13 +246,6 @@ const RobberyView = () => {
                       <h3 className="font-bold text-white truncate">
                         {robbery.name}
                       </h3>
-                      <span
-                        className={`text-xs font-bold ${getRiskColor(
-                          robbery.risk_level * 10
-                        )} flex-shrink-0`}
-                      >
-                        ⚠️ {robbery.risk_level * 10}%
-                      </span>
                     </div>
                     <p className="text-sm text-white/70 mb-3 line-clamp-2">
                       {robbery.description}
@@ -262,33 +267,30 @@ const RobberyView = () => {
                       <div className="flex items-center gap-1">
                         <Star size={14} className="text-blue-400" />
                         <span className="text-blue-400">
-                          Reputation {robbery.min_level}+
+                          Level {robbery.min_level}+
                         </span>
                       </div>
                       <div className="flex items-center gap-1">
-                        <AlertTriangle size={14} className="text-red-400" />
-                        <span className="text-red-400">
-                          {robbery.success_rate}% Success
+                        <AlertTriangle size={14} className={successChance >= 70 ? "text-green-400" : successChance >= 40 ? "text-yellow-400" : "text-red-400"} />
+                        <span className={successChance >= 70 ? "text-green-400" : successChance >= 40 ? "text-yellow-400" : "text-red-400"}>
+                          {successChance}% Success
                         </span>
                       </div>
                     </div>
                     {!canExecute && (
-                      <div className="mt-2 text-xs text-red-400">
-                        {player &&
-                          player.stats.reputation < robbery.min_level && (
-                            <div>
-                              ❌ Requires reputation {robbery.min_level} (you
-                              have {player.stats.reputation})
-                            </div>
-                          )}
-                        {player &&
-                          player.stats.energy < robbery.energy_cost && (
-                            <div>
-                              ❌ Not enough energy: {robbery.energy_cost} needed
-                              (you have {player.stats.energy})
-                            </div>
-                          )}
-                        {!player && <div>❌ Player not loaded</div>}
+                      <div className="mt-2 text-xs">
+                        {!hasRequiredLevel && player && (
+                          <div className="text-yellow-400">
+                            🔒 Unlocks at level {robbery.min_level} (you are level {player.stats.level})
+                          </div>
+                        )}
+                        {hasRequiredLevel && !hasRequiredEnergy && player && (
+                          <div className="text-red-400">
+                            ❌ Not enough energy: {robbery.energy_cost} needed
+                            (you have {player.stats.energy})
+                          </div>
+                        )}
+                        {!player && <div className="text-red-400">❌ Player not loaded</div>}
                       </div>
                     )}
                   </div>

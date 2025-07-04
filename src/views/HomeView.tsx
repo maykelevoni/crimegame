@@ -210,6 +210,7 @@ const HomeView = ({ onViewChange }: HomeViewProps) => {
     <>
       {/* Conteúdo principal */}
       <div className="space-y-3 mt-0 pt-0 overflow-x-hidden pb-16">
+        
         {/* Daily Reward */}
         <div
           className="daily-reward-box flex flex-col justify-center items-center"

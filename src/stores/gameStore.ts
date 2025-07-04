@@ -12,6 +12,12 @@ import type {
   TreatmentHistory,
   GameState,
 } from "@/types/game";
+import { 
+  calculateLevelFromReputation, 
+  getLevelInfo, 
+  getReputationToNextLevel 
+} from "@/utils/levelSystem";
+import { toast } from "sonner";
 
 // Estado inicial do player (valores padrão até carregar do banco)
 const initialPlayerStats: PlayerStats = {
@@ -21,7 +27,10 @@ const initialPlayerStats: PlayerStats = {
   maxEnergy: 100,
   addiction: 0,
   reputation: 0,
+  level: 1,
   money: 1000,
+  bankBalance: 0,
+  lastInterestClaim: undefined,
   wantedLevel: 0,
   isImprisoned: false,
   isHospitalized: false,
@@ -56,6 +65,15 @@ interface GameStore extends GameState {
   updatePlayerMoney: (amount: number) => void;
   setPlayerImprisoned: (imprisoned: boolean) => void;
   setPlayerHospitalized: (hospitalized: boolean) => void;
+
+  // Bank Actions
+  depositMoney: (amount: number) => void;
+  withdrawMoney: (amount: number) => void;
+  addInterest: () => void;
+
+  // Level Actions
+  addReputation: (amount: number) => void;
+  checkLevelUp: () => void;
 
   // Actions de Inventário
   addItemToInventory: (item: Item) => void;
@@ -250,6 +268,184 @@ export const useGameStore = create<GameStore>()(
 
         if (get().userId && get().isOnline) {
           get().syncGameState();
+        }
+      },
+
+      // Bank Actions
+      depositMoney: (amount) => {
+        set((state) => {
+          const cashMoney = state.player.stats.money;
+          const actualDeposit = Math.min(amount, cashMoney);
+          
+          if (actualDeposit <= 0) return state;
+          
+          const currentBankBalance = state.player.stats.bankBalance || 0;
+          const isFirstDeposit = currentBankBalance === 0;
+          
+          return {
+            player: {
+              ...state.player,
+              stats: {
+                ...state.player.stats,
+                money: cashMoney - actualDeposit,
+                bankBalance: currentBankBalance + actualDeposit,
+                // Set deposit timestamp on first deposit to start 24h timer
+                lastInterestClaim: isFirstDeposit ? new Date().toISOString() : state.player.stats.lastInterestClaim,
+              },
+              updatedAt: new Date(),
+            },
+          };
+        });
+
+        if (get().userId && get().isOnline) {
+          get().syncGameState();
+        }
+      },
+
+      withdrawMoney: (amount) => {
+        set((state) => {
+          const bankBalance = state.player.stats.bankBalance || 0;
+          const actualWithdraw = Math.min(amount, bankBalance);
+          
+          if (actualWithdraw <= 0) return state;
+          
+          return {
+            player: {
+              ...state.player,
+              stats: {
+                ...state.player.stats,
+                money: state.player.stats.money + actualWithdraw,
+                bankBalance: bankBalance - actualWithdraw,
+              },
+              updatedAt: new Date(),
+            },
+          };
+        });
+
+        if (get().userId && get().isOnline) {
+          get().syncGameState();
+        }
+      },
+
+      addInterest: () => {
+        set((state) => {
+          const bankBalance = state.player.stats.bankBalance || 0;
+          const interestRate = 0.05; // 5% daily interest
+          const interest = Math.floor(bankBalance * interestRate);
+          
+          if (interest <= 0) return state;
+          
+          // Check if 24 hours have passed since last claim or deposit
+          const lastClaim = state.player.stats.lastInterestClaim;
+          const now = new Date();
+          
+          if (lastClaim) {
+            const lastClaimTime = new Date(lastClaim);
+            const timeDiff = now.getTime() - lastClaimTime.getTime();
+            const hoursDiff = timeDiff / (1000 * 60 * 60);
+            
+            if (hoursDiff < 24) {
+              // Not enough time has passed (less than 24 hours)
+              return state;
+            }
+          }
+          
+          return {
+            player: {
+              ...state.player,
+              stats: {
+                ...state.player.stats,
+                bankBalance: bankBalance + interest,
+                lastInterestClaim: now.toISOString(),
+              },
+              updatedAt: new Date(),
+            },
+          };
+        });
+
+        if (get().userId && get().isOnline) {
+          get().syncGameState();
+        }
+      },
+
+      // Level Actions
+      addReputation: (amount) => {
+        set((state) => {
+          const currentRep = state.player.stats.reputation;
+          const newTotalRep = currentRep + amount;
+          const newLevel = calculateLevelFromReputation(newTotalRep);
+          const oldLevel = state.player.stats.level;
+
+          let updatedStats = {
+            ...state.player.stats,
+            reputation: newTotalRep,
+            level: newLevel,
+          };
+
+          // Check for level up and apply rewards
+          if (newLevel > oldLevel) {
+            for (let level = oldLevel + 1; level <= newLevel; level++) {
+              const levelInfo = getLevelInfo(level);
+              if (levelInfo) {
+                // Show level up notification
+                const rewardText = levelInfo.rewards.map(r => r.description).join(", ");
+                toast.success(
+                  `🎉 Level Up! Level ${level}: ${levelInfo.title}${rewardText ? `\n💰 ${rewardText}` : ''}`,
+                  { duration: 4000 }
+                );
+
+                // Apply level rewards
+                levelInfo.rewards.forEach(reward => {
+                  switch (reward.type) {
+                    case "money":
+                      updatedStats.money += reward.amount || 0;
+                      break;
+                    case "health":
+                      updatedStats.maxHealth += reward.amount || 0;
+                      updatedStats.health = Math.min(updatedStats.health + (reward.amount || 0), updatedStats.maxHealth);
+                      break;
+                    case "energy":
+                      updatedStats.maxEnergy += reward.amount || 0;
+                      updatedStats.energy = Math.min(updatedStats.energy + (reward.amount || 0), updatedStats.maxEnergy);
+                      break;
+                  }
+                });
+              }
+            }
+          }
+
+          return {
+            player: {
+              ...state.player,
+              stats: updatedStats,
+              updatedAt: new Date(),
+            },
+          };
+        });
+
+        if (get().userId && get().isOnline) {
+          get().syncGameState();
+        }
+      },
+
+      checkLevelUp: () => {
+        const state = get();
+        const currentRep = state.player.stats.reputation;
+        const currentLevel = state.player.stats.level;
+        const calculatedLevel = calculateLevelFromReputation(currentRep);
+        
+        if (calculatedLevel > currentLevel) {
+          // Trigger level up logic
+          set((prevState) => ({
+            player: {
+              ...prevState.player,
+              stats: {
+                ...prevState.player.stats,
+                level: calculatedLevel,
+              },
+              updatedAt: new Date(),
+            },
+          }));
         }
       },
 
@@ -534,7 +730,10 @@ export const useGameStore = create<GameStore>()(
                   maxEnergy: player.stats.maxEnergy,
                   addiction: player.stats.addiction,
                   reputation: player.stats.reputation,
+                  level: calculateLevelFromReputation(player.stats.reputation || 0),
                   money: player.stats.money,
+                  bankBalance: player.stats.bankBalance || 0,
+                  lastInterestClaim: player.stats.lastInterestClaim,
                   wantedLevel: player.stats.wantedLevel,
                   isImprisoned: player.stats.isImprisoned,
                   isHospitalized: player.stats.isHospitalized,
@@ -759,7 +958,10 @@ export const useGameStore = create<GameStore>()(
                   maxEnergy: player.stats.maxEnergy,
                   addiction: player.stats.addiction,
                   reputation: player.stats.reputation,
+                  level: calculateLevelFromReputation(player.stats.reputation || 0),
                   money: player.stats.money,
+                  bankBalance: player.stats.bankBalance || 0,
+                  lastInterestClaim: player.stats.lastInterestClaim,
                   wantedLevel: player.stats.wantedLevel,
                   isImprisoned: player.stats.isImprisoned,
                   isHospitalized: player.stats.isHospitalized,

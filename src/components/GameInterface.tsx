@@ -23,7 +23,7 @@ import {
   DollarSign,
   Siren,
   X,
-  Package,
+  Archive,
 } from "lucide-react";
 import HomeView from "../views/HomeView";
 import RobberyView from "../views/RobberyView";
@@ -158,8 +158,9 @@ export function GameInterface() {
     { id: "home", icon: Home, label: "Home" },
     { id: "robbery", icon: LocateFixed, label: "Robbery" },
     { id: "shop", icon: ShoppingBag, label: "Shop" },
+    { id: "nightlife", icon: Wine, label: "Nightlife" },
     { id: "business", icon: Building2, label: "Business" },
-    { id: "character", icon: Package, label: "Inventory" },
+    { id: "character", icon: Archive, label: "Inventory" },
   ];
 
   const handleViewChange = (view: string) => {
@@ -328,6 +329,7 @@ export function GameInterface() {
       case "business":
         return <BusinessView />;
       default:
+        console.log("🏠 DEBUG: Rendering main actions:", mainActions.map(a => a.label));
         return (
           <div className={`flex flex-col gap-3 ${isMobile ? "px-2" : "px-4"}`}>
             {mainActions.map((action) => {

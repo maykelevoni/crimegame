@@ -118,7 +118,7 @@ const InventoryView = () => {
   const categories = [
     { id: "all", name: "All Items", icon: Package },
     { id: "weapon", name: "Weapons", icon: Target },
-    { id: "vehicle", name: "Vehicles", icon: TrendingUp },
+    { id: "vehicle", name: "Cars", icon: TrendingUp },
     { id: "protection", name: "Protection", icon: Shield },
     { id: "consumable", name: "Consumables", icon: Zap },
   ];

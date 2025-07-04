@@ -15,6 +15,7 @@ import {
   Briefcase,
   User,
   TrendingUp,
+  Car,
   Zap,
   Heart,
 } from "lucide-react";
@@ -56,7 +57,7 @@ const FILTER_OPTIONS = [
   { key: "all", label: "All Items", icon: <Backpack /> },
   { key: "weapon", label: "Weapons", icon: <Sword /> },
   { key: "protection", label: "Protection", icon: <Shield /> },
-  { key: "vehicle", label: "Vehicles", icon: <TrendingUp /> },
+  { key: "vehicle", label: "Cars", icon: <Car /> },
   { key: "consumable", label: "Consumables", icon: <Pill /> },
 ];
 
@@ -363,8 +364,8 @@ export default function InventoryView() {
           </div>
           <div className="p-4 bg-purple-500/10 border border-purple-500/30 rounded-xl">
             <div className="flex items-center gap-2 mb-2">
-              <TrendingUp size={16} className="text-purple-400" />
-              <span className="text-sm text-white/60">Vehicle:</span>
+              <Car size={16} className="text-purple-400" />
+              <span className="text-sm text-white/60">Car:</span>
             </div>
             {equipped.style ? (
               <div className="flex items-center gap-2">

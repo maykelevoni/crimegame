@@ -18,6 +18,7 @@ interface GameStatusBarProps {
   energy: number;
   maxEnergy: number;
   reputation: number;
+  level: number;
   addiction: number;
   wantedLevel: number;
   money: number;
@@ -32,6 +33,7 @@ const GameStatusBar: React.FC<GameStatusBarProps> = ({
   energy,
   maxEnergy,
   reputation,
+  level,
   addiction,
   wantedLevel,
   money,
@@ -44,27 +46,74 @@ const GameStatusBar: React.FC<GameStatusBarProps> = ({
   if (isMobile) {
     return (
       <div className="bg-cyber-dark/95 border-b border-cyber-blue/20 p-2">
-        {/* Header com avatar e nome */}
-        <div className="flex items-center justify-between mb-2">
-          <div className="flex items-center gap-2">
-            <img
-              src={avatarUrl}
-              alt={playerName}
-              className="w-8 h-8 rounded-full border-2 border-cyber-blue/50"
-            />
-            <div>
-              <h3 className="text-sm font-bold text-white">{playerName}</h3>
-              <p className="text-sm text-purple-400">Reputation {reputation}</p>
+        {/* Player Info */}
+        <div className="flex items-start gap-3 mb-2">
+          <img
+            src={avatarUrl}
+            alt={playerName}
+            className="w-12 h-12 rounded-full border-2 border-cyber-blue/50"
+          />
+          <div className="flex-1">
+            <h3 className="text-white font-bold text-lg">{playerName} - Level {level}</h3>
+            
+            {/* Health Bar with Progress */}
+            <div className="flex items-center gap-2 mb-1">
+              <HeartPulse size={16} className="text-red-400" />
+              <div className="w-1/2 bg-gray-700 rounded-full h-2">
+                <div 
+                  className="bg-red-400 h-2 rounded-full transition-all duration-300" 
+                  style={{width: `${(health / maxHealth) * 100}%`}}
+                />
+              </div>
+              <span className="text-red-400 font-medium text-sm min-w-[50px]">{health}/{maxHealth}</span>
+              <span className="text-green-400 font-bold text-sm min-w-[80px]">${(money / 1000000).toFixed(1)}M</span>
+            </div>
+            
+            {/* Energy Bar with Progress */}
+            <div className="flex items-center gap-2">
+              <Zap size={16} className="text-yellow-400" />
+              <div className="w-1/2 bg-gray-700 rounded-full h-2">
+                <div 
+                  className="bg-yellow-400 h-2 rounded-full transition-all duration-300" 
+                  style={{width: `${(energy / maxEnergy) * 100}%`}}
+                />
+              </div>
+              <span className="text-yellow-400 font-medium text-sm min-w-[50px]">{energy}/{maxEnergy}</span>
+              <span className="text-purple-400 font-bold text-sm min-w-[80px]">{reputation} Rep</span>
             </div>
           </div>
+        </div>
+        
+        {/* Additional Bars */}
+        <div className="space-y-1">
+          {/* Addiction Bar */}
           <div className="flex items-center gap-2">
-            <div className="text-right">
-              <p className="text-sm font-bold text-green-400">
-                ${money.toLocaleString()}
-              </p>
-              <p className="text-xs text-green-400">Money</p>
+            <Pill size={14} className="text-cyan-400" />
+            <div className="flex-1 bg-gray-700 rounded-full h-1.5">
+              <div 
+                className="bg-cyan-400 h-1.5 rounded-full transition-all duration-300" 
+                style={{width: `${addiction}%`}}
+              />
             </div>
-            {onLogout && (
+            <span className="text-cyan-400 text-xs min-w-[30px]">{addiction}%</span>
+          </div>
+          
+          {/* Wanted Bar */}
+          <div className="flex items-center gap-2">
+            <Siren size={14} className="text-orange-400" />
+            <div className="flex-1 bg-gray-700 rounded-full h-1.5">
+              <div 
+                className="bg-orange-400 h-1.5 rounded-full transition-all duration-300" 
+                style={{width: `${Math.min(wantedLevel * 10, 100)}%`}}
+              />
+            </div>
+            <span className="text-orange-400 text-xs min-w-[30px]">{wantedLevel}</span>
+          </div>
+        </div>
+        
+        {/* Logout Button */}
+        <div className="flex justify-center pt-2">
+          {onLogout && (
               <button
                 onClick={onLogout}
                 className="p-1 text-red-400 hover:text-red-300 transition-colors"
@@ -85,9 +134,14 @@ const GameStatusBar: React.FC<GameStatusBarProps> = ({
                 </svg>
               </button>
             )}
-          </div>
         </div>
+      </div>
+    );
+  }
 
+  if (isTablet) {
+    return (
+      <div className="bg-cyber-dark/95 border-b border-cyber-blue/20 p-3">
         {/* Stats em grid 2x2 */}
         <div className="grid grid-cols-2 gap-2">
           <div className="bg-black/20 rounded p-2">
@@ -150,97 +204,6 @@ const GameStatusBar: React.FC<GameStatusBarProps> = ({
     );
   }
 
-  if (isTablet) {
-    return (
-      <div className="bg-cyber-dark/95 border-b border-cyber-blue/20 p-3">
-        <div className="flex items-center justify-between">
-          {/* Player Info */}
-          <div className="flex items-center gap-3">
-            <img
-              src={avatarUrl}
-              alt={playerName}
-              className="w-10 h-10 rounded-full border-2 border-cyber-blue/50"
-            />
-            <div>
-              <h3 className="font-bold text-white">{playerName}</h3>
-              <p className="text-sm text-purple-400">Reputation {reputation}</p>
-            </div>
-          </div>
-
-          {/* Stats em 3 colunas */}
-          <div className="grid grid-cols-3 gap-4">
-            <div className="text-center">
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-sm text-red-400">Health</span>
-                <span className="text-sm text-white">
-                  {health}/{maxHealth}
-                </span>
-              </div>
-              <ProgressBar
-                current={health}
-                max={maxHealth}
-                color="red"
-                showText={false}
-              />
-            </div>
-
-            <div className="text-center">
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-sm text-blue-400">Energy</span>
-                <span className="text-sm text-white">
-                  {energy}/{maxEnergy}
-                </span>
-              </div>
-              <ProgressBar
-                current={energy}
-                max={maxEnergy}
-                color="blue"
-                showText={false}
-              />
-            </div>
-
-            <div className="text-center">
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-sm text-green-400">Money</span>
-                <span className="text-sm text-white">
-                  ${money.toLocaleString()}
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* Additional Stats */}
-          <div className="grid grid-cols-2 gap-3">
-            <div className="text-center">
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-sm text-orange-400">Addiction</span>
-                <span className="text-sm text-white">{addiction}%</span>
-              </div>
-              <ProgressBar
-                current={addiction}
-                max={100}
-                color="orange"
-                showText={false}
-              />
-            </div>
-
-            <div className="text-center">
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-sm text-yellow-400">Wanted</span>
-                <span className="text-sm text-white">{wantedLevel}%</span>
-              </div>
-              <ProgressBar
-                current={wantedLevel}
-                max={100}
-                color="yellow"
-                showText={false}
-              />
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   // Desktop layout original
   return (
@@ -254,7 +217,7 @@ const GameStatusBar: React.FC<GameStatusBarProps> = ({
             className="w-12 h-12 rounded-full border-2 border-cyber-blue/50"
           />
           <div>
-            <h3 className="font-bold text-white text-lg">{playerName}</h3>
+            <h3 className="font-bold text-white text-lg">{playerName} - Level {level}</h3>
             <p className="text-purple-400">Reputation {reputation}</p>
           </div>
         </div>
