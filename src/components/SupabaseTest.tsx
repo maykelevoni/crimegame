@@ -30,7 +30,6 @@ export const SupabaseTest: React.FC = () => {
         },
       });
     } catch (error) {
-      console.error("Error updating money:", error);
     }
   };
 
@@ -42,7 +41,6 @@ export const SupabaseTest: React.FC = () => {
       const weapon = shopWeapons[0]; // Add first weapon
       await addWeaponToInventory(weapon.id, 1);
     } catch (error) {
-      console.error("Error adding weapon:", error);
     } finally {
       setLoading(false);
     }
@@ -54,7 +52,6 @@ export const SupabaseTest: React.FC = () => {
       const weapons = await getShopWeapons();
       setShopWeapons(weapons);
     } catch (error) {
-      console.error("Error loading shop weapons:", error);
     } finally {
       setLoading(false);
     }

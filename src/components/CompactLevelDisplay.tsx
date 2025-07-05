@@ -19,10 +19,6 @@ export const CompactLevelDisplay: React.FC = () => {
 
   const handleLevelClick = () => {
     // Debug level calculations
-    console.log("🎯 DEBUG: Current player reputation:", totalReputation);
-    console.log("🎯 DEBUG: Calculated level:", currentLevel);
-    console.log("🎯 DEBUG: Level info:", levelInfo);
-    console.log("🎯 DEBUG: Progress info:", progressInfo);
     
     toast.info(
       `Level ${currentLevel}: ${levelInfo.title}\nReputation: ${totalReputation.toLocaleString()}\nNext Level: ${progressInfo.reputationNeeded} rep needed`,

@@ -183,7 +183,6 @@ const ShopView = ({ onBack }: ShopViewProps) => {
         items,
       });
 
-      console.log("🎉 Purchase completed, showing notification...");
 
       toast.success(
         `Purchase completed! ${cart.length} items added to inventory`

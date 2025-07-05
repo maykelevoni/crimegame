@@ -20,7 +20,6 @@ function AppContent() {
   useEffect(() => {
     const hasCleared = localStorage.getItem("urban-hustle-data-cleared");
     if (!hasCleared) {
-      console.log("🧹 Clearing old localStorage data...");
       localStorage.removeItem("urban-hustle-game");
       localStorage.setItem("urban-hustle-data-cleared", "true");
     }
@@ -29,10 +28,8 @@ function AppContent() {
   // Synchronize userId when user changes
   useEffect(() => {
     if (user?.id && user.id !== userId) {
-      console.log("🔄 Synchronizing userId:", user.id);
       setUserId(user.id);
     } else if (!user && userId) {
-      console.log("🔄 Clearing userId");
       setUserId(null);
     }
   }, [user, userId, setUserId]);
@@ -41,7 +38,6 @@ function AppContent() {
     try {
       await signOut();
     } catch (error) {
-      console.error("Logout error:", error);
     }
   };
 

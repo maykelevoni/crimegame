@@ -173,7 +173,6 @@ export const useBuyItem = () => {
       // Em produção, isso seria uma transação no banco
       // Por enquanto, simulamos a compra
 
-      console.log("🛒 DEBUG: Starting purchase for player:", playerId, "item:", itemId);
 
       // 1. Check if player has enough money
       const { data: player, error: playerError } = await supabase
@@ -182,10 +181,8 @@ export const useBuyItem = () => {
         .eq("id", playerId)
         .single();
 
-      console.log("🛒 DEBUG: Player query result:", { player, playerError });
 
       if (playerError) {
-        console.error("🛒 DEBUG: Error fetching player:", playerError);
         throw playerError;
       }
 
@@ -198,14 +195,6 @@ export const useBuyItem = () => {
         (item.discount ? item.price * (1 - item.discount / 100) : item.price) *
         quantity;
 
-      console.log("🛒 DEBUG: Purchase details:", {
-        currentMoney: player.money,
-        itemPrice: item.price,
-        quantity,
-        totalCost,
-        canAfford: player.money >= totalCost
-      });
-
       if (player.money < totalCost) {
         throw new Error(
           `Not enough money! You have $${player.money.toLocaleString()} but need $${totalCost.toLocaleString()}`
@@ -214,7 +203,6 @@ export const useBuyItem = () => {
 
       // 3. Update player money
       const newMoney = player.money - totalCost;
-      console.log("🛒 DEBUG: Updating money from", player.money, "to", newMoney);
       
       const { data: updateData, error: updateError } = await supabase
         .from("players")
@@ -222,16 +210,13 @@ export const useBuyItem = () => {
         .eq("id", playerId)
         .select();
 
-      console.log("🛒 DEBUG: Money update result:", { updateData, updateError });
 
       if (updateError) {
-        console.error("🛒 DEBUG: Error updating money:", updateError);
         throw updateError;
       }
 
       // 4. For now, let's use a simple local storage approach for inventory
       // This will work immediately while we figure out the database schema
-      console.log("🛒 DEBUG: Adding item to local storage inventory");
       
       try {
         const localInventoryKey = `inventory_${playerId}`;
@@ -257,14 +242,11 @@ export const useBuyItem = () => {
         }
         
         localStorage.setItem(localInventoryKey, JSON.stringify(existingInventory));
-        console.log("🛒 DEBUG: Item added to local inventory:", existingInventory);
         
       } catch (error) {
-        console.error("🛒 DEBUG: Error with local storage:", error);
       }
 
       // 5. Update local game store to reflect new money amount
-      console.log("🛒 DEBUG: Updating local game store money to:", newMoney);
       updatePlayerMoney(-totalCost); // This will subtract the cost from current money
 
       return { success: true, item, cost: totalCost };
@@ -336,7 +318,6 @@ export const useBuyMultipleItems = () => {
       if (updateError) throw updateError;
 
       // 4. Add all items to local storage inventory
-      console.log("🛒 DEBUG: Adding bulk items to local storage inventory");
       
       try {
         const localInventoryKey = `inventory_${playerId}`;
@@ -364,14 +345,11 @@ export const useBuyMultipleItems = () => {
         }
         
         localStorage.setItem(localInventoryKey, JSON.stringify(existingInventory));
-        console.log("🛒 DEBUG: Bulk items added to local inventory:", existingInventory);
         
       } catch (error) {
-        console.error("🛒 DEBUG: Error with bulk local storage:", error);
       }
 
       // 5. Update local game store to reflect new money amount
-      console.log("🛒 DEBUG: Updating local game store money by:", -totalCost);
       updatePlayerMoney(-totalCost); // This will subtract the total cost from current money
 
       return { success: true, totalCost };

@@ -53,12 +53,6 @@ const GameLayout = ({
     require("../../utils/levelSystem").calculateLevelFromReputation(player.stats.reputation) : 1;
   
   // DEBUG: Log everything
-  console.log("=== GAMELAYOUT DEBUG ===");
-  console.log("player:", player);
-  console.log("player.stats:", player?.stats);
-  console.log("player.stats.reputation:", player?.stats?.reputation);
-  console.log("player.stats.level:", player?.stats?.level);
-  console.log("calculatedLevel:", calculatedLevel);
 
   const navItems = [
     { id: "home", label: "HOME", icon: Home },

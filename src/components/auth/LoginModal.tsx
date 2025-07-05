@@ -72,7 +72,6 @@ export const LoginModal: React.FC<LoginModalProps> = ({
         onClose();
       }
     } catch (error) {
-      console.error("Login error:", error);
     } finally {
       setIsLoading(false);
     }

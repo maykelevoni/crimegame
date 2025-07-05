@@ -171,9 +171,7 @@ const BusinessView = () => {
         try {
           const parsed = JSON.parse(savedBusinesses);
           setOwnedBusinesses(parsed);
-          console.log("📈 DEBUG: Loaded owned businesses:", parsed);
         } catch (error) {
-          console.error("Error loading owned businesses:", error);
         }
       }
     }
@@ -184,7 +182,6 @@ const BusinessView = () => {
     if (player?.id) {
       const businessKey = `owned_businesses_${player.id}`;
       localStorage.setItem(businessKey, JSON.stringify(businesses));
-      console.log("📈 DEBUG: Saved owned businesses:", businesses);
     }
   };
 

@@ -84,7 +84,6 @@ export const useAuth = () => {
           email = localEmail;
         } else {
           // Try database lookup as fallback
-          console.log("Looking up player name in database:", playerNameOrEmail);
           const dbEmail = await SupabaseService.getUserEmailByPlayerName(playerNameOrEmail);
           if (dbEmail && !dbEmail.startsWith('__LOOKUP_USER_ID__')) {
             email = dbEmail;

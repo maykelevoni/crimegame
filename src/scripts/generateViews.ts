@@ -63,7 +63,6 @@ const generateViews = () => {
 
     // Write the component file
     fs.writeFileSync(filePath, baseViewTemplate(name, title));
-    console.log(`Created ${filePath}`);
   });
 };
 

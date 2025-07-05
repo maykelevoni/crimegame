@@ -129,7 +129,6 @@ const CasinoView = () => {
   ];
 
   const handleGame = (game: CasinoGame) => {
-    console.log(`Iniciando jogo: ${game.name}`);
     // Aqui você pode implementar a lógica específica de cada jogo
   };
 

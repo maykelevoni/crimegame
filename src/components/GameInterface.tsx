@@ -245,13 +245,8 @@ export function GameInterface() {
   };
 
   const renderView = () => {
-    console.log("🏥 DEBUG: Checking hospitalization status...");
-    console.log("isImprisoned:", player?.stats?.isImprisoned);
-    console.log("isHospitalized:", player?.stats?.isHospitalized);
-    console.log("activeView:", activeView);
 
     if (player?.stats?.isImprisoned) {
-      console.log("🔒 DEBUG: Player is in prison");
       return (
         <PrisonView
           isPlayerImprisoned={true}
@@ -275,7 +270,6 @@ export function GameInterface() {
     }
 
     if (player?.stats?.isHospitalized) {
-      console.log("🏥 DEBUG: Player is hospitalized - showing HospitalView");
       return (
         <HospitalView
           isPlayerHospitalized={true}
@@ -287,7 +281,6 @@ export function GameInterface() {
       );
     }
 
-    console.log("🏠 DEBUG: Player is free - showing normal view:", activeView);
 
     switch (activeView) {
       case "home":
@@ -329,7 +322,6 @@ export function GameInterface() {
       case "business":
         return <BusinessView />;
       default:
-        console.log("🏠 DEBUG: Rendering main actions:", mainActions.map(a => a.label));
         return (
           <div className={`flex flex-col gap-3 ${isMobile ? "px-2" : "px-4"}`}>
             {mainActions.map((action) => {

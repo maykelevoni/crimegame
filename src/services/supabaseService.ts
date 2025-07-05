@@ -42,14 +42,12 @@ export class SupabaseService {
       });
 
       if (error) {
-        console.warn("RPC function not available, using fallback method:", error);
         // Fallback: Direct query approach (less secure but works without RPC)
         return await this.getUserEmailByPlayerNameFallback(playerName);
       }
 
       return data;
     } catch (error) {
-      console.warn("RPC function failed, using fallback method:", error);
       return await this.getUserEmailByPlayerNameFallback(playerName);
     }
   }
@@ -65,7 +63,6 @@ export class SupabaseService {
         .maybeSingle();
 
       if (playerError || !player) {
-        console.log("Player not found:", playerName);
         return null;
       }
 
@@ -73,7 +70,6 @@ export class SupabaseService {
       // The auth hook will need to handle this differently
       return `__LOOKUP_USER_ID__${player.user_id}`;
     } catch (error) {
-      console.error("Error in fallback player lookup:", error);
       return null;
     }
   }
@@ -89,7 +85,6 @@ export class SupabaseService {
       .single();
 
     if (error) {
-      console.error("Error creating player:", error);
       throw error;
     }
 
@@ -97,7 +92,6 @@ export class SupabaseService {
   }
 
   static async getPlayerByUserId(userId: string): Promise<Player | null> {
-    console.log("🔍 Searching for player with user_id:", userId);
 
     const { data, error } = await supabase
       .from("players")
@@ -106,27 +100,13 @@ export class SupabaseService {
       .single();
 
     if (error) {
-      console.error("❌ Error in Supabase query:", {
-        message: error.message,
-        code: error.code,
-        details: error.details,
-        hint: error.hint,
-      });
-
       if (error.code !== "PGRST116") {
         throw error;
       }
     }
 
-    console.log("📋 Dados brutos do Supabase:", data);
-    console.log(
-      "📋 Resultado da query:",
-      data ? "Player encontrado" : "Nenhum player encontrado"
-    );
-
     if (data) {
       const mappedPlayer = mapSupabasePlayerToGamePlayer(data);
-      console.log("📋 Player mapeado:", mappedPlayer);
       return mappedPlayer;
     }
 
@@ -411,14 +391,6 @@ export class SupabaseService {
     const currentMoney = player.money || 0;
     const currentReputation = player.reputation || 0;
     
-    console.log("🎯 DEBUG: Player stats check:", {
-      player,
-      currentEnergy,
-      currentMoney,
-      currentReputation,
-      energyRequired: robbery.energy_cost
-    });
-    
     if (currentEnergy < robbery.energy_cost) {
       throw new Error("Not enough energy");
     }
@@ -453,20 +425,6 @@ export class SupabaseService {
     // Add random luck factor (±10%)
     const luckFactor = (Math.random() - 0.5) * 20; // ±10% random
     const finalSuccessRate = Math.min(95, Math.max(5, successChance + luckFactor));
-    
-    console.log("🎯 POWER FORMULA:", {
-      crimeRequiredPower,
-      playerPower: playerTotalPower,
-      breakdown: {
-        reputation: playerReputation,
-        level: playerLevel * 10,
-        equipment: equipmentPower,
-        wanted: -(playerWantedLevel * 5)
-      },
-      baseSuccess: successChance.toFixed(1),
-      luck: luckFactor.toFixed(1),
-      finalSuccess: finalSuccessRate.toFixed(1)
-    });
 
     // Calculate if robbery succeeds
     const success = Math.random() * 100 < finalSuccessRate;
@@ -490,7 +448,6 @@ export class SupabaseService {
       reputation: currentReputation + reputation_gained
     };
 
-    console.log("🎯 DEBUG: New stats calculated:", newStats);
 
     // Update only the fields that exist in the database
     const updateData = {
@@ -499,7 +456,6 @@ export class SupabaseService {
       reputation: newStats.reputation
     };
 
-    console.log("🎯 DEBUG: Update data:", updateData);
 
     const { error: updateError } = await supabase
       .from("players")
@@ -573,9 +529,6 @@ export class SupabaseService {
         .limit(10);
 
       if (error) {
-        console.log(
-          "⚠️ Tabela crime_history não existe, retornando array vazio"
-        );
         return [];
       }
 
@@ -589,10 +542,6 @@ export class SupabaseService {
         })) || []
       );
     } catch (error) {
-      console.log(
-        "⚠️ Erro ao buscar crime_history, retornando array vazio:",
-        error
-      );
       return [];
     }
   }
@@ -604,9 +553,6 @@ export class SupabaseService {
     dismissed_alerts: string[];
   } | null> {
     // Por enquanto, retornar valores padrão até a tabela game_sessions ser criada
-    console.log(
-      "⚠️ Tabela game_sessions não existe, retornando valores padrão"
-    );
     return {
       active_view: "home",
       active_section: "home",

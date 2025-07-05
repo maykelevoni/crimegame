@@ -50,7 +50,8 @@ interface HomeViewProps {
 
 const HomeView = ({ onViewChange }: HomeViewProps) => {
   const [lastRewardTime, setLastRewardTime] = useState<number | null>(null);
-  const { player, updatePlayerMoney } = useGameStore();
+  const { player, updatePlayerMoney, setPlayerImprisoned } = useGameStore();
+
 
   const handleAddMoney = async () => {
     if (!player?.id) {
@@ -68,7 +69,6 @@ const HomeView = ({ onViewChange }: HomeViewProps) => {
         .eq("id", player.id);
 
       if (error) {
-        console.error("Error adding money:", error);
         toast.error("Failed to add money to database");
         return;
       }
@@ -77,7 +77,6 @@ const HomeView = ({ onViewChange }: HomeViewProps) => {
       updatePlayerMoney(moneyToAdd);
       toast.success(`💰 Added $${moneyToAdd.toLocaleString()} for testing!`);
     } catch (error) {
-      console.error("Error adding test money:", error);
       toast.error("Failed to add test money");
     }
   };
@@ -428,6 +427,7 @@ const HomeView = ({ onViewChange }: HomeViewProps) => {
           </button>
 
         </div>
+
 
         {/* City Map */}
         {/* ... código removido até o fechamento do último </div> dessa seção ... */}

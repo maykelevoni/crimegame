@@ -78,7 +78,6 @@ export default function InventoryView() {
         const localInventoryKey = `inventory_${player.id}`;
         const localInventory = JSON.parse(localStorage.getItem(localInventoryKey) || '[]');
         
-        console.log("👤 DEBUG: ProfileView loading inventory:", localInventory);
         
         // Convert localStorage items to ProfileView format using shop items data
         return localInventory.map((invItem: any) => {
@@ -123,7 +122,6 @@ export default function InventoryView() {
           };
         });
       } catch (error) {
-        console.error("Error loading inventory from localStorage:", error);
         return [];
       }
     },

@@ -33,9 +33,6 @@ const HospitalView = ({
   playerStatus,
   onStartTreatment,
 }: HospitalViewProps) => {
-  console.log("🏥 DEBUG: HospitalView rendered");
-  console.log("isPlayerHospitalized:", isPlayerHospitalized);
-  console.log("playerStatus:", playerStatus);
 
   const { player, updatePlayerStats } = useGameStore();
   const [health, setHealth] = useState(playerStatus.health);
@@ -65,43 +62,29 @@ const HospitalView = ({
 
   // Determine hospitalization reason and recovery time
   useEffect(() => {
-    console.log(
-      "🏥 DEBUG: useEffect - isPlayerHospitalized:",
-      isPlayerHospitalized,
-      "addiction:",
-      addiction
-    );
-
     if (isPlayerHospitalized) {
-      console.log("🏥 DEBUG: Setting recovery time...");
       // Determine if it was overdose or disease based on addiction
       if (addiction >= 80) {
-        console.log("🏥 DEBUG: Overdose detectada - 5 minutos");
         setHospitalizationReason("overdose");
         setRecoveryTime(5 * 60); // 5 minutos para overdose (em segundos)
       } else if (addiction >= 60) {
-        console.log("🏥 DEBUG: Disease detected - 3 minutes");
         setHospitalizationReason("disease");
         setRecoveryTime(3 * 60); // 3 minutes for disease (in seconds)
       } else {
-        console.log("🏥 DEBUG: Ferimento detectado - 2 minutos");
         setHospitalizationReason("injury");
         setRecoveryTime(2 * 60); // 2 minutos para ferimento (em segundos)
       }
     } else {
-      console.log("🏥 DEBUG: Player not hospitalized - resetting");
       setHospitalizationReason("");
       setRecoveryTime(0);
     }
   }, [isPlayerHospitalized, addiction]);
 
   const handleRecovery = useCallback(() => {
-    console.log("🏥 DEBUG: handleRecovery called");
     // Restore health and remove hospitalization
     const newHealth = 100;
     const newAddiction = Math.max(0, addiction - 10);
 
-    console.log("🏥 DEBUG: Updating player stats - isHospitalized: false");
     updatePlayerStats({
       health: newHealth,
       addiction: newAddiction,
@@ -120,27 +103,12 @@ const HospitalView = ({
 
   // Recovery timer
   useEffect(() => {
-    console.log(
-      "⏰ DEBUG: Recovery timer - isPlayerHospitalized:",
-      isPlayerHospitalized,
-      "recoveryTime:",
-      recoveryTime
-    );
-
     if (recoveryTime > 0 && isPlayerHospitalized) {
-      console.log("⏰ DEBUG: Starting recovery timer");
       const timer = setTimeout(() => {
-        console.log(
-          "⏰ DEBUG: Timer tick - reducing recoveryTime from",
-          recoveryTime,
-          "para",
-          recoveryTime - 1
-        );
         setRecoveryTime(recoveryTime - 1);
       }, 1000); // 1 segundo
 
       return () => {
-        console.log("⏰ DEBUG: Clearing timer");
         clearTimeout(timer);
       };
     } else if (
@@ -148,7 +116,6 @@ const HospitalView = ({
       isPlayerHospitalized &&
       hospitalizationReason
     ) {
-      console.log("🏥 DEBUG: Player recovered - calling handleRecovery");
       // Player recovered - only if already hospitalized and had a reason
       handleRecovery();
     }

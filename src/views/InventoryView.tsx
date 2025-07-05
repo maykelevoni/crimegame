@@ -36,7 +36,6 @@ const InventoryView = () => {
   // Mutation for equipping/unequipping items using localStorage
   const equipItemMutation = useMutation({
     mutationFn: async ({ playerId, inventoryId, equipped }: EquipItemMutation) => {
-      console.log("🎒 DEBUG: Equipping/unequipping item:", { playerId, inventoryId, equipped });
       
       try {
         const localInventoryKey = `inventory_${playerId}`;
@@ -48,14 +47,12 @@ const InventoryView = () => {
         if (itemIndex >= 0) {
           existingInventory[itemIndex].equipped = equipped;
           localStorage.setItem(localInventoryKey, JSON.stringify(existingInventory));
-          console.log("🎒 DEBUG: Item equipped status updated:", existingInventory[itemIndex]);
         } else {
           throw new Error("Item not found in inventory");
         }
         
         return { success: true };
       } catch (error) {
-        console.error("🎒 DEBUG: Error updating equipped status:", error);
         throw error;
       }
     },

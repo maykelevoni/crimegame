@@ -6,11 +6,14 @@ Urban Hustle is a browser-based crime and city-themed game where you manage your
 
 ### 👤 Character Management
 
-- **Player Status System:** Health, energy, addiction, reputation, money, and wanted level
-- **Real-time Status Monitoring:** Visual indicators for all character attributes in organized 3x2 grid layout
+- **Advanced Level System:** Reputation-based progression with 50 unique levels
+- **Level Titles:** From "Street Rookie" to "Crime Legend" with distinct names for each level
+- **Level Rewards:** Money, health, and energy bonuses for reaching new levels
+- **Progress Tracking:** Visual progress bars showing reputation needed for next level
+- **Player Status System:** Health, energy, addiction, reputation, money, wanted level, and prison status
+- **Real-time Status Monitoring:** Visual indicators for all character attributes
 - **Dynamic Status Effects:** Status affects available actions and gameplay
 - **Player Avatar:** Customizable character image with name display
-- **Status Bar:** Fixed top bar showing all player stats with icons and values
 - **Unified Data Structure:** All player stats stored in single `players` table for optimal performance
 
 ### 🏢 Business Empire System
@@ -43,15 +46,16 @@ Urban Hustle is a browser-based crime and city-themed game where you manage your
 
 ### 🔒 Prison System
 
-- **Prison Interface:** Complete prison management system
-- **Dual States:**
-  - **Imprisoned State:** When wanted level is too high
-  - **Visitor State:** When visiting other prisoners
-- **Escape Options:**
-  - **Bribe Guards:** 10% success chance to escape
-  - **Start Riot:** 30% success chance to escape during chaos
-- **Prisoner Interaction:** Visit and interact with other inmates
-- **Automatic Detection:** System automatically detects when player should be imprisoned
+- **Enhanced Prison Interface:** Complete prison management system with timer-based sentences
+- **Realistic Prison Activities:**
+  - **Exercise:** Improve health (+5 HP) while serving time
+  - **Work:** Earn money ($50-150) in the prison kitchen
+  - **Sleep:** Restore energy (+10 Energy) and rest
+- **Smart Timer System:** MM:SS format countdown with automatic release
+- **Crime-Based Sentences:** Different sentence lengths based on crime type (5-20 minutes)
+- **Activity Timers:** Each activity takes 5 minutes to complete
+- **Force Release:** Automatic detection and release when timer reaches 00:00
+- **Real-time Status:** Live countdown with visual feedback
 
 ### 🚨 Smart Alert System
 
@@ -75,14 +79,19 @@ Urban Hustle is a browser-based crime and city-themed game where you manage your
 
 ### 🛒 Shop System
 
-- **Complete Shopping Interface:** Full-featured shop with categories
-- **Item Categories:** Weapons, armor, consumables, accessories, style items
+- **Complete Shopping Interface:** Full-featured shop with categories and crime integration
+- **Item Categories:** Weapons, vehicles, protection, and consumables
+- **Equipment Effects:** Items boost crime success rates and provide protection
+- **Crime Integration:** Better equipment = higher success rates in robberies
+- **Equipment Bonuses:**
+  - **Weapons:** Increase damage and success rates
+  - **Vehicles:** Improve escape chances
+  - **Protection:** Reduce health loss during crimes
+  - **Consumables:** Temporary stat boosts
 - **Shopping Cart:** Add multiple items before purchase
-- **Item Details:** Detailed modal with item information and images
-- **Purchase Confirmation:** Secure buying process
-- **Inventory Management:** Track purchased items
-- **High-Quality Images:** Real Unsplash images for all items
-- **Real Database Integration:** All items loaded from `items` table
+- **Item Details:** Detailed modal with stat bonuses and effects
+- **Purchase System:** Secure buying with money validation
+- **Inventory Management:** Track purchased items with local storage backup
 
 ### 🎰 Casino & Gambling
 
@@ -93,9 +102,13 @@ Urban Hustle is a browser-based crime and city-themed game where you manage your
 
 ### 🏦 Banking System
 
-- **Bank Interface:** Money management and storage
-- **Account Security:** Protect your earnings
-- **Transaction History:** Track all financial activities
+- **Complete Banking Interface:** Professional money management system
+- **Deposit & Withdrawal:** Secure money storage with validation
+- **Interest System:** 5% daily interest on deposited funds
+- **24-Hour Timer:** Interest earned every 24 hours after deposit
+- **Account Protection:** Keep money safe from theft during crimes
+- **Balance Display:** Real-time cash and bank balance tracking
+- **Investment Strategy:** Earn passive income on stored money
 
 ### 🌃 Nightlife System
 
@@ -110,11 +123,14 @@ Urban Hustle is a browser-based crime and city-themed game where you manage your
 
 ### 🎯 Robbery System
 
-- **Robbery Interface:** Complete crime system
-- **Multiple Targets:** Various locations to rob
-- **Risk vs Reward:** Balance danger with potential gains
-- **Equipment Requirements:** Need proper gear for different jobs
-- **Wanted Level Management:** Avoid getting caught
+- **Advanced Crime System:** Power-based success calculation
+- **10 Different Targets:** From convenience stores to federal reserve
+- **Power Calculation:** Player power = Reputation + (Level × 10) + Equipment - (Wanted × 5)
+- **Dynamic Success Rates:** 5-95% success based on player vs crime power requirements
+- **Equipment Integration:** Weapons, vehicles, and protection affect success rates
+- **Energy Requirements:** Each crime consumes energy based on difficulty
+- **Risk vs Reward:** Higher difficulty crimes offer better rewards but higher requirements
+- **Real-time Feedback:** Success rates calculated and displayed before attempting crimes
 
 ### 🎨 Inventory & Profile System
 
@@ -227,15 +243,18 @@ cd <YOUR_PROJECT_NAME>
 
 ## 📊 Recent Updates
 
-### Database Unification (Latest)
+### Complete MVP Implementation (Latest)
 
-- **Unified Player Data:** Merged `players` and `player_stats` tables for better performance
-- **Simplified Schema:** Reduced complexity and eliminated data duplication
-- **Real-time Data:** All player stats now load directly from database
-- **Optimized Queries:** Faster data access with unified structure
+- **Enhanced Prison System:** Timer-based sentences with realistic activities (exercise, work, sleep)
+- **Advanced Shop System:** Crime-integrated equipment with success rate bonuses
+- **Professional Banking:** Interest system with 24-hour timers and secure storage
+- **50-Level Progression:** Comprehensive reputation-based level system with unique titles
+- **Power-Based Crimes:** Dynamic success calculation using player power vs crime requirements
+- **Clean Codebase:** Removed all debug statements and test features for production-ready state
 
 ### Previous Updates
 
+- **Database Unification:** Merged `players` and `player_stats` tables for better performance
 - **Complete UI Overhaul:** Modern cyberpunk theme with responsive design
 - **Real Database Integration:** All game data now comes from Supabase
 - **Enhanced Security:** Row Level Security implemented

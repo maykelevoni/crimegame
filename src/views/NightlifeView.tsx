@@ -117,7 +117,6 @@ const NightlifeView = () => {
       return;
     }
 
-    console.log("💋 DEBUG: Hiring companion:", character.name);
 
     // Check if player has enough money
     if (player.stats.money < character.price) {
@@ -168,7 +167,6 @@ const NightlifeView = () => {
   };
 
   const handleEnterVenue = (venue: NightlifeVenue) => {
-    console.log("🏢 DEBUG: Setting selected venue:", venue);
     setSelectedVenue(venue);
   };
 
@@ -186,10 +184,6 @@ const NightlifeView = () => {
   const raveVenues = venues.filter((venue) => venue.type === "rave");
 
   // Debug companion venues
-  console.log("🔍 DEBUG: All venues:", venues);
-  console.log("🔍 DEBUG: Companion venues:", companionVenues);
-  console.log("🔍 DEBUG: Active tab:", activeTab);
-  console.log("🔍 DEBUG: Selected venue:", selectedVenue);
 
   // If a venue is selected, show its content
   if (selectedVenue) {
@@ -683,7 +677,6 @@ const NightlifeView = () => {
                     </div>
                   ) : (
                     companionVenues.map((venue) => {
-                      console.log("🏢 DEBUG: Rendering venue:", venue.name, venue);
                       return (
                         <div
                           key={venue.id}
@@ -709,7 +702,6 @@ const NightlifeView = () => {
                               </div>
                               <button
                                 onClick={() => {
-                                  console.log("🎯 DEBUG: Entering venue:", venue.name);
                                   handleEnterVenue(venue);
                                 }}
                                 className="px-6 py-2 bg-cyber-pink text-white font-bold rounded hover:bg-cyber-pink/80 transition-colors"

@@ -64,7 +64,6 @@ export const useNightlifeConsumables = () => {
   return useQuery({
     queryKey: ["nightlife-consumables"],
     queryFn: async () => {
-      console.log("🔍 DEBUG: Fetching nightlife consumables...");
 
       const { data, error } = await supabase
         .from("consumables")
@@ -72,10 +71,8 @@ export const useNightlifeConsumables = () => {
         .eq("available", true)
         .order("price", { ascending: true });
 
-      console.log("📊 DEBUG: Search result:", { data, error });
 
       if (error) {
-        console.error("Error fetching consumables:", error);
         throw error;
       }
 
@@ -88,7 +85,6 @@ export const useNightlifeVenues = () => {
   return useQuery({
     queryKey: ["nightlife-venues"],
     queryFn: async () => {
-      console.log("🔍 DEBUG: Fetching nightlife venues...");
 
       const { data, error } = await supabase
         .from("venues")
@@ -96,10 +92,8 @@ export const useNightlifeVenues = () => {
         .eq("available", true)
         .order("money_cost", { ascending: true });
 
-      console.log("📊 DEBUG: Venues search result:", { data, error });
 
       if (error) {
-        console.error("Error fetching venues:", error);
         throw error;
       }
 
@@ -112,7 +106,6 @@ export const useNightlifeCharacters = (venueId?: string) => {
   return useQuery({
     queryKey: ["nightlife-characters", venueId],
     queryFn: async () => {
-      console.log("🔍 DEBUG: Buscando characters do nightlife...");
 
       let query = supabase
         .from("prostitutes")
@@ -125,10 +118,8 @@ export const useNightlifeCharacters = (venueId?: string) => {
 
       const { data, error } = await query.order("price", { ascending: true });
 
-      console.log("📊 DEBUG: Characters search result:", { data, error });
 
       if (error) {
-        console.error("Error fetching characters:", error);
         throw error;
       }
 
@@ -149,9 +140,6 @@ export const useConsumeItem = () => {
       playerId: string;
       consumableId: string;
     }) => {
-      console.log("🍺 DEBUG: Starting item consumption");
-      console.log("Player ID:", playerId);
-      console.log("Consumable ID:", consumableId);
 
       // 1. Fetch consumable information
       const { data: consumable, error: consumableError } = await supabase
@@ -160,17 +148,9 @@ export const useConsumeItem = () => {
         .eq("id", consumableId)
         .single();
 
-      console.log("🔍 DEBUG: Buscando consumível...");
-      console.log("Consumable encontrado:", consumable);
-      console.log("Consumable error:", consumableError);
 
       if (consumableError) throw consumableError;
       if (!consumable) throw new Error("Consumível não encontrado");
-
-      console.log(
-        "📊 DEBUG: Effects do consumível:",
-        consumable.effects
-      );
 
       // 2. Verificar se o jogador tem dinheiro suficiente
       const { data: player, error: playerError } = await supabase
@@ -181,21 +161,14 @@ export const useConsumeItem = () => {
         .eq("id", playerId)
         .single();
 
-      console.log("👤 DEBUG: Searching for player...");
-      console.log("Player found:", player);
-      console.log("Player error:", playerError);
 
       if (playerError) {
-        console.error("❌ Error fetching player:", playerError);
         throw playerError;
       }
       if (!player) throw new Error("Player not found");
 
       const playerData = player;
 
-      console.log("💰 DEBUG: Verificando dinheiro...");
-      console.log("Dinheiro atual:", playerData.money);
-      console.log("Preço do item:", consumable.price);
 
       if (playerData.money < consumable.price) {
         throw new Error(
@@ -213,14 +186,6 @@ export const useConsumeItem = () => {
           `Energy is already full! You have ${playerData.energy}/${playerData.max_energy} energy`
         );
       }
-
-      console.log("⚡ DEBUG: Checking energy...");
-      console.log("Current energy:", playerData.energy);
-      console.log("Max energy:", playerData.max_energy);
-      console.log(
-        "Item energy effect:",
-        consumable.effects.energy
-      );
 
       // 3. Calcular novos valores dos stats
       const effects = consumable.effects;
@@ -270,9 +235,6 @@ export const useConsumeItem = () => {
       // Verificar se aconteceu overdose
       if (overdoseChance > 0 && Math.random() * 100 < overdoseChance) {
         isOverdose = true;
-        console.log("💊 DEBUG: OVERDOSE DETECTADA!");
-        console.log("Vício atual:", newAddiction);
-        console.log("Chance de overdose:", overdoseChance + "%");
       }
 
       // Verificar doenças específicas baseadas no tipo de venue
@@ -290,23 +252,10 @@ export const useConsumeItem = () => {
         isDisease = true;
         if (consumable.type === "drink") {
           diseaseType = "cirrose";
-          console.log("🍺 DEBUG: CIRROSE DETECTADA!");
         } else {
           diseaseType = "dst";
-          console.log("💋 DEBUG: DST DETECTADA!");
         }
-        console.log("Vício atual:", newAddiction);
-        console.log("Chance de doença:", diseaseChance + "%");
       }
-
-      console.log("📈 DEBUG: Calculando novos stats...");
-      console.log("Stats antigos:", {
-        money: playerData.money,
-        health: playerData.health,
-        energy: playerData.energy,
-        addiction: playerData.addiction,
-        reputation: playerData.reputation,
-      });
 
       // Calcular vida final considerando overdose e doenças
       let finalHealth = newHealth;
@@ -315,19 +264,6 @@ export const useConsumeItem = () => {
       } else if (isDisease) {
         finalHealth = Math.max(1, newHealth - 15);
       }
-
-      console.log("Stats novos:", {
-        money: newMoney,
-        health: finalHealth,
-        energy: newEnergy,
-        addiction: newAddiction,
-        reputation: newReputation,
-      });
-      console.log("💊 DEBUG: Chance de overdose:", overdoseChance + "%");
-      console.log("💊 DEBUG: Overdose aconteceu:", isOverdose);
-      console.log("🦠 DEBUG: Chance de doença:", diseaseChance + "%");
-      console.log("🦠 DEBUG: Doença aconteceu:", isDisease);
-      console.log("🦠 DEBUG: Tipo de doença:", diseaseType);
 
       // 4. Atualizar o jogador
       const { error: updateError } = await supabase
@@ -343,15 +279,9 @@ export const useConsumeItem = () => {
         })
         .eq("id", playerId);
 
-      console.log("💾 DEBUG: Updating player...");
-      console.log("isOverdose:", isOverdose);
-      console.log("isDisease:", isDisease);
-      console.log("is_hospitalized será:", isOverdose || isDisease);
-      console.log("Update error:", updateError);
 
       if (updateError) throw updateError;
 
-      console.log("✅ DEBUG: Jogador atualizado com sucesso!");
 
       // 5. Retornar os dados atualizados
       return {
@@ -368,18 +298,10 @@ export const useConsumeItem = () => {
       };
     },
     onSuccess: (data) => {
-      console.log("🎉 DEBUG: onSuccess chamado!");
-      console.log("Dados retornados:", data);
 
       // Atualizar o gameStore diretamente
       const { newStats, isOverdose, isDisease } = data;
       const updateGameStore = useGameStore.getState().updatePlayerStats;
-
-      console.log("🔄 DEBUG: Atualizando gameStore com:", newStats);
-      console.log("🏥 DEBUG: Status de hospitalização:", {
-        isOverdose,
-        isDisease,
-      });
 
       updateGameStore({
         money: newStats.money,
@@ -390,16 +312,10 @@ export const useConsumeItem = () => {
         isHospitalized: isOverdose || isDisease, // Usar dados retornados
       });
 
-      console.log(
-        "✅ DEBUG: GameStore atualizado com isHospitalized:",
-        isOverdose || isDisease
-      );
-
       // Invalidar queries relacionadas ao jogador
       queryClient.invalidateQueries({ queryKey: ["player"] });
       queryClient.invalidateQueries({ queryKey: ["game-data"] });
 
-      console.log("🔄 DEBUG: Queries invalidadas");
 
       // Mostrar notificação de sucesso
       const { consumable } = data;
@@ -623,8 +539,6 @@ export const useVisitVenue = () => {
         if (Math.random() * 100 < diseaseChance) {
           isDisease = true;
           diseaseType = "std";
-          console.log("💋 DEBUG: STD CONTRACTED!");
-          console.log("Disease chance:", diseaseChance + "%");
         }
       }
 

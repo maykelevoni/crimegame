@@ -13,6 +13,9 @@ export interface PlayerStats {
   wantedLevel: number;
   isImprisoned: boolean;
   isHospitalized: boolean;
+  prisonSentence?: number; // Minutes remaining in prison
+  crimeType?: string; // Type of crime that led to imprisonment
+  imprisonedAt?: string; // ISO date string when imprisoned
 }
 
 export interface Player {

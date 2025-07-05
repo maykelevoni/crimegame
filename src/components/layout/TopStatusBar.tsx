@@ -37,10 +37,6 @@ const TopStatusBar: React.FC<TopStatusBarProps> = ({
   wantedLevel,
 }) => {
   // DEBUG: Log what TopStatusBar receives
-  console.log("=== TOPSTATUSBAR DEBUG ===");
-  console.log("level prop received:", level);
-  console.log("reputation prop received:", reputation);
-  console.log("money prop received:", money);
   
   const status = [
     {

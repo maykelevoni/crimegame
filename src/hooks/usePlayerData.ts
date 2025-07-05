@@ -32,14 +32,11 @@ export const usePlayerData = () => {
         setLoading(true);
         setError(null);
 
-        console.log("🔄 Carregando dados do player para usuário:", user.id);
 
         let playerData = null;
         try {
           playerData = await SupabaseService.getPlayerByUserId(user.id);
-          console.log("✅ Player encontrado:", playerData ? "Sim" : "Não");
         } catch (err) {
-          console.error("❌ Erro ao buscar player:", err);
           setError(
             "Erro ao buscar player: " +
               (err instanceof Error ? err.message : JSON.stringify(err))
@@ -49,15 +46,12 @@ export const usePlayerData = () => {
         }
 
         if (!playerData) {
-          console.log("📝 Criando novo player...");
           try {
             playerData = await SupabaseService.createPlayer(
               user.email || "Player",
               user.id
             );
-            console.log("✅ Novo player criado:", playerData);
           } catch (err) {
-            console.error("❌ Erro ao criar player:", err);
             setError(
               "Erro ao criar player: " +
                 (err instanceof Error ? err.message : JSON.stringify(err))
@@ -75,13 +69,11 @@ export const usePlayerData = () => {
             playerData.id
           );
           setInventory(inventoryData);
-          console.log(
             "✅ Inventário carregado:",
             inventoryData.length,
             "itens"
           );
         } catch (err) {
-          console.error("❌ Erro ao carregar inventário:", err);
           setError(
             "Erro ao carregar inventário: " +
               (err instanceof Error ? err.message : JSON.stringify(err))
@@ -92,20 +84,17 @@ export const usePlayerData = () => {
         try {
           const businessesData = await SupabaseService.getPlayerBusinesses();
           setBusinesses(businessesData);
-          console.log(
             "✅ Negócios carregados:",
             businessesData.length,
             "negócios"
           );
         } catch (err) {
-          console.error("❌ Erro ao carregar negócios:", err);
           setError(
             "Erro ao carregar negócios: " +
               (err instanceof Error ? err.message : JSON.stringify(err))
           );
         }
       } catch (err) {
-        console.error("❌ Erro inesperado:", err);
         setError(
           err instanceof Error ? err.message : "Failed to load player data"
         );
@@ -128,7 +117,6 @@ export const usePlayerData = () => {
       );
       setPlayer(updatedPlayer);
     } catch (err) {
-      console.error("Error updating player:", err);
       setError(err instanceof Error ? err.message : "Failed to update player");
     }
   };
@@ -143,7 +131,6 @@ export const usePlayerData = () => {
       const inventoryData = await SupabaseService.getPlayerInventory(player.id);
       setInventory(inventoryData);
     } catch (err) {
-      console.error("Error adding item to inventory:", err);
       setError(
         err instanceof Error ? err.message : "Failed to add item to inventory"
       );
@@ -159,7 +146,6 @@ export const usePlayerData = () => {
       const newBusiness = await SupabaseService.buyBusiness(business);
       setBusinesses((prev) => [...prev, newBusiness]);
     } catch (err) {
-      console.error("Error buying business:", err);
       setError(err instanceof Error ? err.message : "Failed to buy business");
     }
   };
@@ -179,7 +165,6 @@ export const usePlayerData = () => {
         success
       );
     } catch (err) {
-      console.error("Error adding crime history:", err);
       setError(
         err instanceof Error ? err.message : "Failed to add crime history"
       );
@@ -190,7 +175,6 @@ export const usePlayerData = () => {
     try {
       return await SupabaseService.getShopItems();
     } catch (err) {
-      console.error("Error getting shop items:", err);
       setError(err instanceof Error ? err.message : "Failed to get shop items");
       return [];
     }

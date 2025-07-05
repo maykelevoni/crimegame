@@ -34,6 +34,9 @@ const initialPlayerStats: PlayerStats = {
   wantedLevel: 0,
   isImprisoned: false,
   isHospitalized: false,
+  prisonSentence: 0,
+  crimeType: undefined,
+  imprisonedAt: undefined,
 };
 
 const initialPlayer: Player = {
@@ -63,8 +66,12 @@ interface GameStore extends GameState {
   // Actions do Player
   updatePlayerStats: (updates: Partial<PlayerStats>) => void;
   updatePlayerMoney: (amount: number) => void;
-  setPlayerImprisoned: (imprisoned: boolean) => void;
+  setPlayerImprisoned: (imprisoned: boolean, crimeType?: string, sentenceMinutes?: number) => void;
   setPlayerHospitalized: (hospitalized: boolean) => void;
+  
+  // Prison Actions
+  doPrisonActivity: (activity: "exercise" | "work" | "sleep") => void;
+  reducePrisonSentence: (minutes: number) => void;
 
   // Bank Actions
   depositMoney: (amount: number) => void;
@@ -141,8 +148,6 @@ export const useGameStore = create<GameStore>()(
 
       // Actions do Player
       updatePlayerStats: (updates) => {
-        console.log("🔍 Debug - updatePlayerStats called with:", updates);
-
         set((state) => {
           let newStats = {
             ...state.player.stats,
@@ -161,7 +166,6 @@ export const useGameStore = create<GameStore>()(
             newStats.health = 0;
             statusChecks.isHospitalized = true;
             statusChecks.hospitalizationType = "health";
-            console.log("🏥 Player hospitalized due to health = 0");
           }
 
           // Addiction >= 100 -> Hospitalization (overdose/illness)
@@ -169,7 +173,6 @@ export const useGameStore = create<GameStore>()(
             newStats.addiction = 100;
             statusChecks.isHospitalized = true;
             statusChecks.hospitalizationType = "overdose";
-            console.log("🏥 Player hospitalized due to overdose/addiction");
           }
 
           // Wanted >= 100 -> Prison (chance based)
@@ -178,7 +181,6 @@ export const useGameStore = create<GameStore>()(
             if (prisonChance <= 0.8) { // 80% chance of going to prison
               statusChecks.isImprisoned = true;
               newStats.wantedLevel = 0; // Reset wanted level after arrest
-              console.log("🔒 Player sent to prison due to high wanted level");
             }
           }
 
@@ -192,21 +194,6 @@ export const useGameStore = create<GameStore>()(
             updatedAt: new Date(),
           };
 
-          console.log("🔍 Debug - Previous state:", {
-            health: state.player.stats.health,
-            addiction: state.player.stats.addiction,
-            wantedLevel: state.player.stats.wantedLevel,
-            isHospitalized: state.player.stats.isHospitalized,
-            isImprisoned: state.player.stats.isImprisoned,
-          });
-
-          console.log("🔍 Debug - New state:", {
-            health: newStats.health,
-            addiction: newStats.addiction,
-            wantedLevel: newStats.wantedLevel,
-            isHospitalized: newStats.isHospitalized,
-            isImprisoned: newStats.isImprisoned,
-          });
 
           return {
             ...state,
@@ -237,13 +224,16 @@ export const useGameStore = create<GameStore>()(
         }
       },
 
-      setPlayerImprisoned: (imprisoned) => {
+      setPlayerImprisoned: (imprisoned, crimeType, sentenceMinutes) => {
         set((state) => ({
           player: {
             ...state.player,
             stats: {
               ...state.player.stats,
               isImprisoned: imprisoned,
+              prisonSentence: imprisoned ? (sentenceMinutes || 10) : 0,
+              crimeType: imprisoned ? crimeType : undefined,
+              imprisonedAt: imprisoned ? new Date().toISOString() : undefined,
             },
             updatedAt: new Date(),
           },
@@ -265,6 +255,86 @@ export const useGameStore = create<GameStore>()(
             updatedAt: new Date(),
           },
         }));
+
+        if (get().userId && get().isOnline) {
+          get().syncGameState();
+        }
+      },
+
+      // Prison Actions
+      doPrisonActivity: (activity) => {
+        set((state) => {
+          if (!state.player.stats.isImprisoned) return state;
+
+          let updates: Partial<PlayerStats> = {};
+          let timeReduction = 0;
+
+          switch (activity) {
+            case "exercise":
+              updates.health = Math.min(state.player.stats.maxHealth, state.player.stats.health + 5);
+              toast.success("💪 You exercise and feel healthier! (+5 Health)");
+              break;
+            case "work":
+              updates.money = state.player.stats.money + Math.floor(Math.random() * 100) + 50;
+              toast.success("💼 You work in the prison kitchen! (+$50-150)");
+              break;
+            case "sleep":
+              updates.energy = Math.min(state.player.stats.maxEnergy, state.player.stats.energy + 10);
+              toast.success("😴 You rest and feel refreshed! (+10 Energy)");
+              break;
+          }
+
+          // No additional sentence reduction - time passes naturally while doing activity
+
+          return {
+            player: {
+              ...state.player,
+              stats: {
+                ...state.player.stats,
+                ...updates,
+              },
+              updatedAt: new Date(),
+            },
+          };
+        });
+
+        if (get().userId && get().isOnline) {
+          get().syncGameState();
+        }
+      },
+
+      reducePrisonSentence: (minutes) => {
+        set((state) => {
+          if (!state.player.stats.isImprisoned) return state;
+
+          const currentSentence = state.player.stats.prisonSentence || 0;
+          const newSentence = Math.max(0, currentSentence - minutes);
+          const isReleased = newSentence <= 0 || currentSentence <= 0;
+
+          let updates: Partial<PlayerStats> = {
+            prisonSentence: 0, // Always set to 0 when releasing
+          };
+
+          if (isReleased) {
+            updates.isImprisoned = false;
+            updates.crimeType = undefined;
+            updates.imprisonedAt = undefined;
+            toast.success("🎉 You are now free!");
+          } else {
+            updates.prisonSentence = newSentence;
+          }
+
+          return {
+            player: {
+              ...state.player,
+              stats: {
+                ...state.player.stats,
+                ...updates,
+              },
+              updatedAt: new Date(),
+            },
+          };
+        });
 
         if (get().userId && get().isOnline) {
           get().syncGameState();
@@ -670,36 +740,21 @@ export const useGameStore = create<GameStore>()(
         try {
           set({ syncStatus: "syncing" });
 
-          console.log("🔄 Loading game data for user:", userId);
 
           // Load player data by user_id
           const player = await SupabaseService.getPlayerByUserId(userId);
           if (player) {
-            console.log("✅ Player found:", player.name);
-            console.log("🔍 Debug - Player stats loaded:", {
-              health: player.stats.health,
-              energy: player.stats.energy,
-              reputation: player.stats.reputation,
-              wantedLevel: player.stats.wantedLevel,
-              money: player.stats.money,
-            });
 
             // Load inventory
             const inventory = await SupabaseService.getPlayerInventory(
               player.id,
               userId
             );
-            console.log("✅ Inventory loaded:", inventory.length, "items");
 
             // Load businesses
             const businesses = await SupabaseService.getPlayerBusinesses(
               player.id,
               userId
-            );
-            console.log(
-              "✅ Businesses loaded:",
-              businesses.length,
-              "businesses"
             );
 
             // Load treatment history
@@ -707,15 +762,9 @@ export const useGameStore = create<GameStore>()(
               player.id,
               userId
             );
-            console.log(
-              "✅ Treatment history loaded:",
-              treatmentHistory.length,
-              "records"
-            );
 
             // Load game session
             const gameSession = await SupabaseService.getGameSession(player.id);
-            console.log("✅ Game session loaded");
 
             set((state) => ({
               player: {
@@ -753,13 +802,11 @@ export const useGameStore = create<GameStore>()(
             // Setup realtime sync after successfully loading data
             get().setupRealtimeSync(userId);
           } else {
-            console.log("📝 Criando novo player...");
             try {
               const newPlayer = await SupabaseService.createPlayer(
                 "Player",
                 userId
               );
-            console.log("✅ Novo player criado:", newPlayer.name);
 
             set((state) => ({
               player: {
@@ -794,16 +841,13 @@ export const useGameStore = create<GameStore>()(
             // Setup realtime sync após criar player com sucesso
             get().setupRealtimeSync(userId);
             } catch (playerError: any) {
-              console.error("❌ Erro ao criar player:", playerError);
               // If player already exists (duplicate key), try to load it
               if (playerError.code === '23505') {
-                console.log("⚠️ Player já existe, tentando carregar...");
                 // Wait a bit and try to load the player again
                 setTimeout(async () => {
                   try {
                     const existingPlayer = await SupabaseService.getPlayerByUserId(userId);
                     if (existingPlayer) {
-                      console.log("✅ Player existente carregado:", existingPlayer.name);
                       set((state) => ({
                         player: {
                           ...state.player,
@@ -817,7 +861,6 @@ export const useGameStore = create<GameStore>()(
                       get().setupRealtimeSync(userId);
                     }
                   } catch (retryError) {
-                    console.error("❌ Error loading existing player:", retryError);
                     set({ syncStatus: "error" });
                   }
                 }, 500);
@@ -827,7 +870,6 @@ export const useGameStore = create<GameStore>()(
             }
           }
         } catch (error) {
-          console.error("❌ Error loading game data:", error);
           set({ syncStatus: "error" });
         }
       },
@@ -852,7 +894,6 @@ export const useGameStore = create<GameStore>()(
 
           set({ syncStatus: "idle" });
         } catch (error) {
-          console.error("Error syncing game state:", error);
           set({ syncStatus: "error" });
         }
       },
@@ -924,7 +965,6 @@ export const useGameStore = create<GameStore>()(
         try {
           supabase.removeAllChannels();
         } catch (error) {
-          console.log("⚠️ Erro ao limpar canais:", error);
         }
       },
 
@@ -979,7 +1019,6 @@ export const useGameStore = create<GameStore>()(
             }));
           }
         } catch (error) {
-          console.error("Error loading player data:", error);
           set({ syncStatus: "error" });
         }
       },
@@ -1012,7 +1051,6 @@ export const useGameStore = create<GameStore>()(
             get().syncGameState();
           }
         } catch (error) {
-          console.error("Error loading player stats:", error);
           set({ syncStatus: "error" });
         }
       },
@@ -1033,7 +1071,6 @@ export const useGameStore = create<GameStore>()(
             get().syncGameState();
           }
         } catch (error) {
-          console.error("Error loading player inventory:", error);
           set({ syncStatus: "error" });
         }
       },
@@ -1051,7 +1088,6 @@ export const useGameStore = create<GameStore>()(
             get().syncGameState();
           }
         } catch (error) {
-          console.error("Error loading player businesses:", error);
           set({ syncStatus: "error" });
         }
       },

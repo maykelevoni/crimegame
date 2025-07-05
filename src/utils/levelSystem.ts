@@ -31,7 +31,6 @@ function generateLevelData(level: number): Level {
   const reputationRequired = calculateReputationForLevel(level);
   const totalReputation = calculateTotalReputationForLevel(level);
   
-  console.log(`📊 Level ${level}: requires ${reputationRequired} rep this level, ${totalReputation} total rep`);
   
   // Get title (cycle through titles if level exceeds array)
   const titleIndex = Math.min(level - 1, LEVEL_TITLES.length - 1);
@@ -108,18 +107,14 @@ export function calculateLevelFromReputation(totalReputation: number): number {
     const nextLevel = currentLevel + 1;
     const nextLevelData = generateLevelData(nextLevel);
     
-    console.log(`🔍 Checking level ${nextLevel}: needs ${nextLevelData.totalReputation} rep, player has ${totalReputation}`);
     
     if (totalReputation >= nextLevelData.totalReputation) {
       currentLevel = nextLevel;
-      console.log(`✅ Player qualifies for level ${currentLevel}`);
     } else {
-      console.log(`❌ Player doesn't qualify for level ${nextLevel}`);
       break;
     }
   }
   
-  console.log(`🎯 Final calculated level: ${currentLevel} for ${totalReputation} reputation`);
   return currentLevel;
 }
 

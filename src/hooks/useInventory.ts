@@ -16,14 +16,12 @@ export const usePlayerInventory = (playerId: string) => {
   return useQuery({
     queryKey: ["inventory", playerId],
     queryFn: async () => {
-      console.log("🎒 DEBUG: Fetching inventory for player:", playerId);
 
       // For now, use localStorage instead of database
       try {
         const localInventoryKey = `inventory_${playerId}`;
         const localInventory = JSON.parse(localStorage.getItem(localInventoryKey) || '[]');
         
-        console.log("📦 DEBUG: Local inventory result:", localInventory);
         
         // Convert to InventoryItem format
         const inventoryItems: InventoryItem[] = localInventory.map((item: any) => ({
@@ -37,7 +35,6 @@ export const usePlayerInventory = (playerId: string) => {
         
         return inventoryItems;
       } catch (error) {
-        console.error("Error fetching local inventory:", error);
         return [];
       }
     },
@@ -50,7 +47,6 @@ export const useEquippedItems = (playerId: string) => {
   return useQuery({
     queryKey: ["equipped-items", playerId],
     queryFn: async () => {
-      console.log("🎒 DEBUG: Fetching equipped items for player:", playerId);
 
       try {
         const localInventoryKey = `inventory_${playerId}`;
@@ -59,7 +55,6 @@ export const useEquippedItems = (playerId: string) => {
         // Filter only equipped items
         const equippedItems = localInventory.filter((item: any) => item.equipped === true);
         
-        console.log("⚔️ DEBUG: Equipped items found:", equippedItems);
         
         // Convert to InventoryItem format
         const inventoryItems: InventoryItem[] = equippedItems.map((item: any) => ({
@@ -73,7 +68,6 @@ export const useEquippedItems = (playerId: string) => {
         
         return inventoryItems;
       } catch (error) {
-        console.error("Error fetching equipped items:", error);
         return [];
       }
     },

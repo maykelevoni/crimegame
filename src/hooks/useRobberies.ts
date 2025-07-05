@@ -185,7 +185,6 @@ export const useRobberies = () => {
     queryFn: async () => {
       const playerLevel = player?.stats?.level || 1;
       
-      console.log(`🎯 ROBBERIES: Player level ${playerLevel}, showing all crimes...`);
       
       // Show all robberies sorted by min_level (they'll be disabled in UI if level requirement not met)
       const availableRobberies = mockRobberies
@@ -193,10 +192,8 @@ export const useRobberies = () => {
         
       availableRobberies.forEach(robbery => {
         const canAccess = robbery.min_level <= playerLevel;
-        console.log(`🎯 Crime "${robbery.name}" (req level ${robbery.min_level}): ${canAccess ? 'AVAILABLE' : 'LOCKED'}`);
       });
       
-      console.log(`🎯 Total crimes shown: ${availableRobberies.length}`);
       return availableRobberies;
     },
   });
@@ -224,9 +221,6 @@ export const useExecuteRobbery = () => {
       // Calculate equipment bonuses before sending to server
       const equipmentBonuses = calculateEquipmentBonuses(equippedItems, shopItems);
       
-      console.log('🎒 Equipment bonuses for robbery:', equipmentBonuses);
-      console.log('🎒 Equipped items:', equippedItems);
-      console.log('🎒 Shop items:', shopItems);
 
       // SECURITY: All calculations now happen server-side
       // This prevents client-side manipulation of game logic

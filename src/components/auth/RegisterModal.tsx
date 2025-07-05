@@ -71,7 +71,6 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({
         .maybeSingle();
         
       if (error) {
-        console.error('Error checking username:', error);
         setUsernameStatus('idle');
       } else if (data) {
         // Username exists
@@ -81,7 +80,6 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({
         setUsernameStatus('available');
       }
     } catch (error) {
-      console.error('Error checking username:', error);
       setUsernameStatus('idle');
     }
   };
@@ -205,13 +203,10 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({
     }
 
     try {
-      console.log("Starting registration process...");
 
       const result = await signUp(formData.email, formData.password);
-      console.log("SignUp result:", result);
 
       if (result.success && result.data?.user) {
-        console.log("User created successfully, creating player profile...");
 
         // Create player profile with correct parameters
         const player = await SupabaseService.createPlayer(
@@ -219,9 +214,7 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({
           result.data.user.id
         );
 
-        console.log("Player created:", player);
 
-        console.log("Player stats created successfully");
         
         // Store username-email mapping for login
         const userMap = JSON.parse(localStorage.getItem('crimegame_users') || '{}');
@@ -234,7 +227,6 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({
           onClose();
         }, 100);
       } else {
-        console.error("SignUp failed:", result.error);
 
         // Rate limit handling
         if (result.error && result.error.includes("rate limit")) {
@@ -246,7 +238,6 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({
         }
       }
     } catch (error) {
-      console.error("Registration error:", error);
       
       if (error instanceof Error) {
         if (error.message.includes("rate limit")) {
