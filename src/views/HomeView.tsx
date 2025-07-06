@@ -428,6 +428,28 @@ const HomeView = ({ onViewChange }: HomeViewProps) => {
 
         </div>
 
+        {/* Admin Panel Access (Only for authorized users) */}
+        {(player?.name === "axiro" || player?.user_id === "axiro") && (
+          <div className="mt-4 flex justify-center">
+            <button
+              onClick={() => onViewChange("admin")}
+              className="group relative overflow-hidden rounded-xl bg-gradient-to-br from-purple-800/30 to-indigo-900/30 border border-purple-500/50 p-3 hover:scale-[1.02] transition-all duration-200"
+            >
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-purple-500/20">
+                  <Shield size={20} className="text-purple-400" />
+                </div>
+                <div className="text-left">
+                  <div className="font-bold text-purple-400 text-sm">ADMIN PANEL</div>
+                  <div className="text-xs text-purple-300/70">Manage game content</div>
+                </div>
+              </div>
+              <div className="absolute bottom-2 right-2">
+                <ChevronRight size={16} className="text-purple-500/50" />
+              </div>
+            </button>
+          </div>
+        )}
 
         {/* City Map */}
         {/* ... código removido até o fechamento do último </div> dessa seção ... */}

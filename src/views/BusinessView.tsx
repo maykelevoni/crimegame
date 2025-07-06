@@ -48,7 +48,7 @@ const businesses: Business[] = [
     id: "counterfeit",
     name: "Counterfeit Cash Factory",
     description: "Print fake money with high-tech equipment",
-    image: "https://images.unsplash.com/photo-1554672408-17caeb6e8d46?w=150&h=150&fit=crop",
+    image: "https://images.unsplash.com/photo-1580519542036-c47de6196ba5?w=800&h=600&fit=crop&crop=center",
     price: 75000,
     baseIncome: 8000,
     level: 1,

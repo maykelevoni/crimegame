@@ -38,6 +38,7 @@ import LuckyWheelView from "../views/LuckyWheelView";
 import ShopView from "../views/ShopView";
 import PrisonView from "../views/PrisonView";
 import BusinessView from "../views/BusinessView";
+import AdminView from "../views/AdminView";
 import bgImage from "../assets/bg.png";
 import { useGameStore } from "../stores/gameStore";
 import { useResponsive } from "../hooks/useResponsive";
@@ -321,6 +322,20 @@ export function GameInterface() {
         return <InventoryView />;
       case "business":
         return <BusinessView />;
+      case "admin":
+        // Check if user has admin privileges (for now, allow axiro)
+        if (player?.name === "axiro" || player?.user_id === "axiro") {
+          return <AdminView />;
+        } else {
+          return (
+            <div className="flex items-center justify-center h-64">
+              <div className="text-center">
+                <h3 className="text-xl font-bold text-red-500 mb-2">Access Denied</h3>
+                <p className="text-gray-600">You don't have admin privileges.</p>
+              </div>
+            </div>
+          );
+        }
       default:
         return (
           <div className={`flex flex-col gap-3 ${isMobile ? "px-2" : "px-4"}`}>

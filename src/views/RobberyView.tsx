@@ -228,8 +228,12 @@ const RobberyView = () => {
                 onClick={() => canExecute && handleStart(robbery)}
               >
                 <div className="flex items-start gap-4">
-                  <div className="w-16 h-16 rounded-lg bg-gradient-to-br from-red-500/20 to-red-600/20 border border-red-500/30 flex items-center justify-center relative">
-                    <Crosshair size={24} className="text-red-400" />
+                  <div className="w-16 h-16 rounded-lg relative overflow-hidden">
+                    <img
+                      src={robbery.image_url}
+                      alt={robbery.name}
+                      className="w-full h-full object-cover"
+                    />
                     {!hasRequiredLevel && (
                       <div className="absolute inset-0 bg-black/50 rounded-lg flex items-center justify-center">
                         <Lock size={20} className="text-gray-300" />

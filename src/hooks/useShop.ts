@@ -36,7 +36,7 @@ const mockShopItems: ShopItem[] = [
     type: "weapon",
     rarity: "common",
     effects: { success_boost: 10, damage: 5 },
-    image: "https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=150&h=150&fit=crop",
+    image: "https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?w=800&h=600&fit=crop&crop=center",
     inStock: true,
   },
   {
@@ -47,7 +47,7 @@ const mockShopItems: ShopItem[] = [
     type: "weapon",
     rarity: "rare",
     effects: { success_boost: 20, damage: 10 },
-    image: "https://images.unsplash.com/photo-1518717758536-85ae29035b6d?w=150&h=150&fit=crop",
+    image: "https://images.unsplash.com/photo-1586953208448-b95a79798f07?w=800&h=600&fit=crop&crop=center",
     inStock: true,
   },
   {
@@ -58,7 +58,7 @@ const mockShopItems: ShopItem[] = [
     type: "weapon",
     rarity: "epic",
     effects: { success_boost: 30, damage: 15 },
-    image: "https://images.unsplash.com/photo-1468421870903-4df1664ac249?w=150&h=150&fit=crop",
+    image: "https://images.unsplash.com/photo-1544966503-7cc5ac882d5f?w=800&h=600&fit=crop&crop=center",
     inStock: true,
   },
 
@@ -71,7 +71,7 @@ const mockShopItems: ShopItem[] = [
     type: "vehicle", 
     rarity: "common",
     effects: { escape_boost: 15 },
-    image: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=150&h=150&fit=crop",
+    image: "https://images.unsplash.com/photo-1503736334956-4c8f8e92946d?w=800&h=600&fit=crop&crop=center",
     inStock: true,
   },
   {
@@ -82,7 +82,7 @@ const mockShopItems: ShopItem[] = [
     type: "vehicle",
     rarity: "rare", 
     effects: { escape_boost: 25 },
-    image: "https://images.unsplash.com/photo-1502877338535-766e1452684a?w=150&h=150&fit=crop",
+    image: "https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=800&h=600&fit=crop&crop=center",
     inStock: true,
   },
   {
@@ -93,7 +93,7 @@ const mockShopItems: ShopItem[] = [
     type: "vehicle",
     rarity: "epic",
     effects: { escape_boost: 40 },
-    image: "https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=150&h=150&fit=crop", 
+    image: "https://images.unsplash.com/photo-1544636331-e26879cd4d9b?w=800&h=600&fit=crop&crop=center", 
     inStock: true,
   },
 
@@ -106,7 +106,7 @@ const mockShopItems: ShopItem[] = [
     type: "protection",
     rarity: "common",
     effects: { health_protection: 20 },
-    image: "https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=150&h=150&fit=crop",
+    image: "https://images.unsplash.com/photo-1565814329452-e1efa11c5b89?w=800&h=600&fit=crop&crop=center",
     inStock: true,
   },
   {
@@ -117,7 +117,7 @@ const mockShopItems: ShopItem[] = [
     type: "protection",
     rarity: "rare",
     effects: { health_protection: 40 },
-    image: "https://images.unsplash.com/photo-1512436991641-6745cdb1723f?w=150&h=150&fit=crop",
+    image: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&h=600&fit=crop&crop=center",
     inStock: true,
   },
 
@@ -130,7 +130,7 @@ const mockShopItems: ShopItem[] = [
     type: "consumable", 
     rarity: "common",
     effects: { health: 50 },
-    image: "https://images.unsplash.com/photo-1587854692152-cbe660dbde88?w=150&h=150&fit=crop",
+    image: "https://images.unsplash.com/photo-1584362917165-526a968579e8?w=800&h=600&fit=crop&crop=center",
     inStock: true,
   },
   {
@@ -141,7 +141,7 @@ const mockShopItems: ShopItem[] = [
     type: "consumable",
     rarity: "common", 
     effects: { energy: 40 },
-    image: "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=150&h=150&fit=crop",
+    image: "https://images.unsplash.com/photo-1527960471264-932f39eb5846?w=800&h=600&fit=crop&crop=center",
     inStock: true,
   },
 ];

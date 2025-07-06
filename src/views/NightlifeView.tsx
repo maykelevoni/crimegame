@@ -37,6 +37,22 @@ import { useGameStore } from "../stores/gameStore";
 import { toast } from "sonner";
 
 const NightlifeView = () => {
+  const getConsumableImage = (name: string, type: string) => {
+    const imageMap: { [key: string]: string } = {
+      'Beer': 'https://images.unsplash.com/photo-1608270586620-248524c67de9?w=400&h=400&fit=crop&crop=center',
+      'Energy Drink': 'https://images.unsplash.com/photo-1527960471264-932f39eb5846?w=400&h=400&fit=crop&crop=center',
+      'Wine': 'https://images.unsplash.com/photo-1547595628-c61a29f496f0?w=400&h=400&fit=crop&crop=center',
+      'Whiskey': 'https://images.unsplash.com/photo-1569529465841-dfecdab7503b?w=400&h=400&fit=crop&crop=center',
+      'Weed': 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=400&fit=crop&crop=center',
+      'Ecstasy': 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=400&h=400&fit=crop&crop=center',
+      'Cocaine': 'https://images.unsplash.com/photo-1471193945509-9ad0617afabf?w=400&h=400&fit=crop&crop=center'
+    };
+    
+    return imageMap[name] || (type === 'drink' ? 
+      'https://images.unsplash.com/photo-1608270586620-248524c67de9?w=400&h=400&fit=crop&crop=center' : 
+      'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=400&h=400&fit=crop&crop=center');
+  };
+
   const [activeTab, setActiveTab] = useState("bar");
   const [selectedVenue, setSelectedVenue] = useState<NightlifeVenue | null>(
     null
@@ -52,6 +68,7 @@ const NightlifeView = () => {
   const { data: venues = [], isLoading: venuesLoading } = useNightlifeVenues();
   const { data: characters = [], isLoading: charactersLoading } =
     useNightlifeCharacters();
+
 
   const consumeItemMutation = useConsumeItem();
   const visitVenueMutation = useVisitVenue();
@@ -178,12 +195,12 @@ const NightlifeView = () => {
   const drinks = consumables.filter((item) => item.type === "drink");
   const drugs = consumables.filter((item) => item.type === "drug");
 
+
   // Filter venues by type
   const barVenues = venues.filter((venue) => venue.type === "bar");
-  const companionVenues = venues.filter((venue) => venue.type === "companion");
+  const companionVenues = venues.filter((venue) => venue.type === "brothel" || venue.type === "companion");
   const raveVenues = venues.filter((venue) => venue.type === "rave");
 
-  // Debug companion venues
 
   // If a venue is selected, show its content
   if (selectedVenue) {
@@ -231,12 +248,12 @@ const NightlifeView = () => {
           {activeTab === "bar" && (
             <div>
               <h3 className="text-xl font-bold mb-4 text-cyber-blue">
-                🍺 Bebidas Disponíveis
+                🍺 Available Drinks
               </h3>
               {consumablesLoading ? (
                 <div className="text-center py-8">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-cyber-blue mx-auto"></div>
-                  <p className="mt-2">Carregando bebidas...</p>
+                  <p className="mt-2">Loading drinks...</p>
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -276,7 +293,7 @@ const NightlifeView = () => {
                       >
                         <div className="flex items-center gap-3 mb-3">
                           <img
-                            src={drink.image_url}
+                            src={drink.image_url || getConsumableImage(drink.name, drink.type)}
                             alt={drink.name}
                             className="w-12 h-12 object-cover rounded"
                           />
@@ -334,12 +351,12 @@ const NightlifeView = () => {
           {activeTab === "rave" && (
             <div>
               <h3 className="text-xl font-bold mb-4 text-purple-400">
-                🎵 Drogas Disponíveis
+                🎵 Available Drugs
               </h3>
               {consumablesLoading ? (
                 <div className="text-center py-8">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-cyber-blue mx-auto"></div>
-                  <p className="mt-2">Carregando drogas...</p>
+                  <p className="mt-2">Loading drugs...</p>
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -379,7 +396,7 @@ const NightlifeView = () => {
                       >
                         <div className="flex items-center gap-3 mb-3">
                           <img
-                            src={drug.image_url}
+                            src={drug.image_url || getConsumableImage(drug.name, drug.type)}
                             alt={drug.name}
                             className="w-12 h-12 object-cover rounded"
                           />
@@ -451,8 +468,16 @@ const NightlifeView = () => {
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {characters
-                    .filter((char) => char.venue_id === selectedVenue.id)
+                  {(() => {
+                    const venueCharacters = characters.filter((char) => char.venue_id === selectedVenue.id);
+                    
+                    // If no characters found, show all characters for now
+                    if (venueCharacters.length === 0 && characters.length > 0) {
+                      return characters;
+                    }
+                    
+                    return venueCharacters;
+                  })()
                     .map((character) => (
                       <div
                         key={character.id}
@@ -464,6 +489,10 @@ const NightlifeView = () => {
                             src={character.image_url}
                             alt={character.name}
                             className="w-20 h-20 rounded-lg object-cover border border-cyber-pink/50"
+                            onError={(e) => {
+                              console.log(`Failed to load image for ${character.name}:`, character.image_url);
+                              e.currentTarget.style.display = 'none';
+                            }}
                           />
                           <div className="flex-1">
                             <div className="flex items-center justify-between mb-2">
