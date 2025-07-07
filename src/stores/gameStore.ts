@@ -42,7 +42,7 @@ const initialPlayerStats: PlayerStats = {
 const initialPlayer: Player = {
   id: "",
   name: "",
-  avatarUrl: "https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg",
+  avatarUrl: "",
   stats: initialPlayerStats,
   createdAt: new Date(),
   updatedAt: new Date(),
@@ -902,69 +902,81 @@ export const useGameStore = create<GameStore>()(
         // Clear previous subscriptions first
         get().clearRealtimeSync();
 
-        // Subscribe to player changes
-        SupabaseService.subscribeToPlayer(userId, (payload: unknown) => {
-          const typedPayload = payload as {
-            eventType: string;
-            new: Record<string, unknown>;
-          };
-          if (typedPayload.eventType === "UPDATE") {
-            const newPlayer = typedPayload.new;
-            set((state) => ({
-              player: {
-                ...state.player,
-                stats: {
-                  ...state.player.stats,
-                  health:
-                    (newPlayer.health as number) || state.player.stats.health,
-                  maxHealth:
-                    (newPlayer.max_health as number) ||
-                    state.player.stats.maxHealth,
-                  energy:
-                    (newPlayer.energy as number) || state.player.stats.energy,
-                  maxEnergy:
-                    (newPlayer.max_energy as number) ||
-                    state.player.stats.maxEnergy,
-                  addiction:
-                    (newPlayer.addiction as number) ||
-                    state.player.stats.addiction,
-                  reputation:
-                    (newPlayer.reputation as number) ||
-                    state.player.stats.reputation,
-                  money:
-                    (newPlayer.money as number) || state.player.stats.money,
-                  wantedLevel:
-                    (newPlayer.wanted_level as number) ||
-                    state.player.stats.wantedLevel,
-                  isImprisoned:
-                    (newPlayer.is_imprisoned as boolean) ||
-                    state.player.stats.isImprisoned,
-                  isHospitalized:
-                    (newPlayer.is_hospitalized as boolean) ||
-                    state.player.stats.isHospitalized,
-                },
-              },
-            }));
-          }
-        });
+        // Only setup realtime sync if we have a valid player ID and database access
+        const currentPlayer = get().player;
+        if (!currentPlayer?.id || currentPlayer.id.length < 10) {
+          // Skip realtime sync for local players
+          return;
+        }
 
-        // Subscribe to inventory changes
-        SupabaseService.subscribeToInventory(userId, (payload: unknown) => {
-          const typedPayload = payload as { eventType: string };
-          if (typedPayload.eventType === "INSERT") {
-            // Handle new item
-          } else if (typedPayload.eventType === "UPDATE") {
-            // Handle item update
-          } else if (typedPayload.eventType === "DELETE") {
-            // Handle item removal
-          }
-        });
+        try {
+          // Subscribe to player changes
+          SupabaseService.subscribeToPlayer(userId, (payload: unknown) => {
+            const typedPayload = payload as {
+              eventType: string;
+              new: Record<string, unknown>;
+            };
+            if (typedPayload.eventType === "UPDATE") {
+              const newPlayer = typedPayload.new;
+              set((state) => ({
+                player: {
+                  ...state.player,
+                  stats: {
+                    ...state.player.stats,
+                    health:
+                      (newPlayer.health as number) || state.player.stats.health,
+                    maxHealth:
+                      (newPlayer.max_health as number) ||
+                      state.player.stats.maxHealth,
+                    energy:
+                      (newPlayer.energy as number) || state.player.stats.energy,
+                    maxEnergy:
+                      (newPlayer.max_energy as number) ||
+                      state.player.stats.maxEnergy,
+                    addiction:
+                      (newPlayer.addiction as number) ||
+                      state.player.stats.addiction,
+                    reputation:
+                      (newPlayer.reputation as number) ||
+                      state.player.stats.reputation,
+                    money:
+                      (newPlayer.money as number) || state.player.stats.money,
+                    wantedLevel:
+                      (newPlayer.wanted_level as number) ||
+                      state.player.stats.wantedLevel,
+                    isImprisoned:
+                      (newPlayer.is_imprisoned as boolean) ||
+                      state.player.stats.isImprisoned,
+                    isHospitalized:
+                      (newPlayer.is_hospitalized as boolean) ||
+                      state.player.stats.isHospitalized,
+                  },
+                },
+              }));
+            }
+          });
+
+          // Subscribe to inventory changes
+          SupabaseService.subscribeToInventory(userId, (payload: unknown) => {
+            const typedPayload = payload as { eventType: string };
+            if (typedPayload.eventType === "INSERT") {
+              // Handle new item
+            } else if (typedPayload.eventType === "UPDATE") {
+              // Handle item update
+            } else if (typedPayload.eventType === "DELETE") {
+              // Handle item removal
+            }
+          });
+        } catch (error) {
+          // Realtime sync setup failed - continue with local mode
+        }
       },
 
       clearRealtimeSync: () => {
         try {
           supabase.removeAllChannels();
         } catch (error) {
+          // Silently handle realtime cleanup errors during development
         }
       },
 

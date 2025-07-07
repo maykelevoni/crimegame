@@ -39,7 +39,7 @@ const GameStatusBar: React.FC<GameStatusBarProps> = ({
   wantedLevel,
   money,
   playerName = "Urban Player",
-  avatarUrl = "https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg",
+  avatarUrl = "",
   onLogout,
 }) => {
   const { isMobile, isTablet } = useResponsive();

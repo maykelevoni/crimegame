@@ -150,10 +150,199 @@ export const useShopItems = () => {
   return useQuery({
     queryKey: ["shop-items"],
     queryFn: async () => {
-      // Por enquanto, retornamos dados mock com UUIDs válidos
-      return mockShopItems;
+      try {
+        // Use the items table
+        const { data: itemsData, error: itemsError } = await supabase
+          .from('items')
+          .select('*')
+          .eq('available', true)
+          .order('price', { ascending: true });
+        
+        if (itemsData && itemsData.length > 0) {
+          // Transform items data to ShopItem format
+          return itemsData.map(item => ({
+            id: item.id,
+            name: item.name,
+            description: item.description,
+            price: item.price,
+            type: item.type as ShopItem['type'],
+            rarity: item.rarity as ShopItem['rarity'],
+            effects: item.bonus || {},
+            image: item.image,
+            inStock: item.available,
+            discount: 0,
+          })) as ShopItem[];
+        }
+        
+        if (itemsError && itemsError.code !== 'PGRST116' && itemsError.code !== '42P01' && itemsError.code !== 'PGRST301') {
+          throw itemsError;
+        }
+        
+        // If table is empty, populate it with initial data
+        await populateInitialItems();
+        
+        // Try again after populating
+        const { data: newItemsData } = await supabase
+          .from('items')
+          .select('*')
+          .eq('available', true)
+          .order('price', { ascending: true });
+        
+        if (newItemsData && newItemsData.length > 0) {
+          return newItemsData.map(item => ({
+            id: item.id,
+            name: item.name,
+            description: item.description,
+            price: item.price,
+            type: item.type as ShopItem['type'],
+            rarity: item.rarity as ShopItem['rarity'],
+            effects: item.bonus || {},
+            image: item.image,
+            inStock: item.available,
+            discount: 0,
+          })) as ShopItem[];
+        }
+        
+        return [];
+      } catch (error) {
+        return [];
+      }
     },
   });
+};
+
+const populateInitialItems = async () => {
+  try {
+    const initialItems = [
+      {
+        name: "Combat Knife",
+        description: "Sharp tactical knife for close combat situations",
+        price: 500,
+        type: "weapon",
+        rarity: "common",
+        effects: { damage: 10, success_boost: 10 },
+        image_url: "https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?w=800&h=600&fit=crop&crop=center",
+        in_stock: true,
+        category: "Melee Weapons",
+        is_active: true,
+        stock_quantity: 50,
+      },
+      {
+        name: "Glock 17",
+        description: "Reliable 9mm pistol with good accuracy",
+        price: 2000,
+        type: "weapon",
+        rarity: "rare",
+        effects: { damage: 25, success_boost: 20 },
+        image_url: "https://images.unsplash.com/photo-1586953208448-b95a79798f07?w=800&h=600&fit=crop&crop=center",
+        in_stock: true,
+        category: "Firearms",
+        is_active: true,
+        stock_quantity: 25,
+      },
+      {
+        name: "AR-15 Rifle",
+        description: "Military-grade assault rifle for maximum damage",
+        price: 5000,
+        type: "weapon",
+        rarity: "epic",
+        effects: { damage: 40, success_boost: 30 },
+        image_url: "https://images.unsplash.com/photo-1544966503-7cc5ac882d5f?w=800&h=600&fit=crop&crop=center",
+        in_stock: true,
+        category: "Firearms",
+        is_active: true,
+        stock_quantity: 10,
+      },
+      {
+        name: "Motorcycle",
+        description: "Fast bike for quick escapes",
+        price: 3000,
+        type: "vehicle",
+        rarity: "common",
+        effects: { escape_boost: 15 },
+        image_url: "https://images.unsplash.com/photo-1503736334956-4c8f8e92946d?w=800&h=600&fit=crop&crop=center",
+        in_stock: true,
+        category: "Vehicles",
+        is_active: true,
+        stock_quantity: 20,
+      },
+      {
+        name: "Sports Car",
+        description: "High-speed vehicle for quick escapes",
+        price: 20000,
+        type: "vehicle",
+        rarity: "epic",
+        effects: { escape_boost: 40, reputation: 15 },
+        image_url: "https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=800&h=600&fit=crop&crop=center",
+        in_stock: true,
+        category: "Luxury Vehicles",
+        is_active: true,
+        stock_quantity: 5,
+      },
+      {
+        name: "Bulletproof Vest",
+        description: "Advanced protection against small arms fire",
+        price: 1500,
+        type: "protection",
+        rarity: "rare",
+        effects: { defense: 30, health_protection: 20 },
+        image_url: "https://images.unsplash.com/photo-1565814329452-e1efa11c5b89?w=800&h=600&fit=crop&crop=center",
+        in_stock: true,
+        category: "Body Armor",
+        is_active: true,
+        stock_quantity: 15,
+      },
+      {
+        name: "Body Armor",
+        description: "Military-grade protection -40% health loss in crimes",
+        price: 4000,
+        type: "protection",
+        rarity: "epic",
+        effects: { health_protection: 40 },
+        image_url: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&h=600&fit=crop&crop=center",
+        in_stock: true,
+        category: "Body Armor",
+        is_active: true,
+        stock_quantity: 8,
+      },
+      {
+        name: "Medical Kit",
+        description: "Emergency medical supplies for field treatment",
+        price: 300,
+        type: "consumable",
+        rarity: "common",
+        effects: { health: 50 },
+        image_url: "https://images.unsplash.com/photo-1584362917165-526a968579e8?w=800&h=600&fit=crop&crop=center",
+        in_stock: true,
+        category: "Medical Supplies",
+        is_active: true,
+        stock_quantity: 100,
+      },
+      {
+        name: "Energy Drink",
+        description: "Quick energy boost +40 Energy",
+        price: 200,
+        type: "consumable",
+        rarity: "common",
+        effects: { energy: 40 },
+        image_url: "https://images.unsplash.com/photo-1527960471264-932f39eb5846?w=800&h=600&fit=crop&crop=center",
+        in_stock: true,
+        category: "Energy",
+        is_active: true,
+        stock_quantity: 200,
+      },
+    ];
+
+    const { error } = await supabase
+      .from('items')
+      .insert(initialItems);
+
+    if (error) {
+      console.error('Error populating initial items:', error);
+    }
+  } catch (error) {
+    console.error('Error in populateInitialItems:', error);
+  }
 };
 
 export const useBuyItem = () => {
@@ -186,8 +375,27 @@ export const useBuyItem = () => {
         throw playerError;
       }
 
-      // 2. Get item information
-      const item = mockShopItems.find((i) => i.id === itemId);
+      // 2. Get item information from database
+      const { data: itemData, error: itemError } = await supabase
+        .from('items')
+        .select('*')
+        .eq('id', itemId)
+        .single();
+      
+      if (itemError) throw itemError;
+      
+      const item = {
+        id: itemData.id,
+        name: itemData.name,
+        description: itemData.description,
+        price: itemData.price,
+        type: itemData.type,
+        rarity: itemData.rarity,
+        effects: itemData.bonus || {},
+        image: itemData.image,
+        inStock: itemData.available,
+        discount: 0,
+      } as ShopItem;
 
       if (!item) throw new Error("Item not found");
 
@@ -284,13 +492,15 @@ export const useBuyMultipleItems = () => {
       let totalCost = 0;
 
       for (const { itemId, quantity } of items) {
-        const item = mockShopItems.find((i) => i.id === itemId);
-        if (!item) throw new Error(`Item ${itemId} not found`);
+        const { data: itemData, error: itemError } = await supabase
+          .from('items')
+          .select('price')
+          .eq('id', itemId)
+          .single();
+        
+        if (itemError) throw new Error(`Item ${itemId} not found`);
 
-        const itemCost =
-          (item.discount
-            ? item.price * (1 - item.discount / 100)
-            : item.price) * quantity;
+        const itemCost = itemData.price * quantity;
         totalCost += itemCost;
       }
 

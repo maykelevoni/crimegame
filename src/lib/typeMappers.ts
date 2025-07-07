@@ -17,9 +17,7 @@ export const mapSupabasePlayerToGamePlayer = (
       (supabasePlayer.username as string) ||
       (supabasePlayer.name as string) ||
       "Player",
-    avatarUrl:
-      (supabasePlayer.avatar_url as string) ||
-      "https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg",
+    avatarUrl: (supabasePlayer.avatar_url as string) || "",
     stats: {
       health: (supabasePlayer.health as number) || 100,
       maxHealth: (supabasePlayer.max_health as number) || 100,
@@ -137,8 +135,7 @@ export const createNewPlayerData = (
   // Usando Record em vez de any
   return {
     username: name, // Usar username em vez de name
-    avatar_url:
-      "https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg",
+    avatar_url: "",
     health: 100,
     max_health: 100,
     energy: 100,

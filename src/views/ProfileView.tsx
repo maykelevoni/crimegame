@@ -18,11 +18,13 @@ import {
   Car,
   Zap,
   Heart,
+  Edit,
 } from "lucide-react";
 import BaseView from "./BaseView";
 import { useGameStore } from "../stores/gameStore";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import AvatarSelector from "../components/AvatarSelector";
 import { useShopItems } from "../hooks/useShop";
 import type { Item } from "../types/game";
 
@@ -115,7 +117,7 @@ export default function InventoryView() {
             type: "consumable" as const,
             rarity: "comum" as const,
             price: 0,
-            image: "https://images.unsplash.com/photo-1587854692152-cbe660dbde88?w=150&h=150&fit=crop",
+            image: "",
             bonus: {},
             quantity: invItem.quantity,
             equipped: invItem.equipped || false,
@@ -128,9 +130,8 @@ export default function InventoryView() {
     enabled: !!player?.id && shopItems.length > 0, // Wait for shop items to load first
   });
 
-  const [avatar, setAvatar] = useState(
-    "https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg"
-  );
+  const [avatar, setAvatar] = useState(player?.avatar || "");
+  const [showAvatarSelector, setShowAvatarSelector] = useState(false);
   const [equipped, setEquipped] = useState<{
     weapon: Item | null;
     armor: Item | null;
@@ -299,14 +300,17 @@ export default function InventoryView() {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <img
-              src={avatar}
+              src={player.avatarUrl || avatar}
               alt="Avatar"
               className="w-16 h-16 rounded-full border-2 border-cyan-400 object-cover"
             />
             <div>
               <h2 className="text-xl font-bold text-cyan-400">{player.name}</h2>
-              <button className="text-sm text-cyan-400 flex items-center gap-1 hover:underline">
-                <Camera size={14} /> Change photo
+              <button 
+                onClick={() => setShowAvatarSelector(true)}
+                className="text-sm text-cyan-400 flex items-center gap-1 hover:underline transition-colors hover:text-cyan-300"
+              >
+                <Edit size={14} /> Choose Avatar
               </button>
             </div>
           </div>
@@ -535,6 +539,13 @@ export default function InventoryView() {
           </div>
         </div>
       )}
+
+      {/* Avatar Selector Modal */}
+      <AvatarSelector
+        isOpen={showAvatarSelector}
+        onClose={() => setShowAvatarSelector(false)}
+        currentAvatar={player?.avatarUrl}
+      />
     </BaseView>
   );
 }

@@ -86,7 +86,7 @@ const InventoryView = () => {
     // For non-consumable items, check if there's already an item of the same type equipped
     if (!isCurrentlyEquipped && shopItem.type !== "consumable") {
       const sameTypeEquipped = equippedItems.find(equipped => {
-        const equippedShopItem = shopItems.find(shop => shop.id === equipped.weapon_id);
+        const equippedShopItem = shopItems.find(shop => shop.id === equipped.item_id);
         return equippedShopItem?.type === shopItem.type;
       });
 
@@ -109,7 +109,7 @@ const InventoryView = () => {
   };
 
   const getItemDetails = (inventoryItem: InventoryItem): ShopItem | null => {
-    return shopItems.find(item => item.id === inventoryItem.weapon_id) || null;
+    return shopItems.find(item => item.id === inventoryItem.item_id) || null;
   };
 
   const categories = [

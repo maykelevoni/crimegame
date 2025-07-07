@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { useGameStore } from "../stores/gameStore";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 interface Business {
   id: string;
@@ -43,110 +44,9 @@ interface Business {
   productionRate: number; // products per hour
 }
 
-const businesses: Business[] = [
-  {
-    id: "counterfeit",
-    name: "Counterfeit Cash Factory",
-    description: "Print fake money with high-tech equipment",
-    image: "https://images.unsplash.com/photo-1580519542036-c47de6196ba5?w=800&h=600&fit=crop&crop=center",
-    price: 75000,
-    baseIncome: 8000,
-    level: 1,
-    maxLevel: 5,
-    employees: 3,
-    maxEmployees: 15,
-    security: 40,
-    supplies: 0,
-    maxSupplies: 100,
-    supplyCost: 15000,
-    upgradeCost: 15000,
-    type: "counterfeit",
-    owned: false,
-    productionRate: 2,
-  },
-  {
-    id: "weapons",
-    name: "Weapon Manufacturing",
-    description: "Produce illegal weapons for the black market",
-    image: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=150&h=150&fit=crop",
-    price: 250000,
-    baseIncome: 25000,
-    level: 1,
-    maxLevel: 5,
-    employees: 8,
-    maxEmployees: 30,
-    security: 70,
-    supplies: 0,
-    maxSupplies: 100,
-    supplyCost: 40000,
-    upgradeCost: 50000,
-    type: "weapons",
-    owned: false,
-    productionRate: 1.5,
-  },
-  {
-    id: "drugs",
-    name: "Drug Lab",
-    description: "Cook and distribute illegal drugs",
-    image: "https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=150&h=150&fit=crop",
-    price: 150000,
-    baseIncome: 18000,
-    level: 1,
-    maxLevel: 5,
-    employees: 5,
-    maxEmployees: 20,
-    security: 60,
-    supplies: 0,
-    maxSupplies: 100,
-    supplyCost: 25000,
-    upgradeCost: 30000,
-    type: "drugs",
-    owned: false,
-    productionRate: 2.5,
-  },
-  {
-    id: "garage",
-    name: "Chop Shop Garage",
-    description: "Steal and modify vehicles for resale",
-    image: "https://images.unsplash.com/photo-1486496572940-2bb2341fdbdf?w=150&h=150&fit=crop",
-    price: 120000,
-    baseIncome: 12000,
-    level: 1,
-    maxLevel: 5,
-    employees: 6,
-    maxEmployees: 25,
-    security: 50,
-    supplies: 0,
-    maxSupplies: 100,
-    supplyCost: 20000,
-    upgradeCost: 25000,
-    type: "garage",
-    owned: false,
-    productionRate: 1.8,
-  },
-  {
-    id: "casino",
-    name: "Underground Casino",
-    description: "Run illegal gambling operations",
-    image: "https://images.unsplash.com/photo-1511512578047-dfb367046420?w=150&h=150&fit=crop",
-    price: 500000,
-    baseIncome: 50000,
-    level: 1,
-    maxLevel: 5,
-    employees: 15,
-    maxEmployees: 50,
-    security: 80,
-    supplies: 0,
-    maxSupplies: 100,
-    supplyCost: 75000,
-    upgradeCost: 100000,
-    type: "casino",
-    owned: false,
-    productionRate: 1,
-  },
-];
-
 const BusinessView = () => {
+  const [businesses, setBusinesses] = useState<Business[]>([]);
+  const [loading, setLoading] = useState(true);
   const [selectedBusiness, setSelectedBusiness] = useState<Business | null>(null);
   const [ownedBusinesses, setOwnedBusinesses] = useState<Business[]>([]);
   const [showUpgradeConfirm, setShowUpgradeConfirm] = useState<{
@@ -162,6 +62,11 @@ const BusinessView = () => {
   } | null>(null);
   const { player, updatePlayerMoney } = useGameStore();
 
+  // Load businesses from database
+  useEffect(() => {
+    loadBusinesses();
+  }, []);
+
   // Load owned businesses from localStorage when component mounts
   useEffect(() => {
     if (player?.id) {
@@ -176,6 +81,65 @@ const BusinessView = () => {
       }
     }
   }, [player?.id]);
+
+  const getBusinessImage = (type: string) => {
+    const imageMap: { [key: string]: string } = {
+      counterfeit: "https://images.unsplash.com/photo-1580519542036-c47de6196ba5?w=800&h=600&fit=crop&crop=center",
+      weapons: "https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?w=800&h=600&fit=crop&crop=center",
+      drugs: "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=800&h=600&fit=crop&crop=center",
+      garage: "https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?w=800&h=600&fit=crop&crop=center",
+      casino: "https://images.unsplash.com/photo-1551269901-5c5e14c25df7?w=800&h=600&fit=crop&crop=center",
+      restaurant: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800&h=600&fit=crop&crop=center",
+      nightclub: "https://images.unsplash.com/photo-1566737236500-c8ac43014a8e?w=800&h=600&fit=crop&crop=center",
+      convenience: "https://images.unsplash.com/photo-1534723328310-e82dad3ee43f?w=800&h=600&fit=crop&crop=center"
+    };
+    return imageMap[type] || "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&h=600&fit=crop&crop=center";
+  };
+
+  const loadBusinesses = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('businesses')
+        .select('*')
+        .order('price', { ascending: true });
+      
+      if (error && error.code !== 'PGRST116' && error.code !== '42P01') {
+        throw error;
+      }
+      
+      if (data && data.length > 0) {
+        // Transform database data to match Business interface
+        const transformedBusinesses: Business[] = data.map(business => ({
+          id: business.id,
+          name: business.name,
+          description: business.description,
+          image: getBusinessImage(business.type),
+          price: business.price,
+          baseIncome: business.income,
+          level: 1,
+          maxLevel: 5,
+          employees: 3,
+          maxEmployees: 15,
+          security: 40,
+          supplies: 0,
+          maxSupplies: 100,
+          supplyCost: Math.floor(business.price * 0.1),
+          upgradeCost: Math.floor(business.price * 0.2),
+          type: business.type as Business['type'],
+          owned: false,
+          productionRate: 2,
+        }));
+        setBusinesses(transformedBusinesses);
+      } else {
+        setBusinesses([]);
+      }
+    } catch (error) {
+      console.error('Error loading businesses:', error);
+      toast.error('Failed to load businesses');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Save owned businesses to localStorage whenever they change
   const saveBusinessesToStorage = (businesses: Business[]) => {
@@ -487,11 +451,17 @@ const BusinessView = () => {
           <Building2 size={24} className="text-blue-400" />
           Available Businesses
         </h2>
-        <div className="grid gap-4">
-          {businesses
-            .filter(
-              (business) => !ownedBusinesses.find((b) => b.id === business.id)
-            )
+        {loading ? (
+          <div className="text-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-400 mx-auto"></div>
+            <p className="mt-2 text-white/60">Loading businesses...</p>
+          </div>
+        ) : (
+          <div className="grid gap-4">
+            {businesses
+              .filter(
+                (business) => !ownedBusinesses.find((b) => b.id === business.id)
+              )
             .map((business) => (
               <div
                 key={business.id}
@@ -532,7 +502,8 @@ const BusinessView = () => {
                 </div>
               </div>
             ))}
-        </div>
+          </div>
+        )}
       </div>
 
       {/* Business Modal */}

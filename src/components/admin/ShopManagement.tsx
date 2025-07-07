@@ -875,13 +875,24 @@ const ShopManagement = () => {
           <p className="text-gray-600">Manage shop inventory and item properties</p>
         </div>
 
-        <button
-          onClick={() => setShowAddModal(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-        >
-          <Plus size={16} />
-          Add Item
-        </button>
+        <div className="flex gap-2">
+          {items.length === 0 && (
+            <button
+              onClick={populateInitialItems}
+              className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+            >
+              <Package size={16} />
+              Populate Initial Items
+            </button>
+          )}
+          <button
+            onClick={() => setShowAddModal(true)}
+            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+          >
+            <Plus size={16} />
+            Add Item
+          </button>
+        </div>
       </div>
 
       {/* Filters */}

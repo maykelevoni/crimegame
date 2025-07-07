@@ -79,88 +79,7 @@ export const useNightlifeConsumables = () => {
         return data as unknown as NightlifeConsumable[];
       }
 
-      // Mock data fallback if database is empty
-      const mockConsumables: NightlifeConsumable[] = [
-        // Drinks
-        {
-          id: "1",
-          name: "Beer",
-          description: "Ice cold beer to relax and unwind",
-          image_url: "https://images.unsplash.com/photo-1608270586620-248524c67de9?w=400&h=400&fit=crop&crop=center",
-          price: 10,
-          type: "drink",
-          effects: { energy: 5, addiction: 1 },
-          available: true,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        },
-        {
-          id: "2",
-          name: "Whiskey",
-          description: "Premium whiskey for the sophisticated drinker",
-          image_url: "https://images.unsplash.com/photo-1569529465841-dfecdab7503b?w=400&h=400&fit=crop&crop=center",
-          price: 25,
-          type: "drink",
-          effects: { energy: 10, addiction: 3 },
-          available: true,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        },
-        {
-          id: "3",
-          name: "Cocktail",
-          description: "Exotic cocktail with a mysterious kick",
-          image_url: "https://images.unsplash.com/photo-1551024506-0bccd828d307?w=400&h=400&fit=crop&crop=center",
-          price: 35,
-          type: "drink",
-          effects: { energy: 15, addiction: 2 },
-          available: true,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        },
-        // Drugs
-        {
-          id: "4",
-          name: "Pills",
-          description: "Energy pills that keep you going all night",
-          image_url: "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=400&h=400&fit=crop&crop=center",
-          price: 50,
-          type: "drug",
-          effects: { energy: 30, addiction: 8 },
-          risk_level: "Medium",
-          available: true,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        },
-        {
-          id: "5",
-          name: "Powder",
-          description: "White powder that gives intense energy boost",
-          image_url: "https://images.unsplash.com/photo-1471193945509-9ad0617afabf?w=400&h=400&fit=crop&crop=center",
-          price: 100,
-          type: "drug",
-          effects: { energy: 50, addiction: 15 },
-          risk_level: "High",
-          available: true,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        },
-        {
-          id: "6",
-          name: "Crystal",
-          description: "Dangerous crystal drug for extreme highs",
-          image_url: "https://images.unsplash.com/photo-1518611012118-696072aa579a?w=400&h=400&fit=crop&crop=center",
-          price: 200,
-          type: "drug",
-          effects: { energy: 80, addiction: 25 },
-          risk_level: "Extreme",
-          available: true,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        },
-      ];
-
-      return mockConsumables;
+      return [];
     },
   });
 };
@@ -184,63 +103,7 @@ export const useNightlifeVenues = () => {
         return data as unknown as NightlifeVenue[];
       }
 
-      // Mock data fallback if database is empty
-      const mockVenues: NightlifeVenue[] = [
-        {
-          id: "1",
-          name: "Rooftop Bar",
-          type: "bar",
-          description: "Upscale bar with premium drinks and live music",
-          image_url: "https://images.unsplash.com/photo-1514933651103-005eec06c04b?w=800&h=600&fit=crop&crop=center",
-          energy_cost: 3,
-          money_cost: 50,
-          effects: { energy: 20, reputation: 5 },
-          available: true,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        },
-        {
-          id: "2",
-          name: "Underground Club",
-          type: "rave",
-          description: "High-energy electronic music venue with party atmosphere",
-          image_url: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=800&h=600&fit=crop&crop=center",
-          energy_cost: 5,
-          money_cost: 30,
-          effects: { energy: 50, addiction: 2 },
-          available: true,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        },
-        {
-          id: "4",
-          name: "Red Light District",
-          type: "companion",
-          description: "Discreet services for adult entertainment",
-          image_url: "https://images.unsplash.com/photo-1519501025264-65ba15a82390?w=800&h=600&fit=crop&crop=center",
-          energy_cost: 0,
-          money_cost: 150,
-          effects: { energy: 25, addiction: 5 },
-          available: true,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        },
-        {
-          id: "5",
-          name: "Luxury Escort Service",
-          type: "companion",
-          description: "High-end companionship for elite clients",
-          image_url: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=800&h=600&fit=crop&crop=center",
-          energy_cost: 0,
-          money_cost: 300,
-          effects: { energy: 40, addiction: 3 },
-          available: true,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        },
-      ];
-
-      return mockVenues;
+      return [];
     },
   });
 };
@@ -269,64 +132,7 @@ export const useNightlifeCharacters = (venueId?: string) => {
         return data as unknown as NightlifeCharacter[];
       }
 
-      // Mock data fallback if database is empty
-      const mockCharacters: NightlifeCharacter[] = [
-        {
-          id: "1",
-          venue_id: "4", // Red Light District
-          name: "Carmen",
-          description: "Experienced street walker with attitude",
-          image_url: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400&h=400&fit=crop&crop=faces",
-          price: 50,
-          energy_cost: 2,
-          effects: { energy: 10, addiction: 3 },
-          available: true,
-          created_at: new Date().toISOString(),
-        },
-        {
-          id: "2",
-          venue_id: "4", // Red Light District
-          name: "Maria",
-          description: "Young and wild, loves to party",
-          image_url: "https://images.unsplash.com/photo-1489424731084-a5d8b219a5bb?w=400&h=400&fit=crop&crop=faces",
-          price: 75,
-          energy_cost: 3,
-          effects: { energy: 15, addiction: 5 },
-          available: true,
-          created_at: new Date().toISOString(),
-        },
-        {
-          id: "3",
-          venue_id: "5", // Luxury Escort Service
-          name: "Sophia",
-          description: "High-class escort for wealthy clients",
-          image_url: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400&h=400&fit=crop&crop=faces",
-          price: 150,
-          energy_cost: 5,
-          effects: { energy: 25, addiction: 8 },
-          available: true,
-          created_at: new Date().toISOString(),
-        },
-        {
-          id: "4",
-          venue_id: "5", // Luxury Escort Service
-          name: "Isabella",
-          description: "Elite companion with exclusive services",
-          image_url: "https://images.unsplash.com/photo-1494790108755-2616b2e31b89?w=400&h=400&fit=crop&crop=faces",
-          price: 200,
-          energy_cost: 8,
-          effects: { energy: 40, addiction: 12 },
-          available: true,
-          created_at: new Date().toISOString(),
-        },
-      ];
-
-      // Filter by venueId if provided
-      if (venueId) {
-        return mockCharacters.filter(char => char.venue_id === venueId);
-      }
-
-      return mockCharacters;
+      return [];
     },
     enabled: true, // Sempre buscar todos os characters
   });

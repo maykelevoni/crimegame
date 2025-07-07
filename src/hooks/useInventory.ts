@@ -5,7 +5,7 @@ import { ShopItem } from "./useShop";
 export interface InventoryItem {
   id: string;
   player_id: string;
-  weapon_id: string | null; // Using weapon_id from database
+  item_id: string | null; // Generic item_id for all types
   quantity: number;
   equipped?: boolean; // Optional since it's not in database yet
   created_at: string;
@@ -27,7 +27,7 @@ export const usePlayerInventory = (playerId: string) => {
         const inventoryItems: InventoryItem[] = localInventory.map((item: any) => ({
           id: item.id,
           player_id: item.player_id,
-          weapon_id: item.item_id || item.weapon_id,
+          item_id: item.item_id || item.weapon_id,
           quantity: item.quantity,
           equipped: item.equipped || false,
           created_at: item.created_at
@@ -60,7 +60,7 @@ export const useEquippedItems = (playerId: string) => {
         const inventoryItems: InventoryItem[] = equippedItems.map((item: any) => ({
           id: item.id,
           player_id: item.player_id,
-          weapon_id: item.item_id || item.weapon_id,
+          item_id: item.item_id || item.weapon_id,
           quantity: item.quantity,
           equipped: item.equipped,
           created_at: item.created_at
@@ -85,7 +85,7 @@ export const calculateEquipmentBonuses = (equippedItems: InventoryItem[], shopIt
   };
 
   equippedItems.forEach((inventoryItem) => {
-    const shopItem = shopItems.find(item => item.id === inventoryItem.weapon_id);
+    const shopItem = shopItems.find(item => item.id === inventoryItem.item_id);
     if (shopItem && shopItem.effects) {
       totalBonuses.success_boost += shopItem.effects.success_boost || 0;
       totalBonuses.escape_boost += shopItem.effects.escape_boost || 0;

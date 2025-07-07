@@ -21,7 +21,7 @@ export function StatsBar({ player }: StatsBarProps) {
       <div className="px-4 flex items-center justify-between mb-4">
         <div className="flex items-center">
           <img
-            src="https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg"
+            src={player?.avatar || ""}
             alt="Avatar"
             className="w-10 h-10 rounded-full mr-2"
           />

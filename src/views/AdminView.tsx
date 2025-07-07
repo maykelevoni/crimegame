@@ -26,6 +26,7 @@ import CrimeManagement from "../components/admin/CrimeManagement";
 import NightlifeManagement from "../components/admin/NightlifeManagement";
 import CasinoManagement from "../components/admin/CasinoManagement";
 import DailyRewardsManagement from "../components/admin/DailyRewardsManagement";
+import AvatarManagement from "../components/admin/AvatarManagement";
 
 type AdminSection = 
   | "dashboard" 
@@ -35,7 +36,8 @@ type AdminSection =
   | "crimes" 
   | "nightlife" 
   | "casino"
-  | "rewards";
+  | "rewards"
+  | "avatars";
 
 const AdminView = () => {
   const [activeSection, setActiveSection] = useState<AdminSection>("dashboard");
@@ -89,6 +91,12 @@ const AdminView = () => {
       icon: Gift,
       description: "Manage Rewards System"
     },
+    {
+      id: "avatars" as AdminSection,
+      label: "Avatars",
+      icon: Users,
+      description: "Manage Player Avatars"
+    },
   ];
 
   const renderContent = () => {
@@ -109,6 +117,8 @@ const AdminView = () => {
         return <CasinoManagement />;
       case "rewards":
         return <DailyRewardsManagement />;
+      case "avatars":
+        return <AvatarManagement />;
       default:
         return <AdminDashboard />;
     }

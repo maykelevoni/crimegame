@@ -37,21 +37,6 @@ import { useGameStore } from "../stores/gameStore";
 import { toast } from "sonner";
 
 const NightlifeView = () => {
-  const getConsumableImage = (name: string, type: string) => {
-    const imageMap: { [key: string]: string } = {
-      'Beer': 'https://images.unsplash.com/photo-1608270586620-248524c67de9?w=400&h=400&fit=crop&crop=center',
-      'Energy Drink': 'https://images.unsplash.com/photo-1527960471264-932f39eb5846?w=400&h=400&fit=crop&crop=center',
-      'Wine': 'https://images.unsplash.com/photo-1547595628-c61a29f496f0?w=400&h=400&fit=crop&crop=center',
-      'Whiskey': 'https://images.unsplash.com/photo-1569529465841-dfecdab7503b?w=400&h=400&fit=crop&crop=center',
-      'Weed': 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=400&fit=crop&crop=center',
-      'Ecstasy': 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=400&h=400&fit=crop&crop=center',
-      'Cocaine': 'https://images.unsplash.com/photo-1471193945509-9ad0617afabf?w=400&h=400&fit=crop&crop=center'
-    };
-    
-    return imageMap[name] || (type === 'drink' ? 
-      'https://images.unsplash.com/photo-1608270586620-248524c67de9?w=400&h=400&fit=crop&crop=center' : 
-      'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=400&h=400&fit=crop&crop=center');
-  };
 
   const [activeTab, setActiveTab] = useState("bar");
   const [selectedVenue, setSelectedVenue] = useState<NightlifeVenue | null>(
@@ -293,7 +278,7 @@ const NightlifeView = () => {
                       >
                         <div className="flex items-center gap-3 mb-3">
                           <img
-                            src={drink.image_url || getConsumableImage(drink.name, drink.type)}
+                            src={drink.image_url}
                             alt={drink.name}
                             className="w-12 h-12 object-cover rounded"
                           />
@@ -396,7 +381,7 @@ const NightlifeView = () => {
                       >
                         <div className="flex items-center gap-3 mb-3">
                           <img
-                            src={drug.image_url || getConsumableImage(drug.name, drug.type)}
+                            src={drug.image_url}
                             alt={drug.name}
                             className="w-12 h-12 object-cover rounded"
                           />
@@ -714,7 +699,7 @@ const NightlifeView = () => {
                           <div className="flex items-center gap-6">
                             <div className="w-20 h-20 rounded-lg overflow-hidden bg-cyber-dark flex-shrink-0">
                               <img
-                                src={venue.image_url || 'https://images.unsplash.com/photo-1519501025264-65ba15a82390?w=150&h=150&fit=crop'}
+                                src={venue.image_url}
                                 alt={venue.name}
                                 className="w-full h-full object-cover"
                               />
