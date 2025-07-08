@@ -27,7 +27,7 @@ import {
 } from "lucide-react";
 import HomeView from "../views/HomeView";
 import RobberyView from "../views/RobberyView";
-import InventoryView from "../views/ProfileView";
+import InventoryView from "../views/InventoryView";
 import NewsView from "../views/NewsView";
 import { GameProvider } from "./GameProvider";
 import NightlifeView from "../views/NightlifeView";

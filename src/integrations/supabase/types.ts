@@ -57,6 +57,13 @@ export type Database = {
           name: string
           price: number
           type: string
+          player_id: string | null
+          business_type_id: string | null
+          level: number | null
+          last_collected: string | null
+          income_per_hour: number | null
+          employees: number | null
+          security: number | null
         }
         Insert: {
           created_at?: string
@@ -66,6 +73,13 @@ export type Database = {
           name: string
           price: number
           type: string
+          player_id?: string | null
+          business_type_id?: string | null
+          level?: number | null
+          last_collected?: string | null
+          income_per_hour?: number | null
+          employees?: number | null
+          security?: number | null
         }
         Update: {
           created_at?: string
@@ -75,6 +89,61 @@ export type Database = {
           name?: string
           price?: number
           type?: string
+          player_id?: string | null
+          business_type_id?: string | null
+          level?: number | null
+          last_collected?: string | null
+          income_per_hour?: number | null
+          employees?: number | null
+          security?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "businesses_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "businesses_business_type_id_fkey"
+            columns: ["business_type_id"]
+            isOneToOne: false
+            referencedRelation: "business_types"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      business_types: {
+        Row: {
+          id: string
+          name: string
+          description: string
+          type: string
+          base_price: number
+          base_income: number
+          max_level: number
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          name: string
+          description: string
+          type: string
+          base_price: number
+          base_income: number
+          max_level: number
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          name?: string
+          description?: string
+          type?: string
+          base_price?: number
+          base_income?: number
+          max_level?: number
+          created_at?: string
         }
         Relationships: []
       }

@@ -29,11 +29,11 @@ export default function ShopCartModal({
     >
       <div className="bg-cyber-dark border border-cyber-blue/30 rounded-xl p-6 max-w-md w-full max-h-[90vh] overflow-y-auto animate-slideInUp">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-bold text-cyber-blue">Carrinho</h2>
+          <h2 className="text-xl font-bold text-cyber-blue">Cart</h2>
           <button
             onClick={onClose}
             className="p-2 rounded-lg bg-cyber-blue/20 hover:bg-cyber-blue/30 transition-colors focus:outline-none focus:ring-2 focus:ring-cyber-blue"
-            aria-label="Fechar"
+            aria-label="Close"
           >
             <X size={20} className="text-cyber-blue" />
           </button>
@@ -44,7 +44,7 @@ export default function ShopCartModal({
               size={48}
               className="mx-auto mb-4 text-cyber-blue/40"
             />
-            <p>Carrinho vazio</p>
+            <p>Empty cart</p>
           </div>
         ) : (
           <div className="space-y-4">
@@ -79,7 +79,7 @@ export default function ShopCartModal({
                       )
                     }
                     className="px-2 py-1 bg-cyber-blue/20 rounded text-cyber-blue font-bold"
-                    aria-label="Diminuir quantidade"
+                    aria-label="Decrease quantity"
                   >
                     -
                   </button>
@@ -89,14 +89,14 @@ export default function ShopCartModal({
                       onChangeQty(cartItem.item.id, cartItem.quantity + 1)
                     }
                     className="px-2 py-1 bg-cyber-blue/20 rounded text-cyber-blue font-bold"
-                    aria-label="Aumentar quantidade"
+                    aria-label="Increase quantity"
                   >
                     +
                   </button>
                   <button
                     onClick={() => onRemove(cartItem.item.id)}
                     className="p-1 rounded bg-red-500/20 hover:bg-red-500/30 transition-colors focus:outline-none focus:ring-2 focus:ring-red-500"
-                    aria-label="Remover do carrinho"
+                    aria-label="Remove from cart"
                   >
                     <X size={16} className="text-red-400" />
                   </button>
@@ -115,7 +115,7 @@ export default function ShopCartModal({
                 disabled={isBuying}
                 className="w-full px-6 py-3 bg-gradient-to-r from-cyber-blue to-cyber-purple text-white font-bold rounded-lg hover:scale-105 transition-transform disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-cyber-blue"
               >
-                {isBuying ? "Comprando..." : "Comprar Tudo"}
+                {isBuying ? "Buying..." : "Buy All"}
               </button>
             </div>
           </div>

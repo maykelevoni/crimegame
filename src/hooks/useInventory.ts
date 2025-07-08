@@ -16,25 +16,74 @@ export const usePlayerInventory = (playerId: string) => {
   return useQuery({
     queryKey: ["inventory", playerId],
     queryFn: async () => {
-
-      // For now, use localStorage instead of database
+      // Load inventory from localStorage
       try {
         const localInventoryKey = `inventory_${playerId}`;
-        const localInventory = JSON.parse(localStorage.getItem(localInventoryKey) || '[]');
+        let localInventory = JSON.parse(localStorage.getItem(localInventoryKey) || '[]');
         
         
-        // Convert to InventoryItem format
-        const inventoryItems: InventoryItem[] = localInventory.map((item: any) => ({
-          id: item.id,
-          player_id: item.player_id,
-          item_id: item.item_id || item.weapon_id,
-          quantity: item.quantity,
-          equipped: item.equipped || false,
-          created_at: item.created_at
-        }));
+        // Clean up corrupted inventory items (ones without valid item_id)
+        const originalLength = localInventory.length;
+        localInventory = localInventory.filter((item: any) => 
+          item.item_id && typeof item.item_id === 'string' && item.item_id.length > 0
+        );
+        
+        // Save cleaned inventory back if we removed items
+        if (localInventory.length !== originalLength) {
+          localStorage.setItem(localInventoryKey, JSON.stringify(localInventory));
+        }
+        
+        if (localInventory.length === 0) {
+          return [];
+        }
+
+        // Get item IDs to fetch details
+        const itemIds = localInventory.map((item: any) => item.item_id || item.weapon_id).filter(Boolean);
+        
+        if (itemIds.length === 0) {
+          return [];
+        }
+
+        // Fetch item details from database
+        const { data: itemsData, error } = await supabase
+          .from('items')
+          .select('*')
+          .in('id', itemIds);
+        
+        if (error) {
+          console.error('Error fetching item details:', error);
+          return [];
+        }
+
+        // Convert to InventoryItem format with item details
+        const inventoryItems: InventoryItem[] = localInventory.map((item: any) => {
+          const itemDetails = itemsData?.find(dbItem => dbItem.id === (item.item_id || item.weapon_id));
+          
+          return {
+            id: item.id,
+            player_id: item.player_id,
+            item_id: item.item_id || item.weapon_id,
+            quantity: item.quantity,
+            equipped: item.equipped || false,
+            created_at: item.created_at,
+            item: itemDetails ? {
+              id: itemDetails.id,
+              name: itemDetails.name,
+              description: itemDetails.description,
+              price: itemDetails.price,
+              type: itemDetails.type as any,
+              rarity: itemDetails.rarity as any,
+              effects: itemDetails.bonus || {},
+              image: itemDetails.image || itemDetails.image_url || '',
+              inStock: itemDetails.available || true,
+              discount: 0,
+            } : undefined
+          };
+        }).filter(item => item.item); // Only return items that have valid item details
         
         return inventoryItems;
       } catch (error) {
+        console.error('Error loading inventory:', error);
         return [];
       }
     },

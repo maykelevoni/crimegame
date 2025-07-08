@@ -1,321 +1,563 @@
-import React, { useState } from "react";
-import BaseView from "./BaseView";
+import React, { useState, useEffect } from "react";
 import {
-  Package,
-  Shield,
-  Zap,
-  Target,
-  TrendingUp,
+  Camera,
+  Shirt,
+  Sword,
+  Backpack,
   Star,
-  Check,
   X,
-  Trash2,
-  ArrowRight,
+  Brain,
+  Dumbbell,
+  Smile,
+  Shield,
+  Glasses,
+  Pill,
+  Briefcase,
+  User,
+  TrendingUp,
+  Car,
+  Zap,
+  Heart,
+  Edit,
 } from "lucide-react";
-import { usePlayerInventory, useEquippedItems, InventoryItem } from "../hooks/useInventory";
-import { useShopItems, ShopItem } from "../hooks/useShop";
+import BaseView from "./BaseView";
 import { useGameStore } from "../stores/gameStore";
-import { toast } from "sonner";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import AvatarSelector from "../components/AvatarSelector";
+import { useShopItems } from "../hooks/useShop";
+import type { Item } from "../types/game";
 
-interface EquipItemMutation {
-  playerId: string;
-  inventoryId: string;
-  equipped: boolean;
-}
+const STATUS_BASE = {
+  intelligence: 50,
+  strength: 30,
+  charisma: 20,
+  resistance: 15,
+};
 
-const InventoryView = () => {
-  const [selectedCategory, setSelectedCategory] = useState<string>("all");
+const ITEM_TYPES = {
+  weapon: "Arma",
+  armor: "Colete",
+  consumable: "Uso",
+};
+
+const RARITY_ICONS: { [key: string]: JSX.Element } = {
+  raro: <span className="w-2 h-2 bg-blue-500 rounded-full" />,
+  lendario: <span className="w-2 h-2 bg-yellow-400 rounded-full" />,
+};
+
+const TYPE_ICONS = {
+  weapon: <Sword className="w-4 h-4 text-red-400" />,
+  armor: <Shield className="w-4 h-4 text-blue-400" />,
+  style: <Shirt className="w-4 h-4 text-purple-400" />,
+  accessory: <Glasses className="w-4 h-4 text-cyan-400" />,
+  consumable: <Pill className="w-4 h-4 text-green-400" />,
+  special: <Briefcase className="w-4 h-4 text-yellow-400" />,
+};
+
+const FILTER_OPTIONS = [
+  { key: "all", label: "All Items", icon: <Backpack /> },
+  { key: "weapon", label: "Weapons", icon: <Sword /> },
+  { key: "protection", label: "Protection", icon: <Shield /> },
+  { key: "vehicle", label: "Cars", icon: <Car /> },
+  { key: "consumable", label: "Consumables", icon: <Pill /> },
+];
+
+export default function InventoryView() {
   const { player } = useGameStore();
-  const { data: inventory = [], isLoading: inventoryLoading } = usePlayerInventory(player?.id || "");
-  const { data: equippedItems = [] } = useEquippedItems(player?.id || "");
-  const { data: shopItems = [] } = useShopItems();
-  const queryClient = useQueryClient();
 
-  // Mutation for equipping/unequipping items using localStorage
-  const equipItemMutation = useMutation({
-    mutationFn: async ({ playerId, inventoryId, equipped }: EquipItemMutation) => {
-      
+  // Import shop items hook
+  const { data: shopItems = [] } = useShopItems();
+
+  // Fetch inventory from localStorage (now works with our shop system)
+  const { data: inventory = [], isLoading: inventoryLoading } = useQuery({
+    queryKey: ["inventory", player?.id],
+    queryFn: async () => {
+      if (!player?.id) return [];
+
       try {
-        const localInventoryKey = `inventory_${playerId}`;
-        const existingInventory = JSON.parse(localStorage.getItem(localInventoryKey) || '[]');
+        // Get from localStorage
+        const localInventoryKey = `inventory_${player.id}`;
+        let localInventory = JSON.parse(localStorage.getItem(localInventoryKey) || '[]');
         
-        // Find and update the item
-        const itemIndex = existingInventory.findIndex((item: any) => item.id === inventoryId);
+        // Clean up items with old mock IDs (ones that don't match UUID format)
+        const originalLength = localInventory.length;
+        localInventory = localInventory.filter((item: any) => {
+          const itemId = item.item_id || item.weapon_id;
+          // Keep only items with UUID format (8-4-4-4-12 characters)
+          return itemId && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(itemId);
+        });
         
-        if (itemIndex >= 0) {
-          existingInventory[itemIndex].equipped = equipped;
-          localStorage.setItem(localInventoryKey, JSON.stringify(existingInventory));
-        } else {
-          throw new Error("Item not found in inventory");
+        // Save cleaned inventory if we removed items
+        if (localInventory.length !== originalLength) {
+          localStorage.setItem(localInventoryKey, JSON.stringify(localInventory));
         }
         
-        return { success: true };
-      } catch (error) {
-        throw error;
-      }
-    },
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ["inventory", variables.playerId] });
-      queryClient.invalidateQueries({ queryKey: ["equipped-items", variables.playerId] });
-      
-      const action = variables.equipped ? "equipped" : "unequipped";
-      toast.success(`Item ${action} successfully!`);
-    },
-    onError: (error) => {
-      toast.error(error instanceof Error ? error.message : "Failed to update item");
-    },
-  });
-
-  const handleEquipItem = async (inventoryItem: InventoryItem) => {
-    if (!player?.id) {
-      toast.error("Player not found");
-      return;
-    }
-
-    const shopItem = shopItems.find(item => item.id === inventoryItem.item_id);
-    if (!shopItem) {
-      toast.error("Item details not found");
-      return;
-    }
-
-    // Check if item is already equipped
-    const isCurrentlyEquipped = inventoryItem.equipped;
-    
-    // For non-consumable items, check if there's already an item of the same type equipped
-    if (!isCurrentlyEquipped && shopItem.type !== "consumable") {
-      const sameTypeEquipped = equippedItems.find(equipped => {
-        const equippedShopItem = shopItems.find(shop => shop.id === equipped.item_id);
-        return equippedShopItem?.type === shopItem.type;
-      });
-
-      if (sameTypeEquipped) {
-        // Auto-unequip the previous item of the same type
-        await equipItemMutation.mutateAsync({
-          playerId: player.id,
-          inventoryId: sameTypeEquipped.id,
-          equipped: false,
+        // Convert localStorage items to InventoryView format using shop items data
+        return localInventory.map((invItem: any) => {
+          const shopItem = shopItems.find(shop => shop.id === invItem.item_id);
+          
+          if (shopItem) {
+            // Map shop item types to InventoryView types
+            const profileType = shopItem.type === "weapon" ? "weapon" :
+                              shopItem.type === "protection" ? "armor" :
+                              shopItem.type === "vehicle" ? "style" : // vehicles go to style for now
+                              "consumable";
+            
+            return {
+              id: invItem.id,
+              name: shopItem.name,
+              description: shopItem.description,
+              type: profileType,
+              rarity: shopItem.rarity === "common" ? "comum" : 
+                     shopItem.rarity === "rare" ? "raro" : 
+                     shopItem.rarity === "epic" ? "épico" : 
+                     shopItem.rarity === "legendary" ? "lendário" : "comum",
+              price: shopItem.price,
+              image: shopItem.image,
+              bonus: shopItem.effects || {},
+              quantity: invItem.quantity,
+              equipped: invItem.equipped || false,
+            };
+          }
+          
+          // Fallback for unknown items
+          return {
+            id: invItem.id,
+            name: `Item ${invItem.item_id?.slice(0, 8) || 'Unknown'}`,
+            description: "Shop item",
+            type: "consumable" as const,
+            rarity: "comum" as const,
+            price: 0,
+            image: "",
+            bonus: {},
+            quantity: invItem.quantity,
+            equipped: invItem.equipped || false,
+          };
         });
+      } catch (error) {
+        return [];
       }
-    }
-
-    // Equip/unequip the current item
-    await equipItemMutation.mutateAsync({
-      playerId: player.id,
-      inventoryId: inventoryItem.id,
-      equipped: !isCurrentlyEquipped,
-    });
-  };
-
-  const getItemDetails = (inventoryItem: InventoryItem): ShopItem | null => {
-    return shopItems.find(item => item.id === inventoryItem.item_id) || null;
-  };
-
-  const categories = [
-    { id: "all", name: "All Items", icon: Package },
-    { id: "weapon", name: "Weapons", icon: Target },
-    { id: "vehicle", name: "Cars", icon: TrendingUp },
-    { id: "protection", name: "Protection", icon: Shield },
-    { id: "consumable", name: "Consumables", icon: Zap },
-  ];
-
-  const filteredInventory = inventory.filter(item => {
-    if (selectedCategory === "all") return true;
-    const shopItem = getItemDetails(item);
-    return shopItem?.type === selectedCategory;
+    },
+    enabled: !!player?.id && shopItems.length > 0, // Wait for shop items to load first
   });
 
-  const getRarityColor = (rarity: string) => {
-    switch (rarity) {
-      case "common":
-        return "border-gray-400 bg-gray-400/10";
-      case "rare":
-        return "border-blue-400 bg-blue-400/10";
-      case "epic":
-        return "border-purple-400 bg-purple-400/10";
-      case "legendary":
-        return "border-yellow-400 bg-yellow-400/10";
-      default:
-        return "border-gray-400 bg-gray-400/10";
-    }
-  };
+  const [avatar, setAvatar] = useState(player?.avatar || "");
+  const [showAvatarSelector, setShowAvatarSelector] = useState(false);
+  const [equipped, setEquipped] = useState<{
+    weapon: Item | null;
+    armor: Item | null;
+    style: Item | null;
+    accessory: Item | null;
+  }>({
+    weapon: null,
+    armor: null,
+    style: null,
+    accessory: null,
+  });
+  const [selectedItem, setSelectedItem] = useState<Item | null>(null);
+  const [filter, setFilter] = useState("all");
+  const [usedMessage, setUsedMessage] = useState("");
+  const [usedItemId, setUsedItemId] = useState<string | null>(null);
+  const [consumedIds, setConsumedIds] = useState<string[]>([]);
 
-  if (inventoryLoading) {
+  // Load equipped items from localStorage when inventory changes
+  useEffect(() => {
+    if (player?.id && inventory.length > 0 && shopItems.length > 0) {
+      const localInventoryKey = `inventory_${player.id}`;
+      const localInventory = JSON.parse(localStorage.getItem(localInventoryKey) || '[]');
+      
+      const equippedFromStorage = {
+        weapon: null as Item | null,
+        armor: null as Item | null,
+        style: null as Item | null,
+        accessory: null as Item | null,
+      };
+      
+      localInventory.forEach((invItem: any) => {
+        if (invItem.equipped) {
+          const shopItem = shopItems.find(shop => shop.id === invItem.item_id);
+          if (shopItem) {
+            const profileType = shopItem.type === "weapon" ? "weapon" :
+                              shopItem.type === "protection" ? "armor" :
+                              shopItem.type === "vehicle" ? "style" : 
+                              null;
+            
+            if (profileType) {
+              equippedFromStorage[profileType as keyof typeof equippedFromStorage] = {
+                id: invItem.id,
+                name: shopItem.name,
+                description: shopItem.description,
+                type: profileType,
+                rarity: shopItem.rarity === "common" ? "comum" : 
+                       shopItem.rarity === "rare" ? "raro" : 
+                       shopItem.rarity === "epic" ? "épico" : 
+                       shopItem.rarity === "legendary" ? "lendário" : "comum",
+                price: shopItem.price,
+                image: shopItem.image,
+                bonus: shopItem.effects || {},
+                quantity: invItem.quantity,
+                equipped: true,
+              };
+            }
+          }
+        }
+      });
+      
+      setEquipped(equippedFromStorage);
+    }
+  }, [inventory, shopItems, player?.id]);
+
+  // Verificação de segurança
+  if (!player) {
     return (
       <BaseView title="Inventory">
-        <div className="flex items-center justify-center h-64">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cyber-blue mx-auto mb-4"></div>
-            <p>Loading inventory...</p>
-          </div>
+        <div className="text-center py-8">
+          <p className="text-white/60">Loading player data...</p>
         </div>
       </BaseView>
     );
   }
 
+  // Calcula status com bônus dos itens equipados
+  const status: { [key: string]: number } = { ...STATUS_BASE };
+  Object.values(equipped).forEach((item) => {
+    if (item && item.bonus) {
+      Object.entries(item.bonus).forEach(([key, value]) => {
+        status[key] = (status[key] || 0) + value;
+      });
+    }
+  });
+
+  // Filter inventory items by category, matching shop item types
+  const itemsToShow = inventory.filter((item) => {
+    if (consumedIds.includes(item.id)) return false;
+    if (filter === "all") return true;
+    
+    // Find the shop item to get the correct type
+    const shopItem = shopItems.find(shop => shop.id === item.weapon_id);
+    if (!shopItem) return false;
+    
+    // Match shop item type to filter
+    return shopItem.type === filter;
+  });
+
+  function handleEquip(item: Item) {
+    if (["weapon", "armor", "style", "accessory"].includes(item.type)) {
+      // Update localStorage
+      if (player?.id) {
+        const localInventoryKey = `inventory_${player.id}`;
+        const existingInventory = JSON.parse(localStorage.getItem(localInventoryKey) || '[]');
+        
+        // Unequip any item of the same type
+        existingInventory.forEach((invItem: any) => {
+          if (invItem.equipped) {
+            const shopItem = shopItems.find(shop => shop.id === invItem.item_id);
+            const itemType = shopItem?.type === "weapon" ? "weapon" :
+                            shopItem?.type === "protection" ? "armor" :
+                            shopItem?.type === "vehicle" ? "style" : "consumable";
+            if (itemType === item.type) {
+              invItem.equipped = false;
+            }
+          }
+        });
+        
+        // Equip the selected item
+        const itemToEquip = existingInventory.find((invItem: any) => invItem.id === item.id);
+        if (itemToEquip) {
+          itemToEquip.equipped = true;
+        }
+        
+        localStorage.setItem(localInventoryKey, JSON.stringify(existingInventory));
+      }
+      
+      setEquipped((prev) => ({ ...prev, [item.type]: item }));
+      setSelectedItem(null);
+    }
+  }
+
+  function handleUnequip(type: string) {
+    // Update localStorage
+    if (player?.id && equipped[type as keyof typeof equipped]) {
+      const localInventoryKey = `inventory_${player.id}`;
+      const existingInventory = JSON.parse(localStorage.getItem(localInventoryKey) || '[]');
+      
+      const itemToUnequip = existingInventory.find((invItem: any) => invItem.id === equipped[type as keyof typeof equipped]?.id);
+      if (itemToUnequip) {
+        itemToUnequip.equipped = false;
+        localStorage.setItem(localInventoryKey, JSON.stringify(existingInventory));
+      }
+    }
+    
+    setEquipped((prev) => ({ ...prev, [type]: null }));
+    setSelectedItem(null);
+  }
+
+  const isEquippedSelected =
+    selectedItem &&
+    equipped[selectedItem.type as keyof typeof equipped] &&
+    equipped[selectedItem.type as keyof typeof equipped]?.id ===
+      selectedItem.id;
+
+  function handleUse(item: Item) {
+    setUsedMessage(`You used: ${item.name}!`);
+    setUsedItemId(item.id);
+    setConsumedIds((prev) => [...prev, item.id]);
+  }
+
   return (
     <BaseView title="Inventory">
-      <div className="space-y-6">
-        {/* Categories */}
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
-          {categories.map((category) => {
-            const Icon = category.icon;
-            return (
-              <button
-                key={category.id}
-                onClick={() => setSelectedCategory(category.id)}
-                className={`flex flex-col items-center gap-1 px-3 py-3 rounded-xl border transition-all ${
-                  selectedCategory === category.id
-                    ? "bg-cyber-blue/20 border-cyber-blue text-cyber-blue shadow-lg"
-                    : "bg-cyber-dark-light border-cyber-blue/20 text-white/70 hover:border-cyber-blue/40 hover:bg-cyber-blue/10"
-                }`}
+      {/* Player Info */}
+      <div className="mb-6 p-4 bg-gradient-to-r from-cyan-500/20 to-cyan-600/20 border border-cyan-500/30 rounded-xl">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <img
+              src={player.avatarUrl || avatar}
+              alt="Avatar"
+              className="w-16 h-16 rounded-full border-2 border-cyan-400 object-cover"
+            />
+            <div>
+              <h2 className="text-xl font-bold text-cyan-400">{player.name}</h2>
+              <button 
+                onClick={() => setShowAvatarSelector(true)}
+                className="text-sm text-cyan-400 flex items-center gap-1 hover:underline transition-colors hover:text-cyan-300"
               >
-                <Icon size={20} />
-                <span className="text-xs font-medium">{category.name}</span>
+                <Edit size={14} /> Choose Avatar
               </button>
-            );
-          })}
-        </div>
-
-        {/* Equipped Items Summary */}
-        {equippedItems.length > 0 && (
-          <div className="bg-cyber-dark-light border border-cyber-blue/30 rounded-xl p-4">
-            <h3 className="text-lg font-bold text-cyber-blue mb-3 flex items-center gap-2">
-              <Check size={20} />
-              Currently Equipped ({equippedItems.length})
-            </h3>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-              {equippedItems.map((equipped) => {
-                const shopItem = getItemDetails(equipped);
-                if (!shopItem) return null;
-                
-                return (
-                  <div
-                    key={equipped.id}
-                    className={`p-2 rounded-lg border text-center ${getRarityColor(shopItem.rarity)}`}
-                  >
-                    <img
-                      src={shopItem.image}
-                      alt={shopItem.name}
-                      className="w-8 h-8 mx-auto mb-1 object-contain"
-                    />
-                    <p className="text-xs font-medium text-white truncate">
-                      {shopItem.name}
-                    </p>
-                  </div>
-                );
-              })}
             </div>
           </div>
-        )}
-
-        {/* Inventory Items */}
-        <div>
-          <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
-            <Package size={24} className="text-cyber-blue" />
-            Your Items ({filteredInventory.length})
-          </h3>
-          
-          {filteredInventory.length === 0 ? (
-            <div className="text-center py-12 text-white/60">
-              <Package size={48} className="mx-auto mb-4 text-cyber-blue/40" />
-              <p>No items in this category</p>
-              <p className="text-sm">Visit the shop to buy equipment!</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {filteredInventory.map((inventoryItem) => {
-                const shopItem = getItemDetails(inventoryItem);
-                if (!shopItem) return null;
-
-                const isEquipped = inventoryItem.equipped || false;
-                const isConsumable = shopItem.type === "consumable";
-
-                return (
-                  <div
-                    key={inventoryItem.id}
-                    className={`p-4 rounded-xl border transition-all ${getRarityColor(shopItem.rarity)} ${
-                      isEquipped ? "ring-2 ring-cyber-blue" : ""
-                    }`}
-                  >
-                    <div className="flex items-start gap-3">
-                      <div className="relative">
-                        <img
-                          src={shopItem.image}
-                          alt={shopItem.name}
-                          className="w-16 h-16 object-contain rounded-lg"
-                        />
-                        {isEquipped && (
-                          <div className="absolute -top-1 -right-1 bg-cyber-blue rounded-full p-1">
-                            <Check size={12} className="text-white" />
-                          </div>
-                        )}
-                      </div>
-                      
-                      <div className="flex-1 min-w-0">
-                        <h4 className="font-bold text-white truncate">
-                          {shopItem.name}
-                        </h4>
-                        <p className="text-xs text-white/60 mb-2">
-                          {shopItem.description}
-                        </p>
-                        
-                        {inventoryItem.quantity > 1 && (
-                          <p className="text-sm text-cyber-blue font-bold mb-2">
-                            Quantity: {inventoryItem.quantity}
-                          </p>
-                        )}
-
-                        {/* Effects */}
-                        <div className="flex flex-wrap gap-1 mb-3">
-                          {Object.entries(shopItem.effects || {}).map(([effect, value]) => {
-                            if (!value) return null;
-                            return (
-                              <span
-                                key={effect}
-                                className="text-xs px-2 py-1 bg-cyber-blue/10 border border-cyber-blue/20 rounded"
-                              >
-                                {effect === 'success_boost' ? 'Success' : 
-                                 effect === 'escape_boost' ? 'Escape' : 
-                                 effect === 'health_protection' ? 'Protection' : 
-                                 effect.charAt(0).toUpperCase() + effect.slice(1)}: +{value}{effect.includes('boost') || effect.includes('protection') ? '%' : ''}
-                              </span>
-                            );
-                          })}
-                        </div>
-
-                        {/* Action Button */}
-                        {!isConsumable && (
-                          <button
-                            onClick={() => handleEquipItem(inventoryItem)}
-                            disabled={equipItemMutation.isPending}
-                            className={`w-full py-2 px-3 rounded-lg font-medium transition-colors text-sm ${
-                              isEquipped
-                                ? "bg-red-500/20 border border-red-500/30 text-red-400 hover:bg-red-500/30"
-                                : "bg-cyber-blue/20 border border-cyber-blue/30 text-cyber-blue hover:bg-cyber-blue/30"
-                            } ${equipItemMutation.isPending ? "opacity-50 cursor-not-allowed" : ""}`}
-                          >
-                            {equipItemMutation.isPending ? "..." : isEquipped ? "Unequip" : "Equip"}
-                          </button>
-                        )}
-                        
-                        {isConsumable && (
-                          <div className="text-xs text-white/60 text-center py-2">
-                            Use in Nightlife
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
         </div>
       </div>
+
+      {/* Equipped Items */}
+      <div className="mb-6">
+        <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+          <Star size={24} className="text-yellow-400" />
+          Equipped Items
+        </h2>
+        <div className="grid grid-cols-3 gap-4">
+          <div className="p-4 bg-red-500/10 border border-red-500/30 rounded-xl">
+            <div className="flex items-center gap-2 mb-2">
+              <Sword size={16} className="text-red-400" />
+              <span className="text-sm text-white/60">Weapon:</span>
+            </div>
+            {equipped.weapon ? (
+              <div className="flex items-center gap-2">
+                <img
+                  src={equipped.weapon.image}
+                  alt={equipped.weapon.name}
+                  className="w-8 h-8 rounded object-cover"
+                />
+                <span className="text-red-400 font-bold text-sm">
+                  {equipped.weapon.name}
+                </span>
+              </div>
+            ) : (
+              <span className="text-white/40 text-sm">None equipped</span>
+            )}
+          </div>
+          <div className="p-4 bg-blue-500/10 border border-blue-500/30 rounded-xl">
+            <div className="flex items-center gap-2 mb-2">
+              <Shield size={16} className="text-blue-400" />
+              <span className="text-sm text-white/60">Protection:</span>
+            </div>
+            {equipped.armor ? (
+              <div className="flex items-center gap-2">
+                <img
+                  src={equipped.armor.image}
+                  alt={equipped.armor.name}
+                  className="w-8 h-8 rounded object-cover"
+                />
+                <span className="text-blue-400 font-bold text-sm">
+                  {equipped.armor.name}
+                </span>
+              </div>
+            ) : (
+              <span className="text-white/40 text-sm">None equipped</span>
+            )}
+          </div>
+          <div className="p-4 bg-purple-500/10 border border-purple-500/30 rounded-xl">
+            <div className="flex items-center gap-2 mb-2">
+              <Car size={16} className="text-purple-400" />
+              <span className="text-sm text-white/60">Car:</span>
+            </div>
+            {equipped.style ? (
+              <div className="flex items-center gap-2">
+                <img
+                  src={equipped.style.image}
+                  alt={equipped.style.name}
+                  className="w-8 h-8 rounded object-cover"
+                />
+                <span className="text-purple-400 font-bold text-sm">
+                  {equipped.style.name}
+                </span>
+              </div>
+            ) : (
+              <span className="text-white/40 text-sm">None equipped</span>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Filters */}
+      <div className="mb-6">
+        <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+          <Backpack size={24} className="text-white" />
+          Inventory
+        </h2>
+        <div className="grid grid-cols-3 gap-2 mb-4">
+          {FILTER_OPTIONS.map((f) => (
+            <button
+              key={f.key}
+              className={`flex flex-col items-center justify-center gap-1 px-3 py-2 rounded-lg font-semibold transition-all border-2 ${
+                filter === f.key
+                  ? "bg-cyan-500 border-cyan-400 text-gray-900"
+                  : "bg-gray-800/50 border-gray-600 text-white hover:bg-gray-700/50"
+              }`}
+              onClick={() => setFilter(f.key)}
+            >
+              <span className="flex items-center justify-center w-5 h-5">
+                {f.icon}
+              </span>
+              <span className="text-xs">{f.label}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Inventory Grid */}
+      <div className="grid grid-cols-6 gap-2">
+        {Array.from({ length: 18 }, (_, idx) => {
+          const item = itemsToShow[idx];
+          const isEquipped =
+            item &&
+            equipped[item.type as keyof typeof equipped] &&
+            equipped[item.type as keyof typeof equipped]?.id === item.id;
+          return (
+            <div
+              key={idx}
+              className={`relative w-12 h-12 flex items-center justify-center rounded-lg border-2 transition cursor-pointer ${
+                item
+                  ? isEquipped
+                    ? "border-yellow-400 bg-yellow-500/20"
+                    : "border-gray-600 bg-gray-800/50 hover:scale-105"
+                  : "border-gray-700 bg-gray-900/50 opacity-40 cursor-default"
+              }`}
+              onClick={() => item && setSelectedItem(item)}
+            >
+              {item ? (
+                <>
+                  <img
+                    src={item.image}
+                    alt={item.name}
+                    className="w-8 h-8 object-cover rounded"
+                  />
+                  {isEquipped && (
+                    <span className="absolute -top-1 -right-1 bg-yellow-400 text-gray-900 text-[8px] font-bold px-1 rounded">
+                      E
+                    </span>
+                  )}
+                  {item.rarity !== "comum" && (
+                    <span className="absolute bottom-1 right-1">
+                      {RARITY_ICONS[item.rarity]}
+                    </span>
+                  )}
+                </>
+              ) : null}
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Item Modal */}
+      {selectedItem && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4">
+          <div className="bg-gray-900 rounded-xl p-6 border border-cyan-500/30 shadow-xl max-w-sm w-full">
+            <div className="flex justify-between items-start mb-4">
+              <h3 className="text-xl font-bold text-cyan-400">
+                {selectedItem.name}
+              </h3>
+              <button
+                className="text-cyan-400 hover:text-white"
+                onClick={() => {
+                  setSelectedItem(null);
+                  setUsedMessage("");
+                  setUsedItemId(null);
+                }}
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <div className="flex items-start gap-4 mb-4">
+              <img
+                src={selectedItem.image}
+                alt={selectedItem.name}
+                className="w-16 h-16 object-cover rounded-lg"
+              />
+              <div className="flex-1">
+                <p className="text-sm text-white/70 mb-2">
+                  {selectedItem.description}
+                </p>
+                {selectedItem.bonus && (
+                  <div className="flex flex-wrap gap-1">
+                    {Object.entries(selectedItem.bonus).map(([key, val]) => (
+                      <span
+                        key={key}
+                        className="bg-cyan-900/60 text-cyan-200 px-2 py-1 rounded text-xs"
+                      >
+                        {key}: {String(val)}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="flex gap-2">
+              {["weapon", "armor", "style", "accessory"].includes(
+                selectedItem.type as string
+              ) ? (
+                isEquippedSelected ? (
+                  <button
+                    className="flex-1 bg-yellow-500 hover:bg-yellow-600 text-gray-900 px-4 py-2 rounded font-bold text-sm"
+                    onClick={() => handleUnequip(selectedItem.type as string)}
+                  >
+                    Unequip
+                  </button>
+                ) : (
+                  <button
+                    className="flex-1 bg-cyan-500 hover:bg-cyan-600 text-white px-4 py-2 rounded font-bold text-sm"
+                    onClick={() => handleEquip(selectedItem)}
+                  >
+                    Equip
+                  </button>
+                )
+              ) : selectedItem.type === "consumable" ? (
+                <button
+                  className="flex-1 bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded font-bold text-sm"
+                  onClick={() => handleUse(selectedItem)}
+                >
+                  Use
+                </button>
+              ) : null}
+            </div>
+
+            {usedMessage && usedItemId === selectedItem.id && (
+              <div className="mt-4 p-3 bg-green-700/20 border border-green-500/30 rounded text-center text-green-400 font-bold text-sm">
+                {usedMessage}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Avatar Selector Modal */}
+      <AvatarSelector
+        isOpen={showAvatarSelector}
+        onClose={() => setShowAvatarSelector(false)}
+        currentAvatar={player?.avatarUrl}
+      />
     </BaseView>
   );
-};
-
-export default InventoryView;
+}

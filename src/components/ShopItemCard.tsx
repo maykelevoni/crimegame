@@ -71,26 +71,36 @@ export default function ShopItemCard({
     <div
       role="button"
       tabIndex={0}
-      aria-label={`Ver detalhes de ${item.name}`}
+      aria-label={`View details of ${item.name}`}
       onClick={onClick}
       onKeyPress={(e) => {
         if (e.key === "Enter") onClick();
       }}
       className="group relative bg-gradient-to-br from-cyber-dark-light to-cyber-dark-medium border border-cyber-blue/20 rounded-xl p-4 hover:border-cyber-blue/50 hover:scale-[1.02] transition-all duration-200 cursor-pointer focus:outline-none focus:ring-2 focus:ring-cyber-blue flex flex-row items-center gap-4 md:gap-6"
     >
-      {item.discount && (
+      {(item.discount && item.discount > 0) ? (
         <div className="absolute top-2 right-2 bg-red-500 text-white text-xs px-2 py-1 rounded-full font-bold">
           -{item.discount}%
         </div>
-      )}
+      ) : null}
       <div className="flex-shrink-0 flex items-center justify-center w-16 h-16 md:w-20 md:h-20">
-        <img
-          src={item.image}
-          alt={item.name}
-          className="w-12 h-12 md:w-16 md:h-16 object-contain drop-shadow"
-          loading="lazy"
-          draggable={false}
-        />
+        {item.image ? (
+          <img
+            src={item.image}
+            alt={item.name}
+            className="w-12 h-12 md:w-16 md:h-16 object-contain drop-shadow"
+            loading="lazy"
+            draggable={false}
+            onError={(e) => {
+              console.log('Image failed to load:', item.image, 'for item:', item.name);
+              e.currentTarget.style.display = 'none';
+            }}
+          />
+        ) : (
+          <div className="w-12 h-12 md:w-16 md:h-16 bg-gray-600 rounded flex items-center justify-center text-xs">
+            No Image
+          </div>
+        )}
       </div>
       <div className="flex-1 min-w-0 space-y-2">
         <div className="flex items-center justify-between">
@@ -101,9 +111,9 @@ export default function ShopItemCard({
         </div>
         <p className="text-xs text-white/60 line-clamp-2">{item.description}</p>
         <div className="flex flex-wrap gap-1">
-          {Object.entries(item.effects || {}).map(([stat, value]) => {
-            if (!value) return null;
-            return (
+          {Object.entries(item.effects || {})
+            .filter(([stat, value]) => value && value !== 0)
+            .map(([stat, value]) => (
               <span
                 key={stat}
                 className="text-xs px-2 py-1 bg-cyber-blue/10 border border-cyber-blue/20 rounded"
@@ -113,30 +123,29 @@ export default function ShopItemCard({
                  stat === 'health_protection' ? 'Protection' : 
                  stat.charAt(0).toUpperCase() + stat.slice(1)}: +{value}{stat.includes('boost') || stat.includes('protection') ? '%' : ''}
               </span>
-            );
-          })}
+            ))}
         </div>
         <div className="flex items-center justify-between pt-2">
           <div className="flex items-center gap-1">
             <DollarSign size={16} className="text-yellow-400" />
             <span
               className={`font-bold ${
-                item.discount ? "line-through text-white/50" : "text-yellow-400"
+                item.discount && item.discount > 0 ? "line-through text-white/50" : "text-yellow-400"
               }`}
             >
               ${item.price.toLocaleString()}
             </span>
-            {item.discount && (
+            {(item.discount && item.discount > 0) ? (
               <span className="font-bold text-green-400">
                 $
                 {Math.round(
                   item.price * (1 - item.discount / 100)
                 ).toLocaleString()}
               </span>
-            )}
+            ) : null}
           </div>
           <button
-            aria-label={`Adicionar ${item.name} ao carrinho`}
+            aria-label={`Add ${item.name} to cart`}
             onClick={(e) => {
               e.stopPropagation();
               onAddToCart();

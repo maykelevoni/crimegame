@@ -65,21 +65,7 @@ const BusinessView = () => {
   // Load businesses from database
   useEffect(() => {
     loadBusinesses();
-  }, []);
-
-  // Load owned businesses from localStorage when component mounts
-  useEffect(() => {
-    if (player?.id) {
-      const businessKey = `owned_businesses_${player.id}`;
-      const savedBusinesses = localStorage.getItem(businessKey);
-      if (savedBusinesses) {
-        try {
-          const parsed = JSON.parse(savedBusinesses);
-          setOwnedBusinesses(parsed);
-        } catch (error) {
-        }
-      }
-    }
+    loadOwnedBusinesses();
   }, [player?.id]);
 
   const getBusinessImage = (type: string) => {
@@ -98,10 +84,11 @@ const BusinessView = () => {
 
   const loadBusinesses = async () => {
     try {
+      // Load available business types for purchase
       const { data, error } = await supabase
-        .from('businesses')
+        .from('business_types')
         .select('*')
-        .order('price', { ascending: true });
+        .order('base_price', { ascending: true });
       
       if (error && error.code !== 'PGRST116' && error.code !== '42P01') {
         throw error;
@@ -114,17 +101,17 @@ const BusinessView = () => {
           name: business.name,
           description: business.description,
           image: getBusinessImage(business.type),
-          price: business.price,
-          baseIncome: business.income,
+          price: business.base_price,
+          baseIncome: business.base_income,
           level: 1,
-          maxLevel: 5,
+          maxLevel: business.max_level || 5,
           employees: 3,
           maxEmployees: 15,
           security: 40,
           supplies: 0,
           maxSupplies: 100,
-          supplyCost: Math.floor(business.price * 0.1),
-          upgradeCost: Math.floor(business.price * 0.2),
+          supplyCost: Math.floor(business.base_price * 0.1),
+          upgradeCost: Math.floor(business.base_price * 0.2),
           type: business.type as Business['type'],
           owned: false,
           productionRate: 2,
@@ -141,6 +128,71 @@ const BusinessView = () => {
     }
   };
 
+  const loadOwnedBusinesses = async () => {
+    try {
+      if (!player?.id) {
+        setOwnedBusinesses([]);
+        return;
+      }
+
+      // First, get player's owned businesses
+      const { data: businessesData, error: businessesError } = await supabase
+        .from('businesses')
+        .select('*')
+        .eq('player_id', player.id)
+        .order('created_at', { ascending: false });
+      
+      if (businessesError && businessesError.code !== 'PGRST116' && businessesError.code !== '42P01') {
+        throw businessesError;
+      }
+      
+      if (businessesData && businessesData.length > 0) {
+        // Get business types for the owned businesses
+        const businessTypeIds = businessesData.map(b => b.business_type_id).filter(Boolean);
+        const { data: businessTypesData, error: businessTypesError } = await supabase
+          .from('business_types')
+          .select('*')
+          .in('id', businessTypeIds);
+        
+        if (businessTypesError && businessTypesError.code !== 'PGRST116' && businessTypesError.code !== '42P01') {
+          throw businessTypesError;
+        }
+        
+        // Transform database data to match Business interface
+        const transformedBusinesses: Business[] = businessesData.map(business => {
+          const businessType = businessTypesData?.find(bt => bt.id === business.business_type_id);
+          return {
+            id: business.id,
+            name: businessType?.name || 'Unknown Business',
+            description: businessType?.description || 'No description',
+            image: getBusinessImage(businessType?.type || 'convenience'),
+            price: businessType?.base_price || 0,
+            baseIncome: business.income_per_hour || businessType?.base_income || 0,
+            level: business.level || 1,
+            maxLevel: businessType?.max_level || 5,
+            employees: business.employees || 3,
+            maxEmployees: 15,
+            security: business.security || 40,
+            supplies: 0,
+            maxSupplies: 100,
+            supplyCost: Math.floor((businessType?.base_price || 0) * 0.1),
+            upgradeCost: Math.floor((businessType?.base_price || 0) * 0.2),
+            type: businessType?.type as Business['type'] || 'convenience',
+            owned: true,
+            lastCollection: business.last_collected ? new Date(business.last_collected).getTime() : Date.now(),
+            productionRate: 2,
+          };
+        });
+        setOwnedBusinesses(transformedBusinesses);
+      } else {
+        setOwnedBusinesses([]);
+      }
+    } catch (error) {
+      console.error('Error loading owned businesses:', error);
+      toast.error('Failed to load owned businesses');
+    }
+  };
+
   // Save owned businesses to localStorage whenever they change
   const saveBusinessesToStorage = (businesses: Business[]) => {
     if (player?.id) {
@@ -149,26 +201,56 @@ const BusinessView = () => {
     }
   };
 
-  const handleBuyBusiness = (business: Business) => {
+  const handleBuyBusiness = async (business: Business) => {
     const currentMoney = player?.money || player?.stats?.money || 0;
     if (currentMoney < business.price) {
       toast.error(`Not enough money! You need $${business.price.toLocaleString()} but have $${currentMoney.toLocaleString()}`);
       return;
     }
 
-    toast.dismiss();
-    updatePlayerMoney(-business.price);
-    const ownedBusiness = { 
-      ...business, 
-      owned: true,
-      lastCollection: Date.now(),
-    };
-    const newBusinesses = [...ownedBusinesses, ownedBusiness];
-    setOwnedBusinesses(newBusinesses);
-    saveBusinessesToStorage(newBusinesses);
-    setSelectedBusiness(null);
-    
-    toast.success(`🏢 You bought ${business.name}! Start making that dirty money!`);
+    if (!player?.id) {
+      toast.error('Player not found');
+      return;
+    }
+
+    try {
+      toast.dismiss();
+      
+      // Insert new business into database
+      const { data, error } = await supabase
+        .from('businesses')
+        .insert({
+          player_id: player.id,
+          business_type_id: business.id,
+          level: 1,
+          income_per_hour: business.baseIncome,
+          last_collected: new Date().toISOString(),
+          // Include fallback fields from business type in case columns don't exist yet
+          name: business.name,
+          description: business.description,
+          type: business.type,
+          price: business.price,
+          income: business.baseIncome,
+        })
+        .select()
+        .single();
+
+      if (error) {
+        throw error;
+      }
+
+      // Update player money
+      updatePlayerMoney(-business.price);
+      
+      // Reload owned businesses
+      loadOwnedBusinesses();
+      
+      setSelectedBusiness(null);
+      toast.success(`🏢 You bought ${business.name}! Start making that dirty money!`);
+    } catch (error) {
+      console.error('Error buying business:', error);
+      toast.error('Failed to buy business');
+    }
   };
 
   const requestUpgrade = (
@@ -201,7 +283,7 @@ const BusinessView = () => {
     });
   };
 
-  const confirmUpgrade = () => {
+  const confirmUpgrade = async () => {
     if (!showUpgradeConfirm) return;
 
     const { businessId, upgradeType, cost } = showUpgradeConfirm;
@@ -213,31 +295,53 @@ const BusinessView = () => {
       return;
     }
 
-    const newBusinesses = ownedBusinesses.map((business) => {
-      if (business.id === businessId) {
-        toast.dismiss();
-        updatePlayerMoney(-cost);
-        
-        const updated = { ...business };
-        if (upgradeType === "level") {
-          updated.level = Math.min(business.level + 1, business.maxLevel);
-          toast.success(`🔧 ${business.name} upgraded to level ${updated.level}!`);
-        } else if (upgradeType === "employees") {
-          updated.employees = Math.min(business.employees + 5, business.maxEmployees);
-          toast.success(`👥 Hired 5 more employees for ${business.name}!`);
-        } else if (upgradeType === "security") {
-          updated.security = Math.min(business.security + 10, 100);
-          toast.success(`🛡️ Security upgraded for ${business.name}!`);
-        }
-        
-        return updated;
+    try {
+      const business = ownedBusinesses.find(b => b.id === businessId);
+      if (!business) return;
+
+      toast.dismiss();
+      
+      let updateData = {};
+      if (upgradeType === "level") {
+        const newLevel = Math.min(business.level + 1, business.maxLevel);
+        const newIncome = Math.floor(business.baseIncome * (1 + (newLevel - 1) * 0.3)); // 30% increase per level
+        updateData = { 
+          level: newLevel,
+          income_per_hour: newIncome
+        };
+        toast.success(`🔧 ${business.name} upgraded to level ${newLevel}! Income: $${newIncome.toLocaleString()}/hour`);
+      } else if (upgradeType === "employees") {
+        const newEmployees = Math.min(business.employees + 5, business.maxEmployees);
+        updateData = { employees: newEmployees };
+        toast.success(`👥 Hired 5 more employees for ${business.name}! Total: ${newEmployees}`);
+      } else if (upgradeType === "security") {
+        const newSecurity = Math.min(business.security + 10, 100);
+        updateData = { security: newSecurity };
+        toast.success(`🛡️ Security upgraded for ${business.name}! Security: ${newSecurity}%`);
       }
-      return business;
-    });
-    
-    setOwnedBusinesses(newBusinesses);
-    saveBusinessesToStorage(newBusinesses);
-    setShowUpgradeConfirm(null);
+      
+      // Update business in database
+      const { error } = await supabase
+        .from('businesses')
+        .update(updateData)
+        .eq('id', businessId);
+
+      if (error) {
+        throw error;
+      }
+
+      // Update player money
+      updatePlayerMoney(-cost);
+      
+      // Reload owned businesses
+      loadOwnedBusinesses();
+      
+      setShowUpgradeConfirm(null);
+    } catch (error) {
+      console.error('Error upgrading business:', error);
+      toast.error('Failed to upgrade business');
+      setShowUpgradeConfirm(null);
+    }
   };
 
   const requestSupplies = (businessId: string) => {
