@@ -36,29 +36,60 @@ const HospitalView = ({
 
   const { player, updatePlayerStats } = useGameStore();
   const [health, setHealth] = useState(playerStatus.health);
-  const maxHealth = 100;
+  const maxHealth = player?.stats?.maxHealth || 100;
   const [addiction, setAddiction] = useState(playerStatus.addiction);
   const [wanted, setWanted] = useState(15);
   const [energy, setEnergy] = useState(50);
-  const maxEnergy = 100;
+  const maxEnergy = player?.stats?.maxEnergy || 100;
   const [money, setMoney] = useState(2500);
   const [cooldown, setCooldown] = useState(0);
   const [activeTreatment, setActiveTreatment] = useState("");
   const [recoveryTime, setRecoveryTime] = useState(0);
   const [hospitalizationReason, setHospitalizationReason] = useState("");
-  const [history, setHistory] = useState([
-    { type: "Heal", value: "+35 HP", date: "Today, 08:00" },
-    { type: "Detox", value: "-10% Addiction", date: "Yesterday, 22:15" },
-  ]);
+  const [dailyUsage, setDailyUsage] = useState({
+    heal: 0,
+    detox: 0,
+    surgery: 0,
+    energy: 0,
+    lastReset: new Date().toDateString()
+  });
 
-  const healCost = 500;
-  const detoxCost = 800;
-  const surgeryCost = 1200;
-  const energyCost = 400;
-  const energyRecover = 40;
+  const healCost = 1000;
+  const detoxCost = 1500;
+  const surgeryCost = 2500;
+  const energyCost = 700;
+  const energyRecover = 50;
   const surgeryReduce = 5;
   const cooldownTime = 2;
   const detoxTime = 3;
+  const dailyLimit = 1; // Each treatment can only be used once per day
+
+  // Load and manage daily usage from localStorage
+  useEffect(() => {
+    if (player?.id) {
+      const key = `hospital_usage_${player.id}`;
+      const saved = localStorage.getItem(key);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        const today = new Date().toDateString();
+        
+        // Reset if it's a new day
+        if (parsed.lastReset !== today) {
+          const reset = {
+            heal: 0,
+            detox: 0,
+            surgery: 0,
+            energy: 0,
+            lastReset: today
+          };
+          setDailyUsage(reset);
+          localStorage.setItem(key, JSON.stringify(reset));
+        } else {
+          setDailyUsage(parsed);
+        }
+      }
+    }
+  }, [player?.id]);
 
   // Determine hospitalization reason and recovery time
   useEffect(() => {
@@ -148,20 +179,20 @@ const HospitalView = ({
       // Apply effects when treatment finishes
       switch (activeTreatment) {
         case "Heal": {
-          const newHealth = 100;
+          const newHealth = maxHealth; // Full health restore to player's max
           setHealth(newHealth);
           updatePlayerStats({ health: newHealth });
-          toast.success("💚 Treatment completed! Health restored.", {
+          toast.success("💚 Treatment completed! Health fully restored.", {
             duration: 3000,
           });
           break;
         }
 
         case "Detox": {
-          const newAddiction = Math.max(0, addiction - 20);
+          const newAddiction = Math.max(0, addiction - 25);
           setAddiction(newAddiction);
           updatePlayerStats({ addiction: newAddiction });
-          toast.success("💊 Treatment completed! Addiction reduced by 20%.", {
+          toast.success("💊 Treatment completed! Addiction reduced by 25%.", {
             duration: 3000,
           });
           break;
@@ -171,7 +202,7 @@ const HospitalView = ({
           const newWanted = Math.max(0, wanted - surgeryReduce);
           setWanted(newWanted);
           updatePlayerStats({ wantedLevel: newWanted });
-          toast.success("🔪 Surgery completed! Wanted level reduced.", {
+          toast.success("🔪 Surgery completed! Wanted level reduced by 5.", {
             duration: 3000,
           });
           break;
@@ -181,7 +212,7 @@ const HospitalView = ({
           const newEnergy = Math.min(maxEnergy, energy + energyRecover);
           setEnergy(newEnergy);
           updatePlayerStats({ energy: newEnergy });
-          toast.success("⚡ Treatment completed! Energy restored.", {
+          toast.success("⚡ Treatment completed! Energy restored by 50 points.", {
             duration: 3000,
           });
           break;
@@ -230,7 +261,7 @@ const HospitalView = ({
   };
 
   const handleHeal = () => {
-    if (money >= healCost && health < maxHealth && cooldown === 0) {
+    if (money >= healCost && health < maxHealth && cooldown === 0 && dailyUsage.heal < dailyLimit) {
       const newMoney = money - healCost;
 
       // Update only money immediately
@@ -242,21 +273,24 @@ const HospitalView = ({
       // Speed up recovery immediately
       setRecoveryTime(Math.max(0, recoveryTime - 2 * 60)); // Reduces 2 minutes
 
-      setHistory([
-        { type: "Heal", value: "In treatment...", date: "Now" },
-        ...history,
-      ]);
+      // Update daily usage
+      const newUsage = { ...dailyUsage, heal: dailyUsage.heal + 1 };
+      setDailyUsage(newUsage);
+      if (player?.id) {
+        localStorage.setItem(`hospital_usage_${player.id}`, JSON.stringify(newUsage));
+      }
+
       startCooldown("Heal");
 
       toast.success(
-        "💚 Treatment started! Health will be restored in 2 minutes.",
+        "💚 Treatment started! Health will be fully restored in 2 minutes.",
         { duration: 3000 }
       );
     }
   };
 
   const handleDetox = () => {
-    if (money >= detoxCost && addiction > 0 && cooldown === 0) {
+    if (money >= detoxCost && addiction > 0 && cooldown === 0 && dailyUsage.detox < dailyLimit) {
       const newMoney = money - detoxCost;
 
       // Update only money immediately
@@ -268,21 +302,24 @@ const HospitalView = ({
       // Speed up recovery immediately
       setRecoveryTime(Math.max(0, recoveryTime - 3 * 60)); // Reduces 3 minutes
 
-      setHistory([
-        { type: "Detox", value: "In treatment...", date: "Now" },
-        ...history,
-      ]);
+      // Update daily usage
+      const newUsage = { ...dailyUsage, detox: dailyUsage.detox + 1 };
+      setDailyUsage(newUsage);
+      if (player?.id) {
+        localStorage.setItem(`hospital_usage_${player.id}`, JSON.stringify(newUsage));
+      }
+
       startCooldown("Detox");
 
       toast.success(
-        "💊 Treatment started! Addiction will be reduced in 3 minutes.",
+        "💊 Treatment started! Addiction will be reduced by 25% in 3 minutes.",
         { duration: 3000 }
       );
     }
   };
 
   const handleSurgery = () => {
-    if (money >= surgeryCost && wanted > 0 && cooldown === 0) {
+    if (money >= surgeryCost && wanted > 0 && cooldown === 0 && dailyUsage.surgery < dailyLimit) {
       const newMoney = money - surgeryCost;
 
       // Update only money immediately
@@ -291,21 +328,24 @@ const HospitalView = ({
         money: newMoney,
       });
 
-      setHistory([
-        { type: "Surgery", value: "In treatment...", date: "Now" },
-        ...history,
-      ]);
+      // Update daily usage
+      const newUsage = { ...dailyUsage, surgery: dailyUsage.surgery + 1 };
+      setDailyUsage(newUsage);
+      if (player?.id) {
+        localStorage.setItem(`hospital_usage_${player.id}`, JSON.stringify(newUsage));
+      }
+
       startCooldown("Surgery");
 
       toast.success(
-        "🔪 Surgery started! Wanted level will be reduced in 2 minutes.",
+        "🔪 Surgery started! Wanted level will be reduced by 5 in 2 minutes.",
         { duration: 3000 }
       );
     }
   };
 
   const handleEnergy = () => {
-    if (money >= energyCost && energy < maxEnergy && cooldown === 0) {
+    if (money >= energyCost && energy < maxEnergy && cooldown === 0 && dailyUsage.energy < dailyLimit) {
       const newMoney = money - energyCost;
 
       // Update only money immediately
@@ -314,18 +354,17 @@ const HospitalView = ({
         money: newMoney,
       });
 
-      setHistory([
-        {
-          type: "Energy Serum",
-          value: "In treatment...",
-          date: "Now",
-        },
-        ...history,
-      ]);
+      // Update daily usage
+      const newUsage = { ...dailyUsage, energy: dailyUsage.energy + 1 };
+      setDailyUsage(newUsage);
+      if (player?.id) {
+        localStorage.setItem(`hospital_usage_${player.id}`, JSON.stringify(newUsage));
+      }
+
       startCooldown("Energy");
 
       toast.success(
-        "⚡ Treatment started! Energy will be restored in 2 minutes.",
+        "⚡ Treatment started! Energy will be restored by 50 points in 2 minutes.",
         { duration: 3000 }
       );
     }
@@ -472,9 +511,9 @@ const HospitalView = ({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
             <button
               onClick={() => handleTreatment("health")}
-              disabled={money < healCost || health >= maxHealth || cooldown > 0}
+              disabled={money < healCost || health >= maxHealth || cooldown > 0 || dailyUsage.heal >= dailyLimit}
               className={`flex flex-col items-center justify-center p-4 rounded-lg transition-colors ${
-                money >= healCost && health < maxHealth && cooldown === 0
+                money >= healCost && health < maxHealth && cooldown === 0 && dailyUsage.heal < dailyLimit
                   ? "bg-green-500/20 hover:bg-green-500/30 border border-green-500/30"
                   : "bg-gray-500/20 border border-gray-500/30 opacity-50 cursor-not-allowed"
               }`}
@@ -487,9 +526,9 @@ const HospitalView = ({
             </button>
             <button
               onClick={() => handleTreatment("detox")}
-              disabled={money < detoxCost || addiction <= 0 || cooldown > 0}
+              disabled={money < detoxCost || addiction <= 0 || cooldown > 0 || dailyUsage.detox >= dailyLimit}
               className={`flex flex-col items-center justify-center p-4 rounded-lg transition-colors ${
-                money >= detoxCost && addiction > 0 && cooldown === 0
+                money >= detoxCost && addiction > 0 && cooldown === 0 && dailyUsage.detox < dailyLimit
                   ? "bg-orange-500/20 hover:bg-orange-500/30 border border-orange-500/30"
                   : "bg-gray-500/20 border border-gray-500/30 opacity-50 cursor-not-allowed"
               }`}
@@ -551,23 +590,6 @@ const HospitalView = ({
 
   return (
     <BaseView title="Hospital">
-      {/* Stats Overview */}
-      <div className="mb-6 p-4 bg-gradient-to-r from-green-500/20 to-green-600/20 border border-green-500/30 rounded-xl">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Ambulance size={24} className="text-green-400" />
-            <span className="text-xl font-bold text-green-400">
-              Medical Center
-            </span>
-          </div>
-          <div className="flex items-center gap-2">
-            <DollarSign size={20} className="text-green-400" />
-            <span className="text-sm text-green-400">
-              ${money.toLocaleString()}
-            </span>
-          </div>
-        </div>
-      </div>
 
       {/* Player Status */}
       <div className="mb-6">
@@ -632,11 +654,11 @@ const HospitalView = ({
         <div className="grid gap-4">
           <div
             className={`p-4 rounded-xl border ${
-              money >= healCost && health < maxHealth && cooldown === 0
+              money >= healCost && health < maxHealth && cooldown === 0 && dailyUsage.heal < dailyLimit
                 ? "border-green-500/30 bg-green-500/10"
                 : "border-gray-600/30 bg-gray-800/20"
             } cursor-pointer hover:scale-[1.02] transition-transform ${
-              money < healCost || health >= maxHealth || cooldown > 0
+              money < healCost || health >= maxHealth || cooldown > 0 || dailyUsage.heal >= dailyLimit
                 ? "opacity-50 cursor-not-allowed"
                 : ""
             }`}
@@ -654,7 +676,7 @@ const HospitalView = ({
                   <h3 className="font-bold text-white">Curar Ferimentos</h3>
                 </div>
                 <p className="text-sm text-white/70 mb-3">
-                  Restaura saúde completa
+                  Fully restores health
                 </p>
                 <div className="grid grid-cols-2 gap-2 text-sm">
                   <div className="flex items-center gap-1">
@@ -678,11 +700,11 @@ const HospitalView = ({
 
           <div
             className={`p-4 rounded-xl border ${
-              money >= detoxCost && addiction > 0 && cooldown === 0
+              money >= detoxCost && addiction > 0 && cooldown === 0 && dailyUsage.detox < dailyLimit
                 ? "border-orange-500/30 bg-orange-500/10"
                 : "border-gray-600/30 bg-gray-800/20"
             } cursor-pointer hover:scale-[1.02] transition-transform ${
-              money < detoxCost || addiction <= 0 || cooldown > 0
+              money < detoxCost || addiction <= 0 || cooldown > 0 || dailyUsage.detox >= dailyLimit
                 ? "opacity-50 cursor-not-allowed"
                 : ""
             }`}
@@ -699,7 +721,7 @@ const HospitalView = ({
                   </span>
                   <h3 className="font-bold text-white">Fazer Detox</h3>
                 </div>
-                <p className="text-sm text-white/70 mb-3">Reduces addiction by 20%</p>
+                <p className="text-sm text-white/70 mb-3">Reduces addiction by 25%</p>
                 <div className="grid grid-cols-2 gap-2 text-sm">
                   <div className="flex items-center gap-1">
                     <DollarSign size={14} className="text-green-400" />
@@ -722,11 +744,11 @@ const HospitalView = ({
 
           <div
             className={`p-4 rounded-xl border ${
-              money >= surgeryCost && wanted > 0 && cooldown === 0
+              money >= surgeryCost && wanted > 0 && cooldown === 0 && dailyUsage.surgery < dailyLimit
                 ? "border-yellow-500/30 bg-yellow-500/10"
                 : "border-gray-600/30 bg-gray-800/20"
             } cursor-pointer hover:scale-[1.02] transition-transform ${
-              money < surgeryCost || wanted <= 0 || cooldown > 0
+              money < surgeryCost || wanted <= 0 || cooldown > 0 || dailyUsage.surgery >= dailyLimit
                 ? "opacity-50 cursor-not-allowed"
                 : ""
             }`}
@@ -744,7 +766,7 @@ const HospitalView = ({
                   <h3 className="font-bold text-white">Plastic Surgery</h3>
                 </div>
                 <p className="text-sm text-white/70 mb-3">
-                  Reduces wanted level by {surgeryReduce}
+                  Reduces wanted level by 5
                 </p>
                 <div className="grid grid-cols-2 gap-2 text-sm">
                   <div className="flex items-center gap-1">
@@ -768,11 +790,11 @@ const HospitalView = ({
 
           <div
             className={`p-4 rounded-xl border ${
-              money >= energyCost && energy < maxEnergy && cooldown === 0
+              money >= energyCost && energy < maxEnergy && cooldown === 0 && dailyUsage.energy < dailyLimit
                 ? "border-blue-500/30 bg-blue-500/10"
                 : "border-gray-600/30 bg-gray-800/20"
             } cursor-pointer hover:scale-[1.02] transition-transform ${
-              money < energyCost || energy >= maxEnergy || cooldown > 0
+              money < energyCost || energy >= maxEnergy || cooldown > 0 || dailyUsage.energy >= dailyLimit
                 ? "opacity-50 cursor-not-allowed"
                 : ""
             }`}
@@ -790,7 +812,7 @@ const HospitalView = ({
                   <h3 className="font-bold text-white">Energy Serum</h3>
                 </div>
                 <p className="text-sm text-white/70 mb-3">
-                  Restores {energyRecover} energy points
+                  Restores 50 energy points
                 </p>
                 <div className="grid grid-cols-2 gap-2 text-sm">
                   <div className="flex items-center gap-1">
@@ -814,27 +836,6 @@ const HospitalView = ({
         </div>
       </div>
 
-      {/* Treatment History */}
-      <div className="mt-6">
-        <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
-          <History size={24} className="text-cyan-400" />
-          Treatment History
-        </h2>
-        <div className="space-y-2">
-          {history.slice(0, 5).map((item, index) => (
-            <div
-              key={index}
-              className="flex justify-between items-center p-3 bg-gray-800/20 border border-gray-600/30 rounded-lg"
-            >
-              <div className="flex items-center gap-2">
-                <span className="font-medium text-white">{item.type}</span>
-                <span className="text-green-400 font-bold">{item.value}</span>
-              </div>
-              <span className="text-xs text-white/60">{item.date}</span>
-            </div>
-          ))}
-        </div>
-      </div>
     </BaseView>
   );
 };

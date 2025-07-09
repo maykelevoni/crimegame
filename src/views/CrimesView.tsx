@@ -12,34 +12,34 @@ import {
   Lock,
 } from "lucide-react";
 import {
-  useRobberies,
-  useExecuteRobbery,
-  type Robbery,
-} from "@/hooks/useRobberies";
+  useCrimes,
+  useExecuteCrime,
+  type Crime,
+} from "@/hooks/useCrimes";
 import { useGameStore } from "@/stores/gameStore";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
-const RobberyView = () => {
+const CrimesView = () => {
   const [isExecuting, setIsExecuting] = useState(false);
 
-  const { data: robberies = [], isLoading, error } = useRobberies();
-  const executeRobbery = useExecuteRobbery();
+  const { data: crimes = [], isLoading, error } = useCrimes();
+  const executeCrime = useExecuteCrime();
   const { player } = useGameStore();
 
   // Functions for random explicit messages
   const getRandomSuccessMessage = () => {
     const messages = [
-      "FUCK YEAH! You robbed those bitches blind! Easy money, motherfucker! 💰",
-      "Holy shit! You pulled that heist like a fucking pro! Nobody saw a damn thing! 😎",
+      "FUCK YEAH! You pulled off that crime like a boss! Easy money, motherfucker! 💰",
+      "Holy shit! You executed that crime like a fucking pro! Nobody saw a damn thing! 😎",
       "BADASS! You just became the king of crime! Those pussies didn't know what hit them! 👑",
       "DAMN! You cleaned out those suckers! Time to spend that dirty money! 🔥",
       "Like a fucking ghost! In and out without those idiots noticing! 🥷",
-      "BOOM! Another successful robbery! You're a criminal mastermind! 🎯",
+      "BOOM! Another successful crime! You're a criminal mastermind! 🎯",
       "The cops are scratching their asses while you're counting cash! 😂",
       "Born to steal! You're a natural-born thief, you beautiful bastard! ⭐",
       "Clean fucking getaway! Those losers will never catch you! 🏃‍♂️",
-      "Robbery perfection! You just wrote the book on how to steal shit! 🎨",
+      "Crime perfection! You just wrote the book on how to steal shit! 🎨",
     ];
     return messages[Math.floor(Math.random() * messages.length)];
   };
@@ -60,7 +60,7 @@ const RobberyView = () => {
     return messages[Math.floor(Math.random() * messages.length)];
   };
 
-  const handleStart = async (robbery: Robbery) => {
+  const handleStart = async (crime: Crime) => {
     if (!player?.id) {
       toast.error("Player not found");
       return;
@@ -69,9 +69,9 @@ const RobberyView = () => {
     setIsExecuting(true);
 
     try {
-      const result = await executeRobbery.mutateAsync({
+      const result = await executeCrime.mutateAsync({
         playerId: player.id,
-        robberyId: robbery.id,
+        crimeId: crime.id,
       });
 
       setTimeout(() => {
@@ -116,7 +116,7 @@ const RobberyView = () => {
           toast.error(
             <div className="space-y-1">
               <div className="text-red-400 font-bold text-lg">
-                💥 ROBBERY FAILED! 💥
+                💥 CRIME FAILED! 💥
               </div>
               <div className="text-red-400">💸 No cash stolen</div>
               <div className="text-yellow-400">
@@ -142,7 +142,7 @@ const RobberyView = () => {
     } catch (error) {
       setIsExecuting(false);
       toast.error(
-        error instanceof Error ? error.message : "Failed to execute robbery"
+        error instanceof Error ? error.message : "Failed to execute crime"
       );
     }
   };
@@ -172,9 +172,9 @@ const RobberyView = () => {
 
   if (isLoading) {
     return (
-      <BaseView title="Robbery & Heists">
+      <BaseView title="Crimes & Heists">
         <div className="flex items-center justify-center h-64">
-          <div className="text-white">Loading robberies...</div>
+          <div className="text-white">Loading crimes...</div>
         </div>
       </BaseView>
     );
@@ -182,16 +182,16 @@ const RobberyView = () => {
 
   if (error) {
     return (
-      <BaseView title="Robbery & Heists">
+      <BaseView title="Crimes & Heists">
         <div className="flex items-center justify-center h-64">
-          <div className="text-red-400">Error loading robberies</div>
+          <div className="text-red-400">Error loading crimes</div>
         </div>
       </BaseView>
     );
   }
 
   return (
-    <BaseView title="Robbery & Heists">
+    <BaseView title="Crimes & Heists">
       {/* Available Heists */}
       <div>
         <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
@@ -199,19 +199,19 @@ const RobberyView = () => {
           Available Heists
         </h2>
         <div className="grid gap-4">
-          {robberies.map((robbery) => {
-            const difficultyColor = getDifficultyColor(robbery.risk_level);
-            const difficultyText = getDifficultyText(robbery.risk_level);
-            // Use the base success rate from robbery data
-            const successChance = robbery.success_rate;
+          {crimes.map((crime) => {
+            const difficultyColor = getDifficultyColor(Math.floor(crime.risk / 10));
+            const difficultyText = getDifficultyText(Math.floor(crime.risk / 10));
+            // Calculate success rate from risk (higher risk = lower success)
+            const successChance = Math.max(10, 100 - crime.risk);
             
-            const hasRequiredLevel = player && player.stats.level >= robbery.min_level;
-            const hasRequiredEnergy = player && player.stats.energy >= robbery.energy_cost;
+            const hasRequiredLevel = player && player.stats.level >= crime.min_level;
+            const hasRequiredEnergy = player && player.stats.energy >= crime.energy_cost;
             const canExecute = hasRequiredLevel && hasRequiredEnergy;
 
             return (
               <div
-                key={robbery.id}
+                key={crime.id}
                 className={`p-4 rounded-xl border ${difficultyColor.replace(
                   "bg-",
                   "border-"
@@ -225,13 +225,13 @@ const RobberyView = () => {
                       ? "opacity-70 cursor-not-allowed" 
                       : "cursor-pointer hover:scale-[1.02]"
                 }`}
-                onClick={() => canExecute && handleStart(robbery)}
+                onClick={() => canExecute && handleStart(crime)}
               >
                 <div className="flex items-start gap-4">
                   <div className="w-16 h-16 rounded-lg relative overflow-hidden">
                     <img
-                      src={robbery.image_url}
-                      alt={robbery.name}
+                      src={crime.image_url}
+                      alt={crime.name}
                       className="w-full h-full object-cover"
                     />
                     {!hasRequiredLevel && (
@@ -248,30 +248,29 @@ const RobberyView = () => {
                         {difficultyText}
                       </span>
                       <h3 className="font-bold text-white truncate">
-                        {robbery.name}
+                        {crime.name}
                       </h3>
                     </div>
                     <p className="text-sm text-white/70 mb-3 line-clamp-2">
-                      {robbery.description}
+                      {crime.description}
                     </p>
                     <div className="grid grid-cols-2 gap-2 text-sm">
                       <div className="flex items-center gap-1">
                         <Wallet size={14} className="text-green-400" />
                         <span className="text-green-400">
-                          ${robbery.base_reward.toLocaleString()} - $
-                          {robbery.max_reward.toLocaleString()}
+                          ${crime.reward.toLocaleString()}
                         </span>
                       </div>
                       <div className="flex items-center gap-1">
                         <Zap size={14} className="text-yellow-400" />
                         <span className="text-yellow-400">
-                          {robbery.energy_cost} Energy
+                          {crime.energy_cost} Energy
                         </span>
                       </div>
                       <div className="flex items-center gap-1">
                         <Star size={14} className="text-blue-400" />
                         <span className="text-blue-400">
-                          Level {robbery.min_level}+
+                          Level {crime.min_level}+
                         </span>
                       </div>
                       <div className="flex items-center gap-1">
@@ -285,12 +284,12 @@ const RobberyView = () => {
                       <div className="mt-2 text-xs">
                         {!hasRequiredLevel && player && (
                           <div className="text-yellow-400">
-                            🔒 Unlocks at level {robbery.min_level} (you are level {player.stats.level})
+                            🔒 Unlocks at level {crime.min_level} (you are level {player.stats.level})
                           </div>
                         )}
                         {hasRequiredLevel && !hasRequiredEnergy && player && (
                           <div className="text-red-400">
-                            ❌ Not enough energy: {robbery.energy_cost} needed
+                            ❌ Not enough energy: {crime.energy_cost} needed
                             (you have {player.stats.energy})
                           </div>
                         )}
@@ -315,7 +314,7 @@ const RobberyView = () => {
                 Executing Heist...
               </h3>
               <p className="text-white/70">
-                Please wait while we process your robbery attempt.
+                Please wait while we process your crime attempt.
               </p>
             </div>
           </div>
@@ -325,4 +324,4 @@ const RobberyView = () => {
   );
 };
 
-export default RobberyView;
+export default CrimesView;

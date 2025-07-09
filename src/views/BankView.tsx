@@ -4,116 +4,117 @@ import {
   Banknote,
   Landmark,
   ArrowRightLeft,
-  PiggyBank,
   DollarSign,
-  Clock,
-  AlertTriangle,
-  Star,
   TrendingUp,
   Shield,
   CreditCard,
   Building,
+  AlertTriangle,
+  Clock,
+  FileText,
+  Calculator,
 } from "lucide-react";
 import { useGameStore } from "../stores/gameStore";
 import { toast } from "sonner";
-
-interface BankingService {
-  id: string;
-  name: string;
-  description: string;
-  image: string;
-  reward: string;
-  energy: string;
-  reputation: string;
-  time: string;
-  risk?: string;
-  icon: React.ElementType;
-  color: string;
-  difficulty: string;
-  difficultyColor: string;
-  buttonColor: string;
-}
+import type { Loan, LoanApplication } from "../types/game";
 
 const BankView = () => {
-  const { player, depositMoney, withdrawMoney, addInterest, updatePlayerMoney } = useGameStore();
+  const { 
+    player, 
+    depositMoney, 
+    withdrawMoney, 
+    addInterest, 
+    applyForLoan,
+    approveLoan,
+    makePayment,
+    calculateCreditScore,
+    loans
+  } = useGameStore();
+  
   const [depositAmount, setDepositAmount] = useState("");
   const [withdrawAmount, setWithdrawAmount] = useState("");
+  const [loanAmount, setLoanAmount] = useState("");
+  const [selectedLoanType, setSelectedLoanType] = useState<"small" | "business" | "high_risk">("small");
+  const [paymentAmount, setPaymentAmount] = useState("");
+  const [selectedLoanId, setSelectedLoanId] = useState<string>("");
+  const [showLoanApplication, setShowLoanApplication] = useState(false);
+  const [showInvestments, setShowInvestments] = useState(false);
+  const [investmentAmount, setInvestmentAmount] = useState("");
+  const [selectedInvestment, setSelectedInvestment] = useState<"stocks" | "crypto" | "bonds">("stocks");
   const [isProcessing, setIsProcessing] = useState(false);
-  const [selectedService, setSelectedService] = useState<BankingService | null>(
-    null
-  );
 
   const cashMoney = player?.stats?.money || 0;
   const bankBalance = player?.stats?.bankBalance || 0;
   const interestRate = 0.05; // 5% daily interest
+  const activeLoans = player?.stats?.activeLoans || [];
+  const totalDebt = player?.stats?.totalDebt || 0;
+  const creditScore = calculateCreditScore();
 
-  const bankingServices: BankingService[] = [
-    {
-      id: "savings",
-      name: "Savings Account",
-      description: "Your money is already earning 5% daily interest in the bank",
-      image:
-        "https://images.unsplash.com/photo-1563013544-824ae1b704d3?w=150&h=150&fit=crop",
-      reward: `Daily Interest: $${Math.floor(bankBalance * interestRate).toLocaleString()}`,
-      energy: "No cost",
-      reputation: "Passive income",
-      time: "Daily",
-      icon: Shield,
-      color: "#00FF88",
-      difficulty: "Active",
-      difficultyColor: "bg-green-500",
-      buttonColor: "bg-green-500",
+  const playerLevel = player?.stats?.level || 1;
+  const levelMultiplier = 1 + (playerLevel - 1) * 0.5; // 50% increase per level
+
+  const loanTypes = {
+    small: { 
+      name: "Small Loan",
+      minAmount: 1000, 
+      maxAmount: Math.floor(25000 * levelMultiplier), 
+      interestRate: 15,
+      termDays: 30, 
+      originationFee: 5,
+      description: "Quick cash for immediate needs"
     },
-    {
-      id: "loan",
+    business: { 
       name: "Business Loan",
-      description: "Get capital to expand your criminal empire",
-      image:
-        "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=150&h=150&fit=crop",
-      reward: "Available: $50,000",
-      energy: "Cost: 20",
-      reputation: "Credit check required",
-      time: "Instant",
-      icon: Landmark,
-      color: "#00FF88",
-      difficulty: "Medium",
-      difficultyColor: "bg-yellow-500",
-      buttonColor: "bg-yellow-500",
+      minAmount: 25000, 
+      maxAmount: Math.floor(100000 * levelMultiplier), 
+      interestRate: 12,
+      termDays: 90, 
+      originationFee: 3,
+      description: "Expand your criminal enterprise"
     },
-    {
-      id: "investment",
-      name: "Investment Portfolio",
-      description: "Invest in volatile stocks for higher returns",
-      image:
-        "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=150&h=150&fit=crop",
-      reward: "Return: 15-25% (risky)",
-      energy: "Cost: 50",
-      reputation: "Market dependent",
-      time: "24h",
-      risk: "High Risk",
-      icon: TrendingUp,
-      color: "#FFD600",
-      difficulty: "Hard",
-      difficultyColor: "bg-red-500",
-      buttonColor: "bg-red-500",
+    high_risk: { 
+      name: "High-Risk Loan",
+      minAmount: 50000, 
+      maxAmount: Math.floor(500000 * levelMultiplier), 
+      interestRate: 25,
+      termDays: 60, 
+      originationFee: 8,
+      description: "High amounts with high risk"
+    }
+  };
+
+  const investmentTypes = {
+    stocks: {
+      name: "Stock Market",
+      minAmount: 1000,
+      maxAmount: 100000,
+      minReturn: -30,
+      maxReturn: 50,
+      duration: 24, // hours
+      riskLevel: "High",
+      description: "Volatile stocks with high potential returns"
     },
-    {
-      id: "insurance",
-      name: "Crime Insurance",
-      description: "Protect your assets from police seizure",
-      image:
-        "https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=150&h=150&fit=crop",
-      reward: "Coverage: 80% of losses",
-      energy: "Cost: 10",
-      reputation: "Premium: 2% monthly",
-      time: "Instant",
-      icon: Shield,
-      color: "#30E3DF",
-      difficulty: "Easy",
-      difficultyColor: "bg-green-500",
-      buttonColor: "bg-cyan-500",
+    crypto: {
+      name: "Cryptocurrency",
+      minAmount: 500,
+      maxAmount: 50000,
+      minReturn: -50,
+      maxReturn: 100,
+      duration: 12, // hours
+      riskLevel: "Very High",
+      description: "Extremely volatile digital assets"
     },
-  ];
+    bonds: {
+      name: "Government Bonds",
+      minAmount: 5000,
+      maxAmount: 200000,
+      minReturn: 3,
+      maxReturn: 8,
+      duration: 48, // hours
+      riskLevel: "Low",
+      description: "Safe but low-yield government securities"
+    }
+  };
 
   const handleDeposit = () => {
     const amount = parseInt(depositAmount);
@@ -149,14 +150,14 @@ const BankView = () => {
 
   const canClaimInterest = () => {
     const lastClaim = player?.stats?.lastInterestClaim;
-    if (!lastClaim) return false; // No deposit yet
+    if (!lastClaim) return false;
     
     const lastClaimTime = new Date(lastClaim);
     const now = new Date();
     const timeDiff = now.getTime() - lastClaimTime.getTime();
     const hoursDiff = timeDiff / (1000 * 60 * 60);
     
-    return hoursDiff >= 24; // Can claim if 24+ hours have passed
+    return hoursDiff >= 24;
   };
 
   const getTimeUntilNextClaim = () => {
@@ -164,7 +165,7 @@ const BankView = () => {
     if (!lastClaim) return null;
     
     const lastClaimDate = new Date(lastClaim);
-    const nextClaimTime = new Date(lastClaimDate.getTime() + 24 * 60 * 60 * 1000); // Add 24 hours
+    const nextClaimTime = new Date(lastClaimDate.getTime() + 24 * 60 * 60 * 1000);
     const now = new Date();
     
     if (now >= nextClaimTime) return null;
@@ -189,13 +190,7 @@ const BankView = () => {
     }
     
     if (!canClaimInterest()) {
-      const lastClaim = player?.stats?.lastInterestClaim;
-      if (!lastClaim) {
-        toast.error("Deposit money first to start the 24-hour timer!");
-      } else {
-        const timeLeft = getTimeUntilNextClaim();
-        toast.error(`Must wait 24 hours after deposit/last claim! Time left: ${timeLeft || '0h 0m'}`);
-      }
+      toast.error("Must wait 24 hours after deposit/last claim!");
       return;
     }
     
@@ -203,33 +198,93 @@ const BankView = () => {
     toast.success(`Collected $${interest.toLocaleString()} in daily interest!`);
   };
 
-  const handleStartService = (service: BankingService) => {
-    switch (service.id) {
-      case 'savings':
-        handleCollectInterest();
-        break;
-      case 'loan':
-        if (cashMoney < 50000) {
-          const loanAmount = 50000;
-          updatePlayerMoney(loanAmount); // Add loan money to cash
-          toast.success(`Loan approved! $${loanAmount.toLocaleString()} added to cash`);
-        } else {
-          toast.error("You already have sufficient funds");
-        }
-        break;
-      case 'investment':
-        toast.info("Investment feature coming soon!");
-        break;
-      case 'insurance':
-        toast.info("Insurance feature coming soon!");
-        break;
-      default:
-        setIsProcessing(true);
-        setTimeout(() => {
-          setIsProcessing(false);
-          setSelectedService(service);
-        }, 1500);
+  const handleLoanApplication = () => {
+    const amount = parseInt(loanAmount);
+    if (isNaN(amount) || amount <= 0) {
+      toast.error("Please enter a valid loan amount");
+      return;
     }
+
+    const application = applyForLoan(selectedLoanType, amount);
+    
+    if (application.approved) {
+      approveLoan(application);
+      setShowLoanApplication(false);
+      setLoanAmount("");
+    } else {
+      toast.error(`Loan denied: ${application.reason}`);
+    }
+  };
+
+  const handleLoanPayment = () => {
+    const amount = parseInt(paymentAmount);
+    if (isNaN(amount) || amount <= 0) {
+      toast.error("Please enter a valid payment amount");
+      return;
+    }
+
+    if (!selectedLoanId) {
+      toast.error("Please select a loan");
+      return;
+    }
+
+    makePayment(selectedLoanId, amount);
+    setPaymentAmount("");
+  };
+
+  const handleInvestment = () => {
+    const amount = parseInt(investmentAmount);
+    if (isNaN(amount) || amount <= 0) {
+      toast.error("Please enter a valid investment amount");
+      return;
+    }
+
+    const investment = investmentTypes[selectedInvestment];
+    if (amount < investment.minAmount || amount > investment.maxAmount) {
+      toast.error(`Investment amount must be between $${investment.minAmount.toLocaleString()} and $${investment.maxAmount.toLocaleString()}`);
+      return;
+    }
+
+    if (amount > cashMoney) {
+      toast.error("Insufficient cash");
+      return;
+    }
+
+    setIsProcessing(true);
+    updatePlayerMoney(-amount);
+    
+    // Simulate investment processing
+    setTimeout(() => {
+      const returnRate = Math.random() * (investment.maxReturn - investment.minReturn) + investment.minReturn;
+      const returnAmount = Math.floor(amount * (1 + returnRate / 100));
+      const profit = returnAmount - amount;
+      
+      updatePlayerMoney(returnAmount);
+      
+      if (profit > 0) {
+        toast.success(`Investment successful! Profit: $${profit.toLocaleString()} (${returnRate.toFixed(1)}%)`);
+      } else {
+        toast.error(`Investment lost: $${Math.abs(profit).toLocaleString()} (${returnRate.toFixed(1)}%)`);
+      }
+      
+      setIsProcessing(false);
+      setInvestmentAmount("");
+      setShowInvestments(false);
+    }, investment.duration * 100); // Simulate time (100ms per hour for demo)
+  };
+
+  const getCreditScoreColor = (score: number) => {
+    if (score >= 750) return "text-green-400";
+    if (score >= 650) return "text-yellow-400";
+    if (score >= 550) return "text-orange-400";
+    return "text-red-400";
+  };
+
+  const getCreditScoreText = (score: number) => {
+    if (score >= 750) return "Excellent";
+    if (score >= 650) return "Good";
+    if (score >= 550) return "Fair";
+    return "Poor";
   };
 
   return (
@@ -268,6 +323,38 @@ const BankView = () => {
               <span className="text-sm text-green-400">
                 +{(interestRate * 100).toFixed(1)}% daily interest
               </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Credit Score & Debt */}
+        <div className="grid grid-cols-2 gap-4">
+          <div className="p-4 bg-gradient-to-r from-blue-500/20 to-blue-600/20 border border-blue-500/30 rounded-xl">
+            <div className="flex items-center gap-2">
+              <Shield size={24} className="text-blue-400" />
+              <div>
+                <p className="text-sm text-blue-400/70">Credit Score</p>
+                <div className="flex items-center gap-2">
+                  <span className={`text-xl font-bold ${getCreditScoreColor(creditScore)}`}>
+                    {creditScore}
+                  </span>
+                  <span className={`text-sm ${getCreditScoreColor(creditScore)}`}>
+                    {getCreditScoreText(creditScore)}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="p-4 bg-gradient-to-r from-red-500/20 to-red-600/20 border border-red-500/30 rounded-xl">
+            <div className="flex items-center gap-2">
+              <AlertTriangle size={24} className="text-red-400" />
+              <div>
+                <p className="text-sm text-red-400/70">Total Debt</p>
+                <span className="text-xl font-bold text-red-400">
+                  ${totalDebt.toLocaleString()}
+                </span>
+              </div>
             </div>
           </div>
         </div>
@@ -332,112 +419,246 @@ const BankView = () => {
         </div>
       </div>
 
-      {/* Banking Services */}
-      <div>
-        <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
-          <Building size={24} className="text-cyan-400" />
-          Banking Services
-        </h2>
-        <div className="grid gap-4">
-          {bankingServices.map((service) => (
-            <div
-              key={service.id}
-              className={`p-4 rounded-xl border ${service.difficultyColor.replace(
-                "bg-",
-                "border-"
-              )}/30 ${service.difficultyColor.replace(
-                "bg-",
-                "bg-"
-              )}/10 cursor-pointer hover:scale-[1.02] transition-transform`}
-              onClick={() => handleStartService(service)}
-            >
-              <div className="flex items-start gap-4">
-                <img
-                  src={service.image}
-                  alt={service.name}
-                  className="w-16 h-16 rounded-lg object-cover"
-                />
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-2">
-                    <span
-                      className={`px-2 py-0.5 rounded text-xs font-bold text-white ${service.difficultyColor}`}
-                    >
-                      {service.difficulty}
+      {/* Collect Interest */}
+      <div className="mb-6">
+        <div className="p-4 bg-gradient-to-r from-green-500/20 to-green-600/20 border border-green-500/30 rounded-xl">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <TrendingUp size={20} className="text-green-400" />
+              <div>
+                <span className="font-bold text-green-400">Daily Interest</span>
+                <p className="text-sm text-green-400/70">
+                  Available: ${Math.floor(bankBalance * interestRate).toLocaleString()}
+                </p>
+                {!canClaimInterest() && bankBalance > 0 && (
+                  <div className="flex items-center gap-1 mt-1">
+                    <Clock size={16} className="text-yellow-400" />
+                    <span className="text-sm text-yellow-400">
+                      Next claim: {getTimeUntilNextClaim() || "Available now"}
                     </span>
-                    <h3 className="font-bold text-white">{service.name}</h3>
                   </div>
-                  <p className="text-sm text-white/70 mb-3">
-                    {service.description}
-                  </p>
-                  <div className="grid grid-cols-2 gap-4 text-sm">
-                    <div>
-                      <span className="text-white/60">Reward:</span>
-                      <span className="text-green-400 font-bold ml-2">
-                        {service.reward}
-                      </span>
-                    </div>
-                    <div>
-                      <span className="text-white/60">Energy:</span>
-                      <span className="text-yellow-400 font-bold ml-2">
-                        {service.energy}
-                      </span>
-                    </div>
-                    <div>
-                      <span className="text-white/60">Reputation:</span>
-                      <span className="text-purple-400 font-bold ml-2">
-                        {service.reputation}
-                      </span>
-                    </div>
-                    <div>
-                      <span className="text-white/60">Time:</span>
-                      <span className="text-cyan-400 font-bold ml-2">
-                        {service.time}
-                      </span>
-                    </div>
-                  </div>
-                  {service.risk && (
-                    <div className="mt-3 p-2 bg-red-500/10 border border-red-500/30 rounded">
-                      <span className="text-red-400 font-bold">
-                        ⚠️ {service.risk}
-                      </span>
-                    </div>
-                  )}
-                  
-                  {/* Action Button */}
-                  <div className="mt-4">
-                    <button
-                      onClick={() => handleStartService(service)}
-                      disabled={isProcessing || (service.id === 'savings' && (!canClaimInterest() || bankBalance <= 0))}
-                      className={`w-full py-2 px-4 rounded-lg font-bold text-white transition-all hover:scale-[1.02] ${
-                        service.buttonColor
-                      } ${
-                        isProcessing || (service.id === 'savings' && (!canClaimInterest() || bankBalance <= 0)) 
-                          ? "opacity-50 cursor-not-allowed" 
-                          : "hover:brightness-110"
-                      }`}
-                    >
-                      {service.id === 'savings' ? 
-                        (bankBalance <= 0 ? 
-                          'Deposit Money First' :
-                          !canClaimInterest() ? 
-                            (player?.stats?.lastInterestClaim ? 
-                              `Wait: ${getTimeUntilNextClaim() || '0h 0m'}` : 
-                              'Deposit to Start Timer'
-                            ) : 
-                            'Collect Interest'
-                        ) : 
-                       service.id === 'loan' ? 'Apply for Loan' :
-                       service.id === 'investment' ? 'Invest' :
-                       service.id === 'insurance' ? 'Buy Insurance' :
-                       'Start Service'}
-                    </button>
-                  </div>
-                </div>
+                )}
               </div>
             </div>
-          ))}
+            <button
+              onClick={handleCollectInterest}
+              disabled={!canClaimInterest() || bankBalance <= 0}
+              className="py-2 px-4 bg-green-500 hover:bg-green-600 disabled:bg-gray-600 text-white rounded font-bold text-sm transition-colors"
+            >
+              {canClaimInterest() ? "Collect Interest" : "Wait 24h"}
+            </button>
+          </div>
         </div>
       </div>
+
+      {/* Investment Services */}
+      <div className="mb-6">
+        <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+          <TrendingUp size={24} className="text-green-400" />
+          High-Risk Investments
+        </h2>
+        
+        <div className="mb-4">
+          <button
+            onClick={() => setShowInvestments(!showInvestments)}
+            disabled={isProcessing}
+            className="w-full py-3 bg-green-500 hover:bg-green-600 disabled:bg-gray-600 text-white rounded-lg font-bold transition-colors"
+          >
+            {isProcessing ? "Processing Investment..." : showInvestments ? "Close Investments" : "View Investments"}
+          </button>
+        </div>
+
+        {showInvestments && (
+          <div className="p-4 bg-gradient-to-r from-green-500/20 to-green-600/20 border border-green-500/30 rounded-xl mb-4">
+            <h3 className="text-lg font-bold text-green-400 mb-4">Investment Options</h3>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-white mb-2">Investment Type</label>
+                <select
+                  value={selectedInvestment}
+                  onChange={(e) => setSelectedInvestment(e.target.value as any)}
+                  className="w-full px-3 py-2 bg-black/20 border border-green-500/30 rounded text-white"
+                >
+                  {Object.entries(investmentTypes).map(([key, type]) => (
+                    <option key={key} value={key} className="bg-gray-800">
+                      {type.name} - {type.riskLevel} Risk
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-white mb-2">
+                  Amount (${investmentTypes[selectedInvestment].minAmount.toLocaleString()} - ${investmentTypes[selectedInvestment].maxAmount.toLocaleString()})
+                </label>
+                <input
+                  type="number"
+                  value={investmentAmount}
+                  onChange={(e) => setInvestmentAmount(e.target.value)}
+                  placeholder="Investment amount"
+                  min={investmentTypes[selectedInvestment].minAmount}
+                  max={investmentTypes[selectedInvestment].maxAmount}
+                  className="w-full px-3 py-2 bg-black/20 border border-green-500/30 rounded text-white"
+                />
+              </div>
+
+              <div className="p-3 bg-black/20 rounded border border-green-500/30">
+                <p className="text-sm text-green-400">{investmentTypes[selectedInvestment].description}</p>
+                <p className="text-sm text-white/70 mt-1">
+                  Return: {investmentTypes[selectedInvestment].minReturn}% to {investmentTypes[selectedInvestment].maxReturn}% • 
+                  Duration: {investmentTypes[selectedInvestment].duration}h
+                </p>
+                <p className="text-sm text-red-400 mt-1">⚠️ High risk of loss!</p>
+              </div>
+
+              <button
+                onClick={handleInvestment}
+                disabled={!investmentAmount || parseInt(investmentAmount) <= 0 || isProcessing}
+                className="w-full py-2 bg-green-500 hover:bg-green-600 disabled:bg-gray-600 text-white rounded font-bold transition-colors"
+              >
+                {isProcessing ? "Processing..." : "Invest Now"}
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Loan Services */}
+      <div className="mb-6">
+        <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+          <Landmark size={24} className="text-purple-400" />
+          Loan Services
+        </h2>
+        
+        {/* Loan Application */}
+        <div className="mb-4">
+          <button
+            onClick={() => setShowLoanApplication(!showLoanApplication)}
+            className="w-full py-3 bg-purple-500 hover:bg-purple-600 text-white rounded-lg font-bold transition-colors"
+          >
+            {showLoanApplication ? "Close Application" : "Apply for Loan"}
+          </button>
+        </div>
+
+        {showLoanApplication && (
+          <div className="p-4 bg-gradient-to-r from-purple-500/20 to-purple-600/20 border border-purple-500/30 rounded-xl mb-4">
+            <h3 className="text-lg font-bold text-purple-400 mb-4">Loan Application</h3>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-white mb-2">Loan Type</label>
+                <select
+                  value={selectedLoanType}
+                  onChange={(e) => setSelectedLoanType(e.target.value as any)}
+                  className="w-full px-3 py-2 bg-black/20 border border-purple-500/30 rounded text-white"
+                >
+                  {Object.entries(loanTypes).map(([key, type]) => (
+                    <option key={key} value={key} className="bg-gray-800">
+                      {type.name} - {type.interestRate}% APR
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-white mb-2">
+                  Amount (${loanTypes[selectedLoanType].minAmount.toLocaleString()} - ${loanTypes[selectedLoanType].maxAmount.toLocaleString()})
+                </label>
+                <input
+                  type="number"
+                  value={loanAmount}
+                  onChange={(e) => setLoanAmount(e.target.value)}
+                  placeholder="Loan amount"
+                  min={loanTypes[selectedLoanType].minAmount}
+                  max={loanTypes[selectedLoanType].maxAmount}
+                  className="w-full px-3 py-2 bg-black/20 border border-purple-500/30 rounded text-white"
+                />
+              </div>
+
+              <div className="p-3 bg-black/20 rounded border border-purple-500/30">
+                <p className="text-sm text-purple-400">{loanTypes[selectedLoanType].description}</p>
+                <p className="text-sm text-white/70 mt-1">
+                  Terms: {loanTypes[selectedLoanType].termDays} days • 
+                  Origination Fee: {loanTypes[selectedLoanType].originationFee}%
+                </p>
+              </div>
+
+              <button
+                onClick={handleLoanApplication}
+                disabled={!loanAmount || parseInt(loanAmount) <= 0}
+                className="w-full py-2 bg-purple-500 hover:bg-purple-600 disabled:bg-gray-600 text-white rounded font-bold transition-colors"
+              >
+                Apply for Loan
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Active Loans */}
+      {activeLoans.length > 0 && (
+        <div className="mb-6">
+          <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+            <FileText size={24} className="text-orange-400" />
+            Active Loans
+          </h2>
+          
+          <div className="space-y-4">
+            {activeLoans.map((loan: Loan) => (
+              <div key={loan.id} className="p-4 bg-gradient-to-r from-orange-500/20 to-orange-600/20 border border-orange-500/30 rounded-xl">
+                <div className="flex items-center justify-between mb-3">
+                  <div>
+                    <h3 className="font-bold text-orange-400">{loanTypes[loan.type].name}</h3>
+                    <p className="text-sm text-orange-400/70">
+                      Due: {new Date(loan.dueDate).toLocaleDateString()}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-xl font-bold text-orange-400">
+                      ${loan.amount.toLocaleString()}
+                    </p>
+                    <p className="text-sm text-orange-400/70">
+                      Daily: ${loan.dailyPayment.toLocaleString()}
+                    </p>
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4 mb-3">
+                  <div>
+                    <p className="text-sm text-white/60">Total Paid</p>
+                    <p className="text-sm text-green-400">${loan.totalPaid.toLocaleString()}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-white/60">Late Payments</p>
+                    <p className="text-sm text-red-400">{loan.latePayments}</p>
+                  </div>
+                </div>
+
+                <div className="flex gap-2">
+                  <input
+                    type="number"
+                    value={selectedLoanId === loan.id ? paymentAmount : ""}
+                    onChange={(e) => {
+                      setSelectedLoanId(loan.id);
+                      setPaymentAmount(e.target.value);
+                    }}
+                    placeholder="Payment amount"
+                    className="flex-1 px-3 py-2 bg-black/20 border border-orange-500/30 rounded text-white text-sm"
+                  />
+                  <button
+                    onClick={handleLoanPayment}
+                    disabled={!paymentAmount || parseInt(paymentAmount) <= 0 || selectedLoanId !== loan.id}
+                    className="py-2 px-4 bg-orange-500 hover:bg-orange-600 disabled:bg-gray-600 text-white rounded font-bold text-sm transition-colors"
+                  >
+                    Pay
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </BaseView>
   );
 };

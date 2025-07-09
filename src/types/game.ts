@@ -1,3 +1,30 @@
+// Loan Types
+export interface Loan {
+  id: string;
+  type: "small" | "business" | "high_risk";
+  amount: number;
+  originalAmount: number;
+  interestRate: number; // Annual percentage rate
+  originationFee: number; // One-time fee
+  termDays: number; // Loan term in days
+  dailyPayment: number; // Required daily payment
+  takenAt: string; // ISO date string
+  dueDate: string; // ISO date string
+  lastPaymentDate?: string; // ISO date string
+  totalPaid: number;
+  latePayments: number;
+  isDefaulted: boolean;
+  status: "active" | "paid" | "defaulted";
+}
+
+export interface LoanApplication {
+  type: "small" | "business" | "high_risk";
+  amount: number;
+  approved: boolean;
+  creditScore: number;
+  reason?: string;
+}
+
 // Player Types
 export interface PlayerStats {
   health: number;
@@ -16,6 +43,10 @@ export interface PlayerStats {
   prisonSentence?: number; // Minutes remaining in prison
   crimeType?: string; // Type of crime that led to imprisonment
   imprisonedAt?: string; // ISO date string when imprisoned
+  activeLoans: Loan[]; // Array of active loans
+  creditScore: number; // Player's credit score (0-850)
+  totalDebt: number; // Total outstanding debt
+  loanHistory: string[]; // Array of loan IDs for history tracking
 }
 
 export interface Player {
@@ -183,6 +214,7 @@ export interface GameState {
   dismissedAlerts: string[];
   activeView: string;
   activeSection: string;
+  loans: Loan[]; // All loans (active and historical)
 }
 
 // Action Types

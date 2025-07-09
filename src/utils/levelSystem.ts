@@ -54,22 +54,28 @@ function generateLevelData(level: number): Level {
     });
   }
 
-  // Health reward every 2 levels
+  // Health reward every 2 levels (capped at 150 total)
   if (level > 1 && level % 2 === 0) {
-    rewards.push({
-      type: "health",
-      amount: healthReward,
-      description: `+${healthReward} max health`
-    });
+    const currentMaxHealth = 100 + (Math.floor((level - 2) / 2) * 10);
+    if (currentMaxHealth < 150) {
+      rewards.push({
+        type: "health",
+        amount: healthReward,
+        description: `+${healthReward} max health`
+      });
+    }
   }
 
-  // Energy reward every 3 levels  
+  // Energy reward every 3 levels (capped at 150 total)
   if (level > 1 && level % 3 === 0) {
-    rewards.push({
-      type: "energy", 
-      amount: energyReward,
-      description: `+${energyReward} max energy`
-    });
+    const currentMaxEnergy = 100 + (Math.floor((level - 3) / 3) * 10);
+    if (currentMaxEnergy < 150) {
+      rewards.push({
+        type: "energy", 
+        amount: energyReward,
+        description: `+${energyReward} max energy`
+      });
+    }
   }
 
   // Feature unlocks for early levels

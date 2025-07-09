@@ -285,7 +285,7 @@ const HomeView = ({ onViewChange }: HomeViewProps) => {
                 <LocateFixed size={24} className="text-red-500" />
               </div>
               <div className="text-left">
-                <h3 className="font-bold text-sm text-red-500">ROBBERY</h3>
+                <h3 className="font-bold text-sm text-red-500">CRIMES</h3>
                 <p className="text-xs text-red-500/70">Engage in crimes</p>
               </div>
             </div>

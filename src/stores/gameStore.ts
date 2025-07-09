@@ -37,6 +37,10 @@ const initialPlayerStats: PlayerStats = {
   prisonSentence: 0,
   crimeType: undefined,
   imprisonedAt: undefined,
+  activeLoans: [],
+  creditScore: 650,
+  totalDebt: 0,
+  loanHistory: [],
 };
 
 const initialPlayer: Player = {
@@ -140,6 +144,7 @@ export const useGameStore = create<GameStore>()(
       dismissedAlerts: [],
       activeView: "home",
       activeSection: "home",
+      loans: [],
 
       // Auth state
       userId: null,
@@ -773,19 +778,25 @@ export const useGameStore = create<GameStore>()(
                 name: player.name,
                 avatarUrl: player.avatarUrl,
                 stats: {
-                  health: player.stats.health,
-                  maxHealth: player.stats.maxHealth,
-                  energy: player.stats.energy,
-                  maxEnergy: player.stats.maxEnergy,
-                  addiction: player.stats.addiction,
-                  reputation: player.stats.reputation,
+                  // Use database values if available, otherwise preserve local state
+                  health: player.stats.health ?? state.player.stats.health,
+                  maxHealth: player.stats.maxHealth ?? state.player.stats.maxHealth,
+                  energy: player.stats.energy ?? state.player.stats.energy,
+                  maxEnergy: player.stats.maxEnergy ?? state.player.stats.maxEnergy,
+                  addiction: player.stats.addiction ?? state.player.stats.addiction,
+                  reputation: player.stats.reputation ?? state.player.stats.reputation,
                   level: calculateLevelFromReputation(player.stats.reputation || 0),
-                  money: player.stats.money,
-                  bankBalance: player.stats.bankBalance || 0,
-                  lastInterestClaim: player.stats.lastInterestClaim,
-                  wantedLevel: player.stats.wantedLevel,
-                  isImprisoned: player.stats.isImprisoned,
-                  isHospitalized: player.stats.isHospitalized,
+                  money: player.stats.money ?? state.player.stats.money,
+                  bankBalance: player.stats.bankBalance ?? state.player.stats.bankBalance ?? 0,
+                  lastInterestClaim: player.stats.lastInterestClaim ?? state.player.stats.lastInterestClaim,
+                  wantedLevel: player.stats.wantedLevel ?? state.player.stats.wantedLevel,
+                  isImprisoned: player.stats.isImprisoned ?? state.player.stats.isImprisoned,
+                  isHospitalized: player.stats.isHospitalized ?? state.player.stats.isHospitalized,
+                  // Preserve loan-related fields from local state until DB is updated
+                  activeLoans: player.stats.activeLoans || state.player.stats.activeLoans || [],
+                  creditScore: player.stats.creditScore || state.player.stats.creditScore || 650,
+                  totalDebt: player.stats.totalDebt || state.player.stats.totalDebt || 0,
+                  loanHistory: player.stats.loanHistory || state.player.stats.loanHistory || [],
                 },
                 createdAt: player.createdAt,
                 updatedAt: player.updatedAt,
@@ -1104,6 +1115,355 @@ export const useGameStore = create<GameStore>()(
         }
       },
 
+      // Loan Actions
+      applyForLoan: (type, amount) => {
+        const state = get();
+        const player = state.player;
+        const creditScore = get().calculateCreditScore();
+        const playerLevel = player.stats.level || 1;
+        const levelMultiplier = 1 + (playerLevel - 1) * 0.5; // 50% increase per level
+        
+        const loanTypes = {
+          small: { 
+            minAmount: 1000, 
+            maxAmount: Math.floor(25000 * levelMultiplier), 
+            minCreditScore: 500, 
+            interestRate: 0.15, 
+            termDays: 30, 
+            originationFee: 0.05 
+          },
+          business: { 
+            minAmount: 25000, 
+            maxAmount: Math.floor(100000 * levelMultiplier), 
+            minCreditScore: 600, 
+            interestRate: 0.12, 
+            termDays: 90, 
+            originationFee: 0.03 
+          },
+          high_risk: { 
+            minAmount: 50000, 
+            maxAmount: Math.floor(500000 * levelMultiplier), 
+            minCreditScore: 400, 
+            interestRate: 0.25, 
+            termDays: 60, 
+            originationFee: 0.08 
+          }
+        };
+        
+        const loanType = loanTypes[type];
+        let approved = true;
+        let reason = "";
+        
+        // Check requirements
+        if (amount < loanType.minAmount || amount > loanType.maxAmount) {
+          approved = false;
+          reason = `Loan amount must be between $${loanType.minAmount.toLocaleString()} and $${loanType.maxAmount.toLocaleString()}`;
+        } else if (creditScore < loanType.minCreditScore) {
+          approved = false;
+          reason = `Credit score too low. Required: ${loanType.minCreditScore}, Your score: ${creditScore}`;
+        } else if (player.stats.totalDebt > player.stats.money * 3) {
+          approved = false;
+          reason = "Debt-to-income ratio too high";
+        } else if (player.stats.activeLoans.length >= 3) {
+          approved = false;
+          reason = "Maximum number of active loans reached";
+        }
+        
+        return {
+          type,
+          amount,
+          approved,
+          creditScore,
+          reason
+        };
+      },
+      
+      approveLoan: (application) => {
+        if (!application.approved) return;
+        
+        const loanTypes = {
+          small: { interestRate: 0.15, termDays: 30, originationFee: 0.05 },
+          business: { interestRate: 0.12, termDays: 90, originationFee: 0.03 },
+          high_risk: { interestRate: 0.25, termDays: 60, originationFee: 0.08 }
+        };
+        
+        const loanType = loanTypes[application.type];
+        const originationFee = Math.floor(application.amount * loanType.originationFee);
+        const netAmount = application.amount - originationFee;
+        const dailyPayment = Math.floor((application.amount * (1 + loanType.interestRate)) / loanType.termDays);
+        
+        const newLoan: Loan = {
+          id: crypto.randomUUID(),
+          type: application.type,
+          amount: application.amount,
+          originalAmount: application.amount,
+          interestRate: loanType.interestRate,
+          originationFee,
+          termDays: loanType.termDays,
+          dailyPayment,
+          takenAt: new Date().toISOString(),
+          dueDate: new Date(Date.now() + loanType.termDays * 24 * 60 * 60 * 1000).toISOString(),
+          totalPaid: 0,
+          latePayments: 0,
+          isDefaulted: false,
+          status: "active"
+        };
+        
+        set((state) => {
+          const updatedLoans = [...state.loans, newLoan];
+          const updatedActiveLoans = [...state.player.stats.activeLoans, newLoan];
+          const updatedTotalDebt = state.player.stats.totalDebt + application.amount;
+          
+          return {
+            loans: updatedLoans,
+            player: {
+              ...state.player,
+              stats: {
+                ...state.player.stats,
+                money: state.player.stats.money + netAmount,
+                activeLoans: updatedActiveLoans,
+                totalDebt: updatedTotalDebt,
+                loanHistory: [...state.player.stats.loanHistory, newLoan.id]
+              },
+              updatedAt: new Date()
+            }
+          };
+        });
+        
+        toast.success(`Loan approved! $${netAmount.toLocaleString()} deposited (after $${originationFee.toLocaleString()} fee)`);
+        
+        if (get().userId && get().isOnline) {
+          get().syncGameState();
+        }
+      },
+      
+      makePayment: (loanId, amount) => {
+        set((state) => {
+          const loanIndex = state.loans.findIndex(l => l.id === loanId);
+          if (loanIndex === -1) return state;
+          
+          const loan = state.loans[loanIndex];
+          if (loan.status !== "active") return state;
+          
+          if (amount > state.player.stats.money) {
+            toast.error("Insufficient funds");
+            return state;
+          }
+          
+          const updatedLoan = {
+            ...loan,
+            amount: Math.max(0, loan.amount - amount),
+            totalPaid: loan.totalPaid + amount,
+            lastPaymentDate: new Date().toISOString(),
+            status: (loan.amount - amount) <= 0 ? "paid" as const : "active" as const
+          };
+          
+          const updatedLoans = [...state.loans];
+          updatedLoans[loanIndex] = updatedLoan;
+          
+          const updatedActiveLoans = state.player.stats.activeLoans.map(l => 
+            l.id === loanId ? updatedLoan : l
+          ).filter(l => l.status === "active");
+          
+          const newTotalDebt = state.player.stats.totalDebt - amount;
+          
+          if (updatedLoan.status === "paid") {
+            toast.success(`Loan paid off! Your credit score improved.`);
+            // Credit score improvement for paying off loan
+            const creditScoreBonus = 20;
+            const newCreditScore = Math.min(850, state.player.stats.creditScore + creditScoreBonus);
+            
+            return {
+              loans: updatedLoans,
+              player: {
+                ...state.player,
+                stats: {
+                  ...state.player.stats,
+                  money: state.player.stats.money - amount,
+                  activeLoans: updatedActiveLoans,
+                  totalDebt: newTotalDebt,
+                  creditScore: newCreditScore
+                },
+                updatedAt: new Date()
+              }
+            };
+          } else {
+            toast.success(`Payment of $${amount.toLocaleString()} made. Remaining: $${updatedLoan.amount.toLocaleString()}`);
+            
+            return {
+              loans: updatedLoans,
+              player: {
+                ...state.player,
+                stats: {
+                  ...state.player.stats,
+                  money: state.player.stats.money - amount,
+                  activeLoans: updatedActiveLoans,
+                  totalDebt: newTotalDebt
+                },
+                updatedAt: new Date()
+              }
+            };
+          }
+        });
+        
+        if (get().userId && get().isOnline) {
+          get().syncGameState();
+        }
+      },
+      
+      processLoanPayments: () => {
+        set((state) => {
+          const now = new Date();
+          let updatedLoans = [...state.loans];
+          let updatedActiveLoans = [...state.player.stats.activeLoans];
+          let playerMoney = state.player.stats.money;
+          let totalDebt = state.player.stats.totalDebt;
+          let creditScore = state.player.stats.creditScore;
+          
+          updatedActiveLoans.forEach((loan, index) => {
+            const loanIndex = updatedLoans.findIndex(l => l.id === loan.id);
+            if (loanIndex === -1) return;
+            
+            const daysSinceLastPayment = loan.lastPaymentDate ? 
+              Math.floor((now.getTime() - new Date(loan.lastPaymentDate).getTime()) / (1000 * 60 * 60 * 24)) : 
+              Math.floor((now.getTime() - new Date(loan.takenAt).getTime()) / (1000 * 60 * 60 * 24));
+            
+            if (daysSinceLastPayment >= 1) {
+              const lateFee = daysSinceLastPayment > 1 ? Math.floor(loan.dailyPayment * 0.1) : 0;
+              const totalPaymentDue = loan.dailyPayment + lateFee;
+              
+              if (playerMoney >= totalPaymentDue) {
+                // Auto-pay if sufficient funds
+                const updatedLoan = {
+                  ...loan,
+                  amount: Math.max(0, loan.amount - loan.dailyPayment),
+                  totalPaid: loan.totalPaid + loan.dailyPayment,
+                  lastPaymentDate: now.toISOString(),
+                  status: (loan.amount - loan.dailyPayment) <= 0 ? "paid" as const : "active" as const
+                };
+                
+                updatedLoans[loanIndex] = updatedLoan;
+                updatedActiveLoans[index] = updatedLoan;
+                playerMoney -= totalPaymentDue;
+                totalDebt -= loan.dailyPayment;
+                
+                if (lateFee > 0) {
+                  toast.error(`Late fee of $${lateFee.toLocaleString()} charged for loan ${loan.id}`);
+                  creditScore = Math.max(300, creditScore - 5);
+                }
+              } else {
+                // Mark as late payment
+                const updatedLoan = {
+                  ...loan,
+                  latePayments: loan.latePayments + 1,
+                  lastPaymentDate: now.toISOString()
+                };
+                
+                updatedLoans[loanIndex] = updatedLoan;
+                updatedActiveLoans[index] = updatedLoan;
+                creditScore = Math.max(300, creditScore - 10);
+                
+                toast.warning(`Missed payment for loan ${loan.id}. Credit score decreased.`);
+                
+                // Default loan if too many late payments
+                if (updatedLoan.latePayments >= 7) {
+                  get().defaultLoan(loan.id);
+                }
+              }
+            }
+          });
+          
+          return {
+            loans: updatedLoans,
+            player: {
+              ...state.player,
+              stats: {
+                ...state.player.stats,
+                money: playerMoney,
+                activeLoans: updatedActiveLoans.filter(l => l.status === "active"),
+                totalDebt,
+                creditScore
+              },
+              updatedAt: new Date()
+            }
+          };
+        });
+        
+        if (get().userId && get().isOnline) {
+          get().syncGameState();
+        }
+      },
+      
+      calculateCreditScore: () => {
+        const state = get();
+        const player = state.player;
+        let score = 650; // Base score
+        
+        // Factors affecting credit score
+        const totalLoans = state.loans?.length || 0;
+        const paidLoans = state.loans?.filter(l => l.status === "paid")?.length || 0;
+        const defaultedLoans = state.loans?.filter(l => l.status === "defaulted")?.length || 0;
+        const activeLoans = player.stats.activeLoans?.length || 0;
+        const totalDebt = player.stats.totalDebt || 0;
+        const money = player.stats.money || 0;
+        const reputation = player.stats.reputation || 0;
+        
+        // Positive factors
+        score += paidLoans * 20; // +20 for each paid loan
+        score += Math.min(100, reputation / 10); // Reputation bonus
+        score += Math.min(50, money / 10000); // Money bonus
+        
+        // Negative factors
+        score -= defaultedLoans * 100; // -100 for each default
+        score -= activeLoans * 10; // -10 for each active loan
+        score -= Math.min(200, totalDebt / 1000); // Debt penalty
+        
+        // Calculate late payment penalties
+        const totalLatePayments = state.loans?.reduce((sum, loan) => sum + (loan.latePayments || 0), 0) || 0;
+        score -= totalLatePayments * 5;
+        
+        return Math.max(300, Math.min(850, Math.floor(score)));
+      },
+      
+      defaultLoan: (loanId) => {
+        set((state) => {
+          const loanIndex = state.loans.findIndex(l => l.id === loanId);
+          if (loanIndex === -1) return state;
+          
+          const loan = state.loans[loanIndex];
+          const updatedLoan = {
+            ...loan,
+            status: "defaulted" as const,
+            isDefaulted: true
+          };
+          
+          const updatedLoans = [...state.loans];
+          updatedLoans[loanIndex] = updatedLoan;
+          
+          const updatedActiveLoans = state.player.stats.activeLoans.filter(l => l.id !== loanId);
+          const newCreditScore = Math.max(300, state.player.stats.creditScore - 150);
+          
+          toast.error(`Loan ${loanId} defaulted! Credit score severely damaged.`);
+          
+          return {
+            loans: updatedLoans,
+            player: {
+              ...state.player,
+              stats: {
+                ...state.player.stats,
+                activeLoans: updatedActiveLoans,
+                creditScore: newCreditScore
+              },
+              updatedAt: new Date()
+            }
+          };
+        });
+        
+        if (get().userId && get().isOnline) {
+          get().syncGameState();
+        }
+      },
+      
       // Actions de Reset
       resetGame: () => {
         set({
@@ -1116,6 +1476,7 @@ export const useGameStore = create<GameStore>()(
           dismissedAlerts: [],
           activeView: "home",
           activeSection: "home",
+          loans: [],
         });
       },
     }),
@@ -1132,6 +1493,7 @@ export const useGameStore = create<GameStore>()(
         activeView: state.activeView,
         activeSection: state.activeSection,
         userId: state.userId,
+        loans: state.loans,
       }),
     }
   )

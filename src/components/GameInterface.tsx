@@ -26,7 +26,7 @@ import {
   Archive,
 } from "lucide-react";
 import HomeView from "../views/HomeView";
-import RobberyView from "../views/RobberyView";
+import CrimesView from "../views/CrimesView";
 import InventoryView from "../views/InventoryView";
 import NewsView from "../views/NewsView";
 import { GameProvider } from "./GameProvider";
@@ -74,7 +74,7 @@ export function GameInterface() {
     {
       id: "robbery",
       icon: Crosshair,
-      label: "Robbery",
+      label: "Crimes",
       description: "Engage in crimes",
       color: "from-red-500/20 to-red-600/20",
       borderColor: "border-red-500/50",
@@ -157,7 +157,7 @@ export function GameInterface() {
 
   const bottomNav = [
     { id: "home", icon: Home, label: "Home" },
-    { id: "robbery", icon: LocateFixed, label: "Robbery" },
+    { id: "robbery", icon: LocateFixed, label: "Crimes" },
     { id: "shop", icon: ShoppingBag, label: "Shop" },
     { id: "nightlife", icon: Wine, label: "Nightlife" },
     { id: "business", icon: Building2, label: "Business" },
@@ -287,7 +287,7 @@ export function GameInterface() {
       case "home":
         return <HomeView onViewChange={handleViewChange} />;
       case "robbery":
-        return <RobberyView />;
+        return <CrimesView />;
       case "shop":
         return <ShopView onBack={() => setActiveView("home")} />;
       case "nightlife":
