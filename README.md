@@ -71,11 +71,16 @@ Urban Hustle is a browser-based crime and city-themed game where you manage your
 
 ### 🏠 Home Interface
 
-- **Main Action Grid:** Quick access to all major game features
-- **Daily Reward System:** Daily login rewards with countdown timer
-- **Surprise Rewards:** Random rewards with localStorage persistence
-- **Quick Navigation:** Direct access to all game sections
-- **Responsive Design:** Optimized for both desktop and mobile
+- **Main Action Grid:** Quick access to all major game features with 8 main action buttons
+- **Enhanced Daily Reward System:** 
+  - **Real Rewards:** Actual $500 money, +20 HP, +30 energy given to player stats
+  - **24-Hour Timer:** Precise countdown showing hours:minutes:seconds until next reward
+  - **Simplified UI:** Clean button with 🎁 emoticon and bounce animation
+  - **Auto-Reset:** Timer automatically resets and enables button after 24 hours
+  - **LocalStorage Persistence:** Reward timing maintained across sessions
+- **Comprehensive Navigation:** Direct access to Crimes, Nightlife, Hospital, Business, Bank, Casino, Shop, and Prison
+- **Visual Design:** Gradient backgrounds with hover effects and scale animations
+- **Responsive Design:** Optimized for both desktop and mobile with 2-column grid layout
 
 ### 🛒 Shop System
 
@@ -95,20 +100,49 @@ Urban Hustle is a browser-based crime and city-themed game where you manage your
 
 ### 🎰 Casino & Gambling
 
-- **Casino Interface:** Complete gambling system
-- **Multiple Games:** Various games of chance
-- **Risk Management:** Balance risk vs reward
-- **Lucky Wheel:** Daily spinning for prizes
+- **Complete Casino System:** Professional gambling platform with real money mechanics
+- **Five Casino Games:**
+  - **Blackjack:** Classic card game with 2% house edge and 2.5x max payout
+  - **Roulette:** Wheel spinning with single number (35x) and color bets
+  - **Slots:** Slot machines with jackpot potential (1000x max payout)
+  - **Poker:** High-stakes poker with variable multipliers (1-10x)
+  - **Baccarat:** Elegant card game for high rollers with low house edge
+- **Realistic Betting System:**
+  - **Variable Bet Limits:** Each game has different min/max bet amounts
+  - **House Edge Calculations:** Proper mathematical odds (1.2% - 5% house edge)
+  - **Energy Costs:** Games require energy to play (2-20 energy per game)
+  - **Reputation Rewards:** Gain reputation for successful gambling sessions
+- **Interactive Gameplay:**
+  - **Betting Modal:** Detailed bet placement with validation
+  - **Real-Time Results:** Live game outcomes with winning/losing animations
+  - **Toast Notifications:** Immediate feedback on wins and losses
+  - **Balance Integration:** Real money transactions with game store
+- **Game Mechanics:**
+  - **Progressive Difficulty:** Easy to hard games with varying risk levels
+  - **Win Animations:** Visual feedback for successful bets
+  - **Loss Prevention:** Insufficient funds and energy validation
 
 ### 🏦 Banking System
 
-- **Complete Banking Interface:** Professional money management system
-- **Deposit & Withdrawal:** Secure money storage with validation
-- **Interest System:** 5% daily interest on deposited funds
-- **24-Hour Timer:** Interest earned every 24 hours after deposit
+- **Complete Banking Interface:** Professional money management system with comprehensive financial services
+- **Deposit & Withdrawal:** Secure money storage with validation and real-time synchronization
+- **Interest System:** 5% daily interest on deposited funds with automatic calculation
+- **24-Hour Timer:** Interest earned every 24 hours after deposit with countdown display
+- **Advanced Loan System:** 
+  - **Credit Score System:** Dynamic credit scoring (0-850) based on payment history and defaults
+  - **Multiple Loan Types:** Small loans ($1K-10K), business loans ($10K-100K), high-risk loans ($50K-500K)
+  - **Interest & Fees:** Realistic interest rates (5-25% APR) and origination fees
+  - **Payment Tracking:** Daily payment requirements with late payment penalties
+  - **Level-Based Limits:** Loan amounts increase 50% per player level
+  - **Default Protection:** Automatic loan default handling for missed payments
+- **Investment System:**
+  - **High-Risk Investments:** Stocks, crypto, and bonds with varying risk levels
+  - **Real-Time Progress:** Live progress bars and countdown timers for active investments
+  - **Expected Returns:** 5-25% returns over 1-7 days based on investment type
+  - **Portfolio Tracking:** Monitor all active investments with completion notifications
 - **Account Protection:** Keep money safe from theft during crimes
-- **Balance Display:** Real-time cash and bank balance tracking
-- **Investment Strategy:** Earn passive income on stored money
+- **Balance Display:** Real-time cash and bank balance tracking with loan debt visibility
+- **Financial Strategy:** Complex money management with loans, investments, and savings
 
 ### 🌃 Nightlife System
 
@@ -181,9 +215,16 @@ Urban Hustle is a browser-based crime and city-themed game where you manage your
 ### Database Schema
 
 - **Players Table:** Unified table containing all player data and stats
-  - Basic info: name, level, experience, avatar_url
-  - Stats: health, energy, addiction, reputation, money, wanted_level
-  - Status: is_imprisoned, is_hospitalized
+  - Basic info: name, level, experience, avatar_url, user_id
+  - Core stats: health, energy, addiction, reputation, money, wanted_level
+  - Banking: bank_balance, last_interest_claim
+  - Loan system: credit_score, total_debt, active_loans[], loan_history[]
+  - Investment system: active_investments[]
+  - Status: is_imprisoned, is_hospitalized, prison_sentence, imprisoned_at
+- **Loans Table:** Complete loan management with RLS policies
+  - Loan details: amount, interest_rate, term_days, daily_payment
+  - Payment tracking: total_paid, late_payments, last_payment_date
+  - Status management: active, paid, defaulted
 - **Items Table:** Complete item catalog with categories and properties
 - **Inventory Table:** Player item ownership with quantities
 - **Businesses Table:** Business management and ownership
@@ -243,22 +284,33 @@ cd <YOUR_PROJECT_NAME>
 
 ## 📊 Recent Updates
 
-### Complete MVP Implementation (Latest)
+### Major Financial System Overhaul (Latest)
+
+- **Advanced Banking System:** Complete loan and investment system implementation
+  - **Comprehensive Loan System:** Credit scoring, multiple loan types, payment tracking, and default handling
+  - **High-Risk Investment Platform:** Stocks, crypto, and bonds with real-time progress tracking
+  - **Database Migration:** Added loan fields and loans table with proper UUID handling
+  - **Type Mapping Fixes:** Resolved bank balance synchronization issues on page refresh
+- **Casino System Complete Rebuild:** Professional gambling platform
+  - **Five Casino Games:** Blackjack, Roulette, Slots, Poker, and Baccarat with realistic mechanics
+  - **Real Money Integration:** Actual betting system connected to player money and energy
+  - **House Edge Calculations:** Proper mathematical odds and win/loss probabilities
+  - **Toast Notifications:** Immediate feedback on game results (wins/losses)
+- **Enhanced Daily Reward System:**
+  - **Real Stat Updates:** Rewards now actually give money, health, and energy to player
+  - **Fixed Timer System:** Proper 24-hour countdown with automatic reset
+  - **Simplified UI:** Clean design with 🎁 emoticon and bounce animation
+- **Database Synchronization Fixes:** Resolved critical issues with bank balance disappearing on refresh
+
+### Previous Major Updates
 
 - **Enhanced Prison System:** Timer-based sentences with realistic activities (exercise, work, sleep)
 - **Advanced Shop System:** Crime-integrated equipment with success rate bonuses
-- **Professional Banking:** Interest system with 24-hour timers and secure storage
 - **50-Level Progression:** Comprehensive reputation-based level system with unique titles
 - **Power-Based Crimes:** Dynamic success calculation using player power vs crime requirements
-- **Clean Codebase:** Removed all debug statements and test features for production-ready state
-
-### Previous Updates
-
 - **Database Unification:** Merged `players` and `player_stats` tables for better performance
 - **Complete UI Overhaul:** Modern cyberpunk theme with responsive design
-- **Real Database Integration:** All game data now comes from Supabase
-- **Enhanced Security:** Row Level Security implemented
-- **Performance Improvements:** Optimized rendering and data loading
+- **Enhanced Security:** Row Level Security implemented with proper user authentication
 
 ---
 

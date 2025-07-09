@@ -24,10 +24,14 @@ const BankView = () => {
     depositMoney, 
     withdrawMoney, 
     addInterest, 
+    updatePlayerMoney,
     applyForLoan,
     approveLoan,
     makePayment,
     calculateCreditScore,
+    startInvestment,
+    completeInvestment,
+    processInvestments,
     loans
   } = useGameStore();
   
@@ -49,6 +53,7 @@ const BankView = () => {
   const activeLoans = player?.stats?.activeLoans || [];
   const totalDebt = player?.stats?.totalDebt || 0;
   const creditScore = calculateCreditScore();
+  const activeInvestments = player?.stats?.activeInvestments || [];
 
   const playerLevel = player?.stats?.level || 1;
   const levelMultiplier = 1 + (playerLevel - 1) * 0.5; // 50% increase per level
@@ -250,27 +255,9 @@ const BankView = () => {
       return;
     }
 
-    setIsProcessing(true);
-    updatePlayerMoney(-amount);
-    
-    // Simulate investment processing
-    setTimeout(() => {
-      const returnRate = Math.random() * (investment.maxReturn - investment.minReturn) + investment.minReturn;
-      const returnAmount = Math.floor(amount * (1 + returnRate / 100));
-      const profit = returnAmount - amount;
-      
-      updatePlayerMoney(returnAmount);
-      
-      if (profit > 0) {
-        toast.success(`Investment successful! Profit: $${profit.toLocaleString()} (${returnRate.toFixed(1)}%)`);
-      } else {
-        toast.error(`Investment lost: $${Math.abs(profit).toLocaleString()} (${returnRate.toFixed(1)}%)`);
-      }
-      
-      setIsProcessing(false);
-      setInvestmentAmount("");
-      setShowInvestments(false);
-    }, investment.duration * 100); // Simulate time (100ms per hour for demo)
+    startInvestment(selectedInvestment, amount);
+    setInvestmentAmount("");
+    setShowInvestments(false);
   };
 
   const getCreditScoreColor = (score: number) => {
@@ -285,6 +272,25 @@ const BankView = () => {
     if (score >= 650) return "Good";
     if (score >= 550) return "Fair";
     return "Poor";
+  };
+
+  const getInvestmentTimeRemaining = (completesAt: string) => {
+    const now = new Date();
+    const completeTime = new Date(completesAt);
+    const timeDiff = completeTime.getTime() - now.getTime();
+    
+    if (timeDiff <= 0) return "Ready to collect";
+    
+    const hoursLeft = Math.floor(timeDiff / (1000 * 60 * 60));
+    const minutesLeft = Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60));
+    
+    return `${hoursLeft}h ${minutesLeft}m remaining`;
+  };
+
+  const canCollectInvestment = (completesAt: string) => {
+    const now = new Date();
+    const completeTime = new Date(completesAt);
+    return now >= completeTime;
   };
 
   return (
@@ -523,6 +529,73 @@ const BankView = () => {
           </div>
         )}
       </div>
+
+      {/* Active Investments */}
+      {activeInvestments.length > 0 && (
+        <div className="mb-6">
+          <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+            <TrendingUp size={24} className="text-blue-400" />
+            Active Investments
+          </h2>
+          
+          <div className="space-y-4">
+            {activeInvestments.map((investment) => (
+              <div key={investment.id} className="p-4 bg-gradient-to-r from-blue-500/20 to-blue-600/20 border border-blue-500/30 rounded-xl">
+                <div className="flex items-center justify-between mb-3">
+                  <div>
+                    <h3 className="font-bold text-blue-400">{investmentTypes[investment.type].name}</h3>
+                    <p className="text-sm text-blue-400/70">
+                      Expected: {investment.expectedReturn > 0 ? '+' : ''}{investment.expectedReturn.toFixed(1)}%
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-xl font-bold text-blue-400">
+                      ${investment.amount.toLocaleString()}
+                    </p>
+                    <p className="text-sm text-blue-400/70">
+                      {getInvestmentTimeRemaining(investment.completesAt)}
+                    </p>
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4 mb-3">
+                  <div>
+                    <p className="text-sm text-white/60">Started</p>
+                    <p className="text-sm text-green-400">{new Date(investment.startedAt).toLocaleDateString()}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-white/60">Completes</p>
+                    <p className="text-sm text-yellow-400">{new Date(investment.completesAt).toLocaleDateString()}</p>
+                  </div>
+                </div>
+
+                <div className="flex gap-2">
+                  <div className="flex-1">
+                    <div className="w-full bg-black/20 rounded-full h-2">
+                      <div 
+                        className="bg-blue-500 h-2 rounded-full transition-all duration-300"
+                        style={{
+                          width: `${Math.min(100, Math.max(0, 
+                            (Date.now() - new Date(investment.startedAt).getTime()) / 
+                            (new Date(investment.completesAt).getTime() - new Date(investment.startedAt).getTime()) * 100
+                          ))}%`
+                        }}
+                      />
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => completeInvestment(investment.id)}
+                    disabled={!canCollectInvestment(investment.completesAt)}
+                    className="py-2 px-4 bg-blue-500 hover:bg-blue-600 disabled:bg-gray-600 text-white rounded font-bold text-sm transition-colors"
+                  >
+                    {canCollectInvestment(investment.completesAt) ? "Collect" : "Wait"}
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Loan Services */}
       <div className="mb-6">

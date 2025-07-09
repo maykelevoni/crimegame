@@ -11,20 +11,24 @@ import {
   Sword,
   Trophy,
   Crown,
-  Sparkles,
   Target,
+  Play,
+  Coins,
 } from "lucide-react";
+import { useGameStore } from "../stores/gameStore";
+import { toast } from "sonner";
 
 interface CasinoGame {
   id: string;
   name: string;
   description: string;
   image: string;
-  reward: string;
-  energy: string;
-  reputation: string;
-  time: string;
-  risk: string;
+  minBet: number;
+  maxBet: number;
+  houseEdge: number;
+  energyCost: number;
+  reputationReward: number;
+  maxMultiplier: number;
   icon: React.ElementType;
   color: string;
   difficulty: string;
@@ -33,25 +37,29 @@ interface CasinoGame {
 }
 
 const CasinoView = () => {
-  const [balance, setBalance] = useState(50000);
-  const [dailySpinAvailable, setDailySpinAvailable] = useState(true);
+  const { player, updatePlayerMoney, updatePlayerStats } = useGameStore();
   const [isPlaying, setIsPlaying] = useState(false);
   const [selectedGame, setSelectedGame] = useState<CasinoGame | null>(null);
-  const [isSpinning, setIsSpinning] = useState(false);
-  const [showDailyReward, setShowDailyReward] = useState(false);
+  const [showGameModal, setShowGameModal] = useState(false);
+  const [betAmount, setBetAmount] = useState("");
+  const [gameResult, setGameResult] = useState<string | null>(null);
+
+  const playerMoney = player?.stats?.money || 0;
+  const playerEnergy = player?.stats?.energy || 0;
 
   const games: CasinoGame[] = [
     {
       id: "blackjack",
       name: "Blackjack",
-      description: "Classic card game with high stakes and strategy",
+      description: "Classic card game with strategy and skill",
       image:
         "https://images.unsplash.com/photo-1511512578047-dfb367046420?w=150&h=150&fit=crop",
-      reward: "2x-3x bet",
-      energy: "10",
-      reputation: "+5",
-      time: "5m",
-      risk: "Medium",
+      minBet: 100,
+      maxBet: 10000,
+      houseEdge: 0.02, // 2% house edge
+      energyCost: 10,
+      reputationReward: 5,
+      maxMultiplier: 2.5,
       icon: Star,
       color: "#FF00C8",
       difficulty: "Medium",
@@ -64,16 +72,17 @@ const CasinoView = () => {
       description: "Spin the wheel for big wins and excitement",
       image:
         "https://images.unsplash.com/photo-1509228468518-180dd4864904?w=150&h=150&fit=crop",
-      reward: "35x bet",
-      energy: "5",
-      reputation: "+10",
-      time: "2m",
-      risk: "High",
+      minBet: 50,
+      maxBet: 25000,
+      houseEdge: 0.027, // 2.7% house edge
+      energyCost: 5,
+      reputationReward: 10,
+      maxMultiplier: 35,
       icon: Dice3,
       color: "#FFD600",
-      difficulty: "Hard",
-      difficultyColor: "bg-red-500",
-      buttonColor: "bg-red-500",
+      difficulty: "Easy",
+      difficultyColor: "bg-green-500",
+      buttonColor: "bg-green-500",
     },
     {
       id: "slots",
@@ -81,16 +90,17 @@ const CasinoView = () => {
       description: "Easy to play, chance to win massive jackpots",
       image:
         "https://images.unsplash.com/photo-1519125323398-675f0ddb6308?w=150&h=150&fit=crop",
-      reward: "1000x bet",
-      energy: "2",
-      reputation: "+2",
-      time: "1m",
-      risk: "Very High",
-      icon: Star,
+      minBet: 10,
+      maxBet: 1000,
+      houseEdge: 0.05, // 5% house edge
+      energyCost: 2,
+      reputationReward: 2,
+      maxMultiplier: 1000,
+      icon: Crown,
       color: "#FF00C8",
       difficulty: "Easy",
       difficultyColor: "bg-green-500",
-      buttonColor: "bg-cyber-blue",
+      buttonColor: "bg-green-500",
     },
     {
       id: "poker",
@@ -98,11 +108,12 @@ const CasinoView = () => {
       description: "High-stakes poker against other players",
       image:
         "https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=150&h=150&fit=crop",
-      reward: "10x pot",
-      energy: "20",
-      reputation: "+50",
-      time: "15m",
-      risk: "Very High",
+      minBet: 500,
+      maxBet: 50000,
+      houseEdge: 0.015, // 1.5% house edge
+      energyCost: 20,
+      reputationReward: 50,
+      maxMultiplier: 10,
       icon: Landmark,
       color: "#00FF88",
       difficulty: "Hard",
@@ -115,11 +126,12 @@ const CasinoView = () => {
       description: "Elegant card game for high rollers",
       image:
         "https://images.unsplash.com/photo-1511512578047-dfb367046420?w=150&h=150&fit=crop",
-      reward: "8x bet",
-      energy: "15",
-      reputation: "+25",
-      time: "8m",
-      risk: "High",
+      minBet: 1000,
+      maxBet: 100000,
+      houseEdge: 0.012, // 1.2% house edge
+      energyCost: 15,
+      reputationReward: 25,
+      maxMultiplier: 8,
       icon: Crown,
       color: "#FFD600",
       difficulty: "Hard",
@@ -129,72 +141,186 @@ const CasinoView = () => {
   ];
 
   const handleGame = (game: CasinoGame) => {
-    // Aqui você pode implementar a lógica específica de cada jogo
+    if (playerEnergy < game.energyCost) {
+      toast.error("Not enough energy to play this game");
+      return;
+    }
+    setSelectedGame(game);
+    setShowGameModal(true);
+    setBetAmount(game.minBet.toString());
   };
 
-  const handleStartGame = (game: CasinoGame) => {
+  const handlePlacebet = () => {
+    if (!selectedGame) return;
+    
+    const bet = parseInt(betAmount);
+    if (isNaN(bet) || bet < selectedGame.minBet || bet > selectedGame.maxBet) {
+      toast.error(`Bet must be between $${selectedGame.minBet} and $${selectedGame.maxBet}`);
+      return;
+    }
+    
+    if (bet > playerMoney) {
+      toast.error("Insufficient funds");
+      return;
+    }
+    
+    if (playerEnergy < selectedGame.energyCost) {
+      toast.error("Not enough energy");
+      return;
+    }
+    
     setIsPlaying(true);
+    
+    // Deduct bet and energy
+    updatePlayerMoney(-bet);
+    updatePlayerStats({
+      energy: playerEnergy - selectedGame.energyCost
+    });
+    
+    // Calculate result based on house edge
     setTimeout(() => {
+      const result = calculateGameResult(selectedGame, bet);
+      setGameResult(result.message);
+      
+      if (result.winnings > 0) {
+        updatePlayerMoney(result.winnings);
+        updatePlayerStats({
+          reputation: (player?.stats?.reputation || 0) + selectedGame.reputationReward
+        });
+        
+        // Show success toast
+        toast.success(result.message, {
+          duration: 4000
+        });
+      } else {
+        // Show loss toast
+        toast.error(result.message, {
+          duration: 3000
+        });
+      }
+      
       setIsPlaying(false);
-      setSelectedGame(game);
-    }, 1200);
+      setBetAmount("");
+      setShowGameModal(false);
+      setSelectedGame(null);
+    }, 2000);
   };
 
-  const handleDailySpin = () => {
-    setIsSpinning(true);
-    setTimeout(() => {
-      setIsSpinning(false);
-      setShowDailyReward(true);
-    }, 2000);
+  const calculateGameResult = (game: CasinoGame, bet: number) => {
+    const random = Math.random();
+    const houseEdge = game.houseEdge;
+    
+    // Basic win/loss calculation based on house edge
+    let winChance = 0.5 - houseEdge;
+    let winnings = 0;
+    let message = "";
+    
+    switch (game.id) {
+      case "blackjack":
+        winChance = 0.48; // Slightly less than 50% due to house edge
+        if (random < winChance) {
+          winnings = bet * 2;
+          message = `Blackjack! You won $${(bet * 2).toLocaleString()}`;
+        } else {
+          message = "Dealer wins. Better luck next time!";
+        }
+        break;
+        
+      case "roulette":
+        if (random < 0.027) { // Single number hit
+          winnings = bet * 35;
+          message = `Lucky number! You won $${(bet * 35).toLocaleString()}`;
+        } else if (random < 0.5) { // Color/even-odd bet
+          winnings = bet * 2;
+          message = `Good guess! You won $${(bet * 2).toLocaleString()}`;
+        } else {
+          message = "The wheel doesn't favor you this time.";
+        }
+        break;
+        
+      case "slots":
+        if (random < 0.001) { // Jackpot
+          winnings = bet * 1000;
+          message = `JACKPOT! You won $${(bet * 1000).toLocaleString()}`;
+        } else if (random < 0.05) { // Small win
+          winnings = bet * 5;
+          message = `Nice spin! You won $${(bet * 5).toLocaleString()}`;
+        } else if (random < 0.15) { // Return bet
+          winnings = bet;
+          message = `Break even! You got your bet back.`;
+        } else {
+          message = "No match. Try again!";
+        }
+        break;
+        
+      case "poker":
+        winChance = 0.485; // Poker with house edge
+        if (random < winChance) {
+          const multiplier = Math.random() * 9 + 1; // 1x to 10x
+          winnings = bet * multiplier;
+          message = `Great hand! You won $${(bet * multiplier).toLocaleString()}`;
+        } else {
+          message = "House wins this round.";
+        }
+        break;
+        
+      case "baccarat":
+        winChance = 0.488; // Baccarat with house edge
+        if (random < winChance) {
+          winnings = bet * 2;
+          message = `Baccarat! You won $${(bet * 2).toLocaleString()}`;
+        } else {
+          message = "Banker wins. Try again!";
+        }
+        break;
+    }
+    
+    return { winnings, message };
   };
 
   return (
     <BaseView title="Casino">
       {/* Balance Overview */}
-      <div className="mb-6 p-4 bg-gradient-to-r from-yellow-500/20 to-yellow-600/20 border border-yellow-500/30 rounded-xl">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <DollarSign size={24} className="text-yellow-400" />
-            <span className="text-xl font-bold text-yellow-400">
-              ${balance.toLocaleString()}
-            </span>
-          </div>
-          <div className="flex items-center gap-2">
-            <Trophy size={20} className="text-yellow-400" />
-            <span className="text-sm text-yellow-400">
-              Available for betting
-            </span>
+      <div className="mb-6 space-y-4">
+        {/* Cash Balance */}
+        <div className="p-4 bg-gradient-to-r from-yellow-500/20 to-yellow-600/20 border border-yellow-500/30 rounded-xl">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <DollarSign size={24} className="text-yellow-400" />
+              <div>
+                <p className="text-sm text-yellow-400/70">Cash Available</p>
+                <span className="text-xl font-bold text-yellow-400">
+                  ${playerMoney.toLocaleString()}
+                </span>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <Trophy size={20} className="text-yellow-400" />
+              <span className="text-sm text-yellow-400">
+                Ready to bet
+              </span>
+            </div>
           </div>
         </div>
-      </div>
-
-      {/* Daily Spin */}
-      <div className="mb-6">
-        <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
-          <Sparkles size={24} className="text-pink-400" />
-          Daily Spin
-        </h2>
-        <div className="p-4 bg-gradient-to-r from-pink-500/20 to-purple-500/20 border border-pink-500/30 rounded-xl">
+        
+        {/* Energy Status */}
+        <div className="p-4 bg-gradient-to-r from-blue-500/20 to-blue-600/20 border border-blue-500/30 rounded-xl">
           <div className="flex items-center justify-between">
-            <div>
-              <h3 className="font-bold text-pink-400 text-lg mb-1">
-                Spin for daily prizes!
-              </h3>
-              <p className="text-sm text-white/70">
-                Get exclusive rewards and bonuses
-              </p>
+            <div className="flex items-center gap-2">
+              <Zap size={24} className="text-blue-400" />
+              <div>
+                <p className="text-sm text-blue-400/70">Energy</p>
+                <span className="text-xl font-bold text-blue-400">
+                  {playerEnergy}/{player?.stats?.maxEnergy || 100}
+                </span>
+              </div>
             </div>
-            <button
-              onClick={handleDailySpin}
-              disabled={!dailySpinAvailable}
-              className={`px-6 py-3 rounded-lg font-bold transition-all ${
-                dailySpinAvailable
-                  ? "bg-pink-500 hover:bg-pink-600 text-white hover:scale-105"
-                  : "bg-gray-500 text-gray-300 cursor-not-allowed"
-              }`}
-            >
-              {dailySpinAvailable ? "Spin Wheel" : "Already Spun"}
-            </button>
+            <div className="flex items-center gap-2">
+              <Clock size={20} className="text-blue-400" />
+              <span className="text-sm text-blue-400">
+                Required for games
+              </span>
+            </div>
           </div>
         </div>
       </div>
@@ -238,34 +364,53 @@ const CasinoView = () => {
                   </p>
                   <div className="grid grid-cols-2 gap-4 text-sm">
                     <div>
-                      <span className="text-white/60">Reward:</span>
+                      <span className="text-white/60">Min Bet:</span>
                       <span className="text-green-400 font-bold ml-2">
-                        {game.reward}
+                        ${game.minBet.toLocaleString()}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-white/60">Max Bet:</span>
+                      <span className="text-green-400 font-bold ml-2">
+                        ${game.maxBet.toLocaleString()}
                       </span>
                     </div>
                     <div>
                       <span className="text-white/60">Energy:</span>
                       <span className="text-yellow-400 font-bold ml-2">
-                        {game.energy}
+                        {game.energyCost}
                       </span>
                     </div>
                     <div>
-                      <span className="text-white/60">Reputation:</span>
-                      <span className="text-purple-400 font-bold ml-2">
-                        {game.reputation}
-                      </span>
-                    </div>
-                    <div>
-                      <span className="text-white/60">Time:</span>
-                      <span className="text-cyan-400 font-bold ml-2">
-                        {game.time}
+                      <span className="text-white/60">House Edge:</span>
+                      <span className="text-red-400 font-bold ml-2">
+                        {(game.houseEdge * 100).toFixed(1)}%
                       </span>
                     </div>
                   </div>
-                  <div className="mt-3 p-2 bg-red-500/10 border border-red-500/30 rounded">
-                    <span className="text-red-400 font-bold">
-                      ⚠️ Risk: {game.risk}
+                  <div className="mt-3 p-2 bg-cyan-500/10 border border-cyan-500/30 rounded">
+                    <span className="text-cyan-400 font-bold">
+                      💰 Max Win: {game.maxMultiplier}x bet
                     </span>
+                  </div>
+                  
+                  {/* Play Button */}
+                  <div className="mt-4">
+                    <button
+                      onClick={() => handleGame(game)}
+                      disabled={playerEnergy < game.energyCost || playerMoney < game.minBet}
+                      className={`w-full py-2 px-4 rounded-lg font-bold text-white transition-all hover:scale-[1.02] ${
+                        game.buttonColor
+                      } ${
+                        playerEnergy < game.energyCost || playerMoney < game.minBet
+                          ? "opacity-50 cursor-not-allowed" 
+                          : "hover:brightness-110"
+                      }`}
+                    >
+                      {playerEnergy < game.energyCost ? "Not Enough Energy" : 
+                       playerMoney < game.minBet ? "Insufficient Funds" : 
+                       "Play Game"}
+                    </button>
                   </div>
                 </div>
               </div>
@@ -273,6 +418,88 @@ const CasinoView = () => {
           ))}
         </div>
       </div>
+
+      {/* Betting Modal */}
+      {showGameModal && selectedGame && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-gray-800 p-6 rounded-xl border border-gray-600 max-w-md w-full mx-4">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-xl font-bold text-white">{selectedGame.name}</h3>
+              <button
+                onClick={() => setShowGameModal(false)}
+                className="text-gray-400 hover:text-white"
+              >
+                ✕
+              </button>
+            </div>
+            
+            <div className="mb-4">
+              <p className="text-gray-300 mb-2">{selectedGame.description}</p>
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div>
+                  <span className="text-gray-400">Min Bet:</span>
+                  <span className="text-green-400 font-bold ml-2">
+                    ${selectedGame.minBet.toLocaleString()}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-gray-400">Max Bet:</span>
+                  <span className="text-green-400 font-bold ml-2">
+                    ${selectedGame.maxBet.toLocaleString()}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-gray-400">Energy Cost:</span>
+                  <span className="text-yellow-400 font-bold ml-2">
+                    {selectedGame.energyCost}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-gray-400">Max Win:</span>
+                  <span className="text-cyan-400 font-bold ml-2">
+                    {selectedGame.maxMultiplier}x
+                  </span>
+                </div>
+              </div>
+            </div>
+            
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-white mb-2">
+                Bet Amount
+              </label>
+              <input
+                type="number"
+                value={betAmount}
+                onChange={(e) => setBetAmount(e.target.value)}
+                placeholder="Enter bet amount"
+                min={selectedGame.minBet}
+                max={Math.min(selectedGame.maxBet, playerMoney)}
+                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white"
+              />
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <button
+                onClick={() => setShowGameModal(false)}
+                className="py-2 px-4 bg-gray-600 hover:bg-gray-700 text-white rounded font-bold transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handlePlacebet}
+                disabled={isPlaying || !betAmount || parseInt(betAmount) < selectedGame.minBet}
+                className={`py-2 px-4 rounded font-bold text-white transition-colors ${
+                  isPlaying || !betAmount || parseInt(betAmount) < selectedGame.minBet
+                    ? "bg-gray-600 cursor-not-allowed"
+                    : "bg-green-600 hover:bg-green-700"
+                }`}
+              >
+                {isPlaying ? "Playing..." : "Place Bet"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </BaseView>
   );
 };

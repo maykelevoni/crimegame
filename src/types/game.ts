@@ -25,6 +25,16 @@ export interface LoanApplication {
   reason?: string;
 }
 
+export interface Investment {
+  id: string;
+  type: "stocks" | "crypto" | "bonds";
+  amount: number;
+  startedAt: string; // ISO date string
+  completesAt: string; // ISO date string
+  expectedReturn: number; // Percentage
+  status: "active" | "completed" | "cancelled";
+}
+
 // Player Types
 export interface PlayerStats {
   health: number;
@@ -47,6 +57,7 @@ export interface PlayerStats {
   creditScore: number; // Player's credit score (0-850)
   totalDebt: number; // Total outstanding debt
   loanHistory: string[]; // Array of loan IDs for history tracking
+  activeInvestments: Investment[]; // Array of active investments
 }
 
 export interface Player {
@@ -215,6 +226,7 @@ export interface GameState {
   activeView: string;
   activeSection: string;
   loans: Loan[]; // All loans (active and historical)
+  investments: Investment[]; // All investments (active and historical)
 }
 
 // Action Types

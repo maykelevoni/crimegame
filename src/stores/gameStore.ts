@@ -41,6 +41,7 @@ const initialPlayerStats: PlayerStats = {
   creditScore: 650,
   totalDebt: 0,
   loanHistory: [],
+  activeInvestments: [],
 };
 
 const initialPlayer: Player = {
@@ -126,6 +127,11 @@ interface GameStore extends GameState {
   loadPlayerInventory: (inventory: Item[]) => Promise<void>;
   loadPlayerBusinesses: (businesses: Business[]) => Promise<void>;
 
+  // Investment Actions
+  startInvestment: (type: "stocks" | "crypto" | "bonds", amount: number) => void;
+  completeInvestment: (investmentId: string) => void;
+  processInvestments: () => void;
+
   // Actions de Reset
   resetGame: () => void;
 }
@@ -145,6 +151,7 @@ export const useGameStore = create<GameStore>()(
       activeView: "home",
       activeSection: "home",
       loans: [],
+      investments: [],
 
       // Auth state
       userId: null,
@@ -797,6 +804,7 @@ export const useGameStore = create<GameStore>()(
                   creditScore: player.stats.creditScore || state.player.stats.creditScore || 650,
                   totalDebt: player.stats.totalDebt || state.player.stats.totalDebt || 0,
                   loanHistory: player.stats.loanHistory || state.player.stats.loanHistory || [],
+                  activeInvestments: player.stats.activeInvestments || state.player.stats.activeInvestments || [],
                 },
                 createdAt: player.createdAt,
                 updatedAt: player.updatedAt,
@@ -1464,6 +1472,112 @@ export const useGameStore = create<GameStore>()(
         }
       },
       
+      // Investment Actions
+      startInvestment: (type, amount) => {
+        const investmentTypes = {
+          stocks: { duration: 24, minReturn: -30, maxReturn: 50 },
+          crypto: { duration: 12, minReturn: -50, maxReturn: 100 },
+          bonds: { duration: 48, minReturn: 3, maxReturn: 8 }
+        };
+        
+        const investmentType = investmentTypes[type];
+        const returnRate = Math.random() * (investmentType.maxReturn - investmentType.minReturn) + investmentType.minReturn;
+        const startTime = new Date();
+        const completeTime = new Date(startTime.getTime() + investmentType.duration * 60 * 60 * 1000);
+        
+        const newInvestment: Investment = {
+          id: crypto.randomUUID(),
+          type,
+          amount,
+          startedAt: startTime.toISOString(),
+          completesAt: completeTime.toISOString(),
+          expectedReturn: returnRate,
+          status: "active"
+        };
+        
+        set((state) => ({
+          investments: [...state.investments, newInvestment],
+          player: {
+            ...state.player,
+            stats: {
+              ...state.player.stats,
+              money: state.player.stats.money - amount,
+              activeInvestments: [...state.player.stats.activeInvestments, newInvestment]
+            },
+            updatedAt: new Date()
+          }
+        }));
+        
+        toast.success(`Started ${type} investment of $${amount.toLocaleString()}`);
+        
+        if (get().userId && get().isOnline) {
+          get().syncGameState();
+        }
+      },
+      
+      completeInvestment: (investmentId) => {
+        set((state) => {
+          const investmentIndex = state.investments.findIndex(inv => inv.id === investmentId);
+          if (investmentIndex === -1) return state;
+          
+          const investment = state.investments[investmentIndex];
+          if (investment.status !== "active") return state;
+          
+          const returnAmount = Math.floor(investment.amount * (1 + investment.expectedReturn / 100));
+          const profit = returnAmount - investment.amount;
+          
+          const updatedInvestment = {
+            ...investment,
+            status: "completed" as const
+          };
+          
+          const updatedInvestments = [...state.investments];
+          updatedInvestments[investmentIndex] = updatedInvestment;
+          
+          const updatedActiveInvestments = state.player.stats.activeInvestments.filter(inv => inv.id !== investmentId);
+          
+          if (profit > 0) {
+            toast.success(`Investment completed! Profit: $${profit.toLocaleString()} (${investment.expectedReturn.toFixed(1)}%)`);
+          } else {
+            toast.error(`Investment lost: $${Math.abs(profit).toLocaleString()} (${investment.expectedReturn.toFixed(1)}%)`);
+          }
+          
+          return {
+            investments: updatedInvestments,
+            player: {
+              ...state.player,
+              stats: {
+                ...state.player.stats,
+                money: state.player.stats.money + returnAmount,
+                activeInvestments: updatedActiveInvestments
+              },
+              updatedAt: new Date()
+            }
+          };
+        });
+        
+        if (get().userId && get().isOnline) {
+          get().syncGameState();
+        }
+      },
+      
+      processInvestments: () => {
+        set((state) => {
+          const now = new Date();
+          let hasChanges = false;
+          
+          state.player.stats.activeInvestments.forEach(investment => {
+            const completeTime = new Date(investment.completesAt);
+            if (now >= completeTime) {
+              get().completeInvestment(investment.id);
+              hasChanges = true;
+            }
+          });
+          
+          return hasChanges ? { ...state } : state;
+        });
+      },
+
       // Actions de Reset
       resetGame: () => {
         set({
@@ -1477,6 +1591,7 @@ export const useGameStore = create<GameStore>()(
           activeView: "home",
           activeSection: "home",
           loans: [],
+          investments: [],
         });
       },
     }),
@@ -1494,6 +1609,7 @@ export const useGameStore = create<GameStore>()(
         activeSection: state.activeSection,
         userId: state.userId,
         loans: state.loans,
+        investments: state.investments,
       }),
     }
   )

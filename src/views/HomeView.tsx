@@ -50,7 +50,7 @@ interface HomeViewProps {
 
 const HomeView = ({ onViewChange }: HomeViewProps) => {
   const [lastRewardTime, setLastRewardTime] = useState<number | null>(null);
-  const { player, updatePlayerMoney, setPlayerImprisoned } = useGameStore();
+  const { player, updatePlayerMoney, updatePlayerStats, setPlayerImprisoned } = useGameStore();
 
 
   const handleAddMoney = async () => {
@@ -146,16 +146,30 @@ const HomeView = ({ onViewChange }: HomeViewProps) => {
   const handleDailyReward = () => {
     if (!canCollectReward) return;
 
-    // Simular recompensa diária
+    // Actually give the rewards to the player
+    const rewardMoney = 500;
+    const rewardHealth = 20;
+    const rewardEnergy = 30;
+    
+    updatePlayerMoney(rewardMoney);
+    updatePlayerStats({
+      health: Math.min((player?.stats?.health || 100) + rewardHealth, player?.stats?.maxHealth || 100),
+      energy: Math.min((player?.stats?.energy || 100) + rewardEnergy, player?.stats?.maxEnergy || 100)
+    });
+
     toast.success("🎉 Daily Reward Collected! 💰 +$500, 💊 +20 HP, ⚡ +30 Energy", {
       duration: 3000
     });
 
-    // Salvar timestamp da última coleta
+    // Save timestamp and update timer
     const now = Date.now();
     setLastRewardTime(now);
     localStorage.setItem("lastDailyReward", now.toString());
     setCanCollectReward(false);
+    
+    // Set timer for next reward (24 hours)
+    const dayInMs = 24 * 60 * 60 * 1000;
+    setTimeUntilNextReward(dayInMs);
   };
 
   // Verificar se pode coletar recompensa
@@ -195,6 +209,23 @@ const HomeView = ({ onViewChange }: HomeViewProps) => {
       return () => clearInterval(timer);
     }
   }, [canCollectReward, timeUntilNextReward]);
+  
+  // Update timer when reward is collected
+  useEffect(() => {
+    if (lastRewardTime && !canCollectReward) {
+      const dayInMs = 24 * 60 * 60 * 1000;
+      const now = Date.now();
+      const timeDiff = now - lastRewardTime;
+      const remaining = dayInMs - timeDiff;
+      
+      if (remaining > 0) {
+        setTimeUntilNextReward(remaining);
+      } else {
+        setCanCollectReward(true);
+        setTimeUntilNextReward(0);
+      }
+    }
+  }, [lastRewardTime, canCollectReward]);
 
   const formatTime = (ms: number) => {
     const hours = Math.floor(ms / (1000 * 60 * 60));
@@ -211,64 +242,28 @@ const HomeView = ({ onViewChange }: HomeViewProps) => {
       <div className="space-y-3 mt-0 pt-0 overflow-x-hidden pb-16">
         
         {/* Daily Reward */}
-        <div
-          className="daily-reward-box flex flex-col justify-center items-center"
-          style={{
-            background: "linear-gradient(to bottom, #1a1a2e, #16213e)",
-            border: "1px solid #4f46e5",
-            borderRadius: "12px",
-            boxShadow: "inset 0 0 8px #4f46e5",
-            padding: "20px",
-            color: "#4f46e5",
-            height: "160px",
-            minHeight: "160px",
-            maxHeight: "160px",
-          }}
-        >
-          <div
-            className="flex flex-col items-center justify-center w-full"
-            style={{
-              fontWeight: "bold",
-              fontSize: "1.1rem",
-              letterSpacing: "0.5px",
-            }}
+        <div className="flex justify-center mb-4">
+          <button
+            className={`reward-btn flex items-center justify-center gap-2 px-4 py-2 rounded-lg transition-all duration-200 ${
+              canCollectReward
+                ? "bg-gradient-to-r from-yellow-500/30 to-orange-500/30 border border-yellow-500/50 hover:scale-105 hover:shadow-lg hover:shadow-yellow-500/30"
+                : "bg-gradient-to-r from-gray-500/30 to-gray-600/30 border border-gray-500/50 opacity-60 cursor-not-allowed"
+            }`}
+            onClick={handleDailyReward}
+            disabled={!canCollectReward}
           >
-            <span className="flex items-center gap-2 justify-center mb-2">
-              <Calendar size={24} className="text-indigo-400" />
-              Daily Reward
-              <span className="text-yellow-300 animate-pulse">✨</span>
-            </span>
-            <div className="text-center text-sm text-indigo-300 mb-3">
-              {canCollectReward ? (
-                <div>🎁 Mystery rewards await!</div>
-              ) : (
-                <div>⏰ Come back in: {formatTime(timeUntilNextReward)}</div>
+            <span className="text-2xl animate-bounce">🎁</span>
+            <div className="text-center">
+              <div className="text-sm font-bold text-white">
+                {canCollectReward ? "Daily Reward" : "Already Collected"}
+              </div>
+              {!canCollectReward && (
+                <div className="text-xs text-gray-300">
+                  {formatTime(timeUntilNextReward)}
+                </div>
               )}
             </div>
-            <button
-              className={`reward-btn flex items-center justify-center mx-auto ${
-                !canCollectReward ? "opacity-50 cursor-not-allowed" : ""
-              }`}
-              style={{
-                background: canCollectReward
-                  ? "radial-gradient(circle at center, #4f46e5, #3730a3)"
-                  : "radial-gradient(circle at center, #6b7280, #4b5563)",
-                border: "none",
-                padding: "10px 24px",
-                fontSize: "0.9rem",
-                fontWeight: "bold",
-                borderRadius: "25px",
-                color: "white",
-                boxShadow: canCollectReward ? "0 0 10px #4f46e5aa" : "none",
-                cursor: canCollectReward ? "pointer" : "not-allowed",
-              }}
-              onClick={handleDailyReward}
-              disabled={!canCollectReward}
-            >
-              <Gift size={16} className="mr-2" />
-              {canCollectReward ? "Collect Reward" : "Already Collected"}
-            </button>
-          </div>
+          </button>
         </div>
 
         {/* Espaçamento entre Daily Reward e Main Actions */}
