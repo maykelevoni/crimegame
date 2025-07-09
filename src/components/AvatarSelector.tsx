@@ -33,6 +33,80 @@ const AvatarSelector: React.FC<AvatarSelectorProps> = ({ isOpen, onClose, curren
   }, [isOpen]);
 
   const loadAvatarOptions = async () => {
+    // Use fallback avatars by default to avoid 404 errors
+    const fallbackAvatars = [
+      {
+        id: "avatar_1",
+        name: "Street Fighter",
+        image_url: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&crop=face&auto=format&q=80",
+        category: "male",
+        description: "Tough street fighter with attitude"
+      },
+      {
+        id: "avatar_2",
+        name: "Gang Leader",
+        image_url: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop&crop=face&auto=format&q=80",
+        category: "male",
+        description: "Experienced gang leader"
+      },
+      {
+        id: "avatar_3",
+        name: "Businessman",
+        image_url: "https://images.unsplash.com/photo-1560250097-0b93528c311a?w=400&h=400&fit=crop&crop=face&auto=format&q=80",
+        category: "male",
+        description: "Legitimate business owner"
+      },
+      {
+        id: "avatar_4",
+        name: "Enforcer",
+        image_url: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400&h=400&fit=crop&crop=face&auto=format&q=80",
+        category: "male",
+        description: "Muscle for hire"
+      },
+      {
+        id: "avatar_5",
+        name: "Street Queen",
+        image_url: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400&h=400&fit=crop&crop=face&auto=format&q=80",
+        category: "female",
+        description: "Fierce street queen who rules the block"
+      },
+      {
+        id: "avatar_6",
+        name: "Crime Mastermind",
+        image_url: "https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=400&h=400&fit=crop&crop=face&auto=format&q=80",
+        category: "female",
+        description: "Brilliant criminal mastermind"
+      },
+      {
+        id: "avatar_7",
+        name: "Businesswoman",
+        image_url: "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=400&h=400&fit=crop&crop=face&auto=format&q=80",
+        category: "female",
+        description: "Powerful businesswoman"
+      },
+      {
+        id: "avatar_8",
+        name: "Femme Fatale",
+        image_url: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&h=400&fit=crop&crop=face&auto=format&q=80",
+        category: "female",
+        description: "Dangerous and seductive"
+      },
+      {
+        id: "avatar_9",
+        name: "Mysterious Figure",
+        image_url: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400&h=400&fit=crop&crop=face&auto=format&q=80",
+        category: "neutral",
+        description: "Identity unknown"
+      },
+      {
+        id: "avatar_10",
+        name: "Hacker",
+        image_url: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=400&h=400&fit=crop&crop=face&auto=format&q=80",
+        category: "neutral",
+        description: "Digital underground expert"
+      }
+    ];
+
     try {
       const { data, error } = await supabase
         .from('avatar_options')
@@ -41,10 +115,15 @@ const AvatarSelector: React.FC<AvatarSelectorProps> = ({ isOpen, onClose, curren
         .order('category', { ascending: true });
 
       if (error) {
-        if (error.code === 'PGRST116' || error.code === '42P01' || error.code === 'PGRST301') {
+        if (error.code === 'PGRST116' || error.code === '42P01' || error.code === 'PGRST301' || error.message?.includes('404')) {
           // Avatar options table does not exist yet, using fallback avatars
+          setAvatarOptions(fallbackAvatars);
+          return;
         } else {
-          throw error;
+          console.error('Error loading avatar options:', error);
+          // Use fallback avatars on any error
+          setAvatarOptions(fallbackAvatars);
+          return;
         }
       }
 
@@ -52,68 +131,12 @@ const AvatarSelector: React.FC<AvatarSelectorProps> = ({ isOpen, onClose, curren
         setAvatarOptions(data as AvatarOption[]);
       } else {
         // Fallback avatar options if database is empty
-        setAvatarOptions([
-          {
-            id: "avatar_1",
-            name: "Street Fighter",
-            image_url: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&crop=face",
-            category: "male",
-            description: "Tough street fighter with attitude"
-          },
-          {
-            id: "avatar_2", 
-            name: "Gang Leader",
-            image_url: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop&crop=face",
-            category: "male",
-            description: "Experienced gang leader"
-          },
-          {
-            id: "avatar_3",
-            name: "Undercover Agent",
-            image_url: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400&h=400&fit=crop&crop=face", 
-            category: "male",
-            description: "Mysterious undercover operative"
-          },
-          {
-            id: "avatar_4",
-            name: "Crime Boss",
-            image_url: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=400&h=400&fit=crop&crop=face",
-            category: "male", 
-            description: "Ruthless crime syndicate boss"
-          },
-          {
-            id: "avatar_5",
-            name: "Street Queen",
-            image_url: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400&h=400&fit=crop&crop=face",
-            category: "female",
-            description: "Fierce street queen who rules the block"
-          },
-          {
-            id: "avatar_6",
-            name: "Hitwoman", 
-            image_url: "https://images.unsplash.com/photo-1489424731084-a5d8b219a5bb?w=400&h=400&fit=crop&crop=face",
-            category: "female",
-            description: "Professional assassin for hire"
-          },
-          {
-            id: "avatar_7",
-            name: "Gang Princess",
-            image_url: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400&h=400&fit=crop&crop=face",
-            category: "female", 
-            description: "Dangerous beauty with deadly skills"
-          },
-          {
-            id: "avatar_8",
-            name: "Crime Mastermind",
-            image_url: "https://images.unsplash.com/photo-1494790108755-2616b2e31b89?w=400&h=400&fit=crop&crop=face",
-            category: "female",
-            description: "Brilliant criminal mastermind"
-          }
-        ]);
+        setAvatarOptions(fallbackAvatars);
       }
     } catch (error) {
       console.error('Error loading avatar options:', error);
-      toast.error('Failed to load avatar options');
+      // Use fallback avatars on any error
+      setAvatarOptions(fallbackAvatars);
     }
   };
 
@@ -178,8 +201,14 @@ const AvatarSelector: React.FC<AvatarSelectorProps> = ({ isOpen, onClose, curren
                 <div className="aspect-square rounded-lg overflow-hidden">
                   <img
                     src={avatar.image_url}
-                    alt=""
+                    alt={avatar.name || "Avatar"}
                     className="w-full h-full object-cover"
+                    onError={(e) => {
+                      // Fallback to a placeholder when image fails to load
+                      const target = e.target as HTMLImageElement;
+                      target.src = `https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&crop=face&auto=format&q=80`;
+                      target.onerror = null; // Prevent infinite loop
+                    }}
                   />
                 </div>
                 

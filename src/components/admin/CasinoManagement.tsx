@@ -30,7 +30,7 @@ import { supabase } from "@/integrations/supabase/client";
 interface CasinoGame {
   id: string;
   name: string;
-  type: "slots" | "blackjack" | "poker" | "roulette" | "dice" | "wheel" | "lottery" | "bingo";
+  type: "slots" | "blackjack" | "poker" | "roulette" | "baccarat" | "dice" | "wheel" | "lottery" | "bingo";
   description: string;
   minBet: number;
   maxBet: number;
@@ -104,6 +104,7 @@ const CasinoManagement = () => {
     { value: "blackjack", label: "Blackjack", icon: Spade },
     { value: "poker", label: "Poker", icon: Heart },
     { value: "roulette", label: "Roulette", icon: Target },
+    { value: "baccarat", label: "Baccarat", icon: Coins },
     { value: "dice", label: "Dice Games", icon: Dice1 },
     { value: "wheel", label: "Wheel of Fortune", icon: RefreshCw },
     { value: "lottery", label: "Lottery", icon: Trophy },
@@ -118,48 +119,14 @@ const CasinoManagement = () => {
 
   const mockGames: CasinoGame[] = [
     {
-      id: "1",
-      name: "Lucky Slots",
-      type: "slots",
-      description: "Classic 3-reel slot machine with fruits and lucky sevens",
-      minBet: 1,
-      maxBet: 100,
-      houseEdge: 5.2,
-      payoutRatio: 94.8,
-      isActive: true,
-      popularity: 85,
-      totalPlayed: 15420,
-      totalWinnings: 125000,
-      totalLosses: 132000,
-      averageSessionTime: 450,
-      lastPlayed: "2024-01-15T10:30:00Z",
-      imageUrl: "/images/lucky-slots.jpg",
-      rules: "Match 3 symbols on a payline to win. Lucky sevens are the jackpot symbol.",
-      difficulty: "easy",
-      jackpotEnabled: true,
-      jackpotAmount: 50000,
-      maxPlayers: 1,
-      requiredLevel: 1,
-      specialEvents: ["Happy Hour", "Weekend Bonus"],
-      bonusRounds: true,
-      autoPlay: true,
-      soundEnabled: true,
-      animations: true,
-      theme: "Classic Fruits",
-      category: "Slots",
-      tags: ["classic", "jackpot", "bonus"],
-      createdAt: "2024-01-01T00:00:00Z",
-      updatedAt: "2024-01-15T10:30:00Z",
-    },
-    {
-      id: "2",
-      name: "High Stakes Blackjack",
+      id: "blackjack",
+      name: "Blackjack",
       type: "blackjack",
-      description: "Professional blackjack table with high betting limits",
-      minBet: 10,
-      maxBet: 1000,
-      houseEdge: 0.5,
-      payoutRatio: 99.5,
+      description: "Classic card game with strategy and skill",
+      minBet: 100,
+      maxBet: 10000,
+      houseEdge: 2.0,
+      payoutRatio: 98.0,
       isActive: true,
       popularity: 92,
       totalPlayed: 8750,
@@ -167,80 +134,46 @@ const CasinoManagement = () => {
       totalLosses: 880000,
       averageSessionTime: 1800,
       lastPlayed: "2024-01-15T14:45:00Z",
-      imageUrl: "/images/blackjack.jpg",
+      imageUrl: "https://images.unsplash.com/photo-1511512578047-dfb367046420?w=150&h=150&fit=crop",
       rules: "Get as close to 21 as possible without going over. Dealer must hit on 16 and stand on 17.",
       difficulty: "medium",
       jackpotEnabled: false,
       jackpotAmount: 0,
-      maxPlayers: 6,
-      requiredLevel: 5,
+      maxPlayers: 1,
+      requiredLevel: 1,
       specialEvents: ["VIP Tournament", "Double Down Monday"],
       bonusRounds: false,
       autoPlay: false,
       soundEnabled: true,
-      animations: false,
+      animations: true,
       theme: "Classic Casino",
       category: "Card Games",
-      tags: ["strategy", "skill", "high-stakes"],
+      tags: ["strategy", "skill", "medium-stakes"],
       createdAt: "2024-01-01T00:00:00Z",
       updatedAt: "2024-01-15T14:45:00Z",
     },
     {
-      id: "3",
-      name: "Texas Hold'em Poker",
-      type: "poker",
-      description: "Multi-player Texas Hold'em with tournament modes",
-      minBet: 5,
-      maxBet: 500,
-      houseEdge: 2.5,
-      payoutRatio: 97.5,
-      isActive: true,
-      popularity: 78,
-      totalPlayed: 12300,
-      totalWinnings: 615000,
-      totalLosses: 630000,
-      averageSessionTime: 2700,
-      lastPlayed: "2024-01-15T16:20:00Z",
-      imageUrl: "/images/poker.jpg",
-      rules: "Make the best 5-card hand using 2 hole cards and 5 community cards.",
-      difficulty: "hard",
-      jackpotEnabled: true,
-      jackpotAmount: 25000,
-      maxPlayers: 10,
-      requiredLevel: 10,
-      specialEvents: ["Poker Night", "Royal Flush Bonus"],
-      bonusRounds: false,
-      autoPlay: false,
-      soundEnabled: true,
-      animations: true,
-      theme: "Wild West",
-      category: "Card Games",
-      tags: ["multiplayer", "tournament", "strategy"],
-      createdAt: "2024-01-01T00:00:00Z",
-      updatedAt: "2024-01-15T16:20:00Z",
-    },
-    {
-      id: "4",
-      name: "European Roulette",
+      id: "roulette",
+      name: "Roulette",
       type: "roulette",
-      description: "Classic European roulette with single zero",
-      minBet: 1,
-      maxBet: 200,
+      description: "Spin the wheel for big wins and excitement",
+      minBet: 50,
+      maxBet: 25000,
       houseEdge: 2.7,
       payoutRatio: 97.3,
       isActive: true,
-      popularity: 71,
+      popularity: 85,
       totalPlayed: 9850,
       totalWinnings: 492500,
       totalLosses: 505000,
       averageSessionTime: 900,
       lastPlayed: "2024-01-15T12:15:00Z",
-      imageUrl: "/images/roulette.jpg",
+      imageUrl: "https://images.unsplash.com/photo-1509228468518-180dd4864904?w=150&h=150&fit=crop",
       rules: "Place bets on numbers, colors, or groups. Single zero gives better odds than American roulette.",
       difficulty: "easy",
-      jackpotEnabled: false,
-      jackpotAmount: 0,
-      maxPlayers: 8,
+      jackpotEnabled: true,
+      jackpotAmount: 875000,
+      maxPlayers: 1,
       requiredLevel: 1,
       specialEvents: ["Lucky Number", "Color Rush"],
       bonusRounds: false,
@@ -249,43 +182,111 @@ const CasinoManagement = () => {
       animations: true,
       theme: "European Casino",
       category: "Table Games",
-      tags: ["classic", "multiplayer", "simple"],
+      tags: ["classic", "luck", "high-payout"],
       createdAt: "2024-01-01T00:00:00Z",
       updatedAt: "2024-01-15T12:15:00Z",
     },
     {
-      id: "5",
-      name: "Craps Master",
-      type: "dice",
-      description: "Fast-paced dice game with multiple betting options",
-      minBet: 2,
-      maxBet: 300,
-      houseEdge: 1.4,
-      payoutRatio: 98.6,
-      isActive: false,
-      popularity: 45,
-      totalPlayed: 3200,
-      totalWinnings: 160000,
-      totalLosses: 162000,
-      averageSessionTime: 1200,
-      lastPlayed: "2024-01-10T08:30:00Z",
-      imageUrl: "/images/craps.jpg",
-      rules: "Roll dice and bet on outcomes. Pass line bets have the lowest house edge.",
-      difficulty: "medium",
-      jackpotEnabled: false,
-      jackpotAmount: 0,
-      maxPlayers: 12,
-      requiredLevel: 3,
-      specialEvents: ["Hot Dice", "Seven Heaven"],
+      id: "slots",
+      name: "Slots",
+      type: "slots",
+      description: "Easy to play, chance to win massive jackpots",
+      minBet: 10,
+      maxBet: 1000,
+      houseEdge: 5.0,
+      payoutRatio: 95.0,
+      isActive: true,
+      popularity: 95,
+      totalPlayed: 25420,
+      totalWinnings: 1250000,
+      totalLosses: 1315000,
+      averageSessionTime: 450,
+      lastPlayed: "2024-01-15T10:30:00Z",
+      imageUrl: "https://images.unsplash.com/photo-1519125323398-675f0ddb6308?w=150&h=150&fit=crop",
+      rules: "Match symbols on paylines to win. Special combinations trigger jackpots and bonus rounds.",
+      difficulty: "easy",
+      jackpotEnabled: true,
+      jackpotAmount: 1000000,
+      maxPlayers: 1,
+      requiredLevel: 1,
+      specialEvents: ["Happy Hour", "Weekend Bonus", "Mega Jackpot"],
+      bonusRounds: true,
+      autoPlay: true,
+      soundEnabled: true,
+      animations: true,
+      theme: "Classic Fruits",
+      category: "Slots",
+      tags: ["classic", "jackpot", "bonus", "easy"],
+      createdAt: "2024-01-01T00:00:00Z",
+      updatedAt: "2024-01-15T10:30:00Z",
+    },
+    {
+      id: "poker",
+      name: "Poker",
+      type: "poker",
+      description: "High-stakes poker against other players",
+      minBet: 500,
+      maxBet: 50000,
+      houseEdge: 1.5,
+      payoutRatio: 98.5,
+      isActive: true,
+      popularity: 78,
+      totalPlayed: 4300,
+      totalWinnings: 2150000,
+      totalLosses: 2185000,
+      averageSessionTime: 2700,
+      lastPlayed: "2024-01-15T16:20:00Z",
+      imageUrl: "https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=150&h=150&fit=crop",
+      rules: "Make the best 5-card hand. Variable multipliers based on hand strength and skill.",
+      difficulty: "hard",
+      jackpotEnabled: true,
+      jackpotAmount: 500000,
+      maxPlayers: 1,
+      requiredLevel: 1,
+      specialEvents: ["Poker Night", "Royal Flush Bonus", "High Roller Tournament"],
       bonusRounds: false,
       autoPlay: false,
       soundEnabled: true,
       animations: true,
-      theme: "Vegas Strip",
-      category: "Dice Games",
-      tags: ["dice", "fast-paced", "social"],
+      theme: "Wild West",
+      category: "Card Games",
+      tags: ["multiplayer", "tournament", "strategy", "high-stakes"],
       createdAt: "2024-01-01T00:00:00Z",
-      updatedAt: "2024-01-10T08:30:00Z",
+      updatedAt: "2024-01-15T16:20:00Z",
+    },
+    {
+      id: "baccarat",
+      name: "Baccarat",
+      type: "baccarat",
+      description: "Elegant card game for high rollers",
+      minBet: 1000,
+      maxBet: 100000,
+      houseEdge: 1.2,
+      payoutRatio: 98.8,
+      isActive: true,
+      popularity: 65,
+      totalPlayed: 1850,
+      totalWinnings: 925000,
+      totalLosses: 936000,
+      averageSessionTime: 1500,
+      lastPlayed: "2024-01-15T18:30:00Z",
+      imageUrl: "https://images.unsplash.com/photo-1511512578047-dfb367046420?w=150&h=150&fit=crop",
+      rules: "Bet on Player, Banker, or Tie. Closest to 9 wins. Banker bets have lowest house edge.",
+      difficulty: "hard",
+      jackpotEnabled: false,
+      jackpotAmount: 0,
+      maxPlayers: 1,
+      requiredLevel: 1,
+      specialEvents: ["VIP Baccarat", "High Roller Night"],
+      bonusRounds: false,
+      autoPlay: false,
+      soundEnabled: true,
+      animations: true,
+      theme: "Luxury Casino",
+      category: "Card Games",
+      tags: ["elegant", "high-roller", "luxury", "low-edge"],
+      createdAt: "2024-01-01T00:00:00Z",
+      updatedAt: "2024-01-15T18:30:00Z",
     },
   ];
 
@@ -462,6 +463,7 @@ const CasinoManagement = () => {
       blackjack: Spade,
       poker: Heart,
       roulette: Target,
+      baccarat: Coins,
       dice: Dice1,
       wheel: RefreshCw,
       lottery: Trophy,
@@ -598,35 +600,35 @@ const CasinoManagement = () => {
             <select
               value={selectedType}
               onChange={(e) => setSelectedType(e.target.value)}
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 bg-white"
             >
-              <option value="all">All Types</option>
+              <option value="all" className="text-gray-900">All Types</option>
               {gameTypes.map(type => (
-                <option key={type.value} value={type.value}>{type.label}</option>
+                <option key={type.value} value={type.value} className="text-gray-900">{type.label}</option>
               ))}
             </select>
 
             <select
               value={selectedDifficulty}
               onChange={(e) => setSelectedDifficulty(e.target.value)}
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 bg-white"
             >
-              <option value="all">All Difficulties</option>
+              <option value="all" className="text-gray-900">All Difficulties</option>
               {difficulties.map(diff => (
-                <option key={diff.value} value={diff.value}>{diff.label}</option>
+                <option key={diff.value} value={diff.value} className="text-gray-900">{diff.label}</option>
               ))}
             </select>
 
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 bg-white"
             >
-              <option value="name">Sort by Name</option>
-              <option value="popularity">Sort by Popularity</option>
-              <option value="totalPlayed">Sort by Total Played</option>
-              <option value="houseEdge">Sort by House Edge</option>
-              <option value="updatedAt">Sort by Last Updated</option>
+              <option value="name" className="text-gray-900">Sort by Name</option>
+              <option value="popularity" className="text-gray-900">Sort by Popularity</option>
+              <option value="totalPlayed" className="text-gray-900">Sort by Total Played</option>
+              <option value="houseEdge" className="text-gray-900">Sort by House Edge</option>
+              <option value="updatedAt" className="text-gray-900">Sort by Last Updated</option>
             </select>
 
             <button
@@ -1013,7 +1015,7 @@ const GameModal: React.FC<GameModalProps> = ({
                   type="text"
                   value={formData.name}
                   onChange={(e) => handleInputChange("name", e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
                   required
                 />
               </div>
@@ -1025,11 +1027,11 @@ const GameModal: React.FC<GameModalProps> = ({
                 <select
                   value={formData.type}
                   onChange={(e) => handleInputChange("type", e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 bg-white"
                   required
                 >
                   {gameTypes.map(type => (
-                    <option key={type.value} value={type.value}>{type.label}</option>
+                    <option key={type.value} value={type.value} className="text-gray-900">{type.label}</option>
                   ))}
                 </select>
               </div>
@@ -1042,7 +1044,7 @@ const GameModal: React.FC<GameModalProps> = ({
                   value={formData.description}
                   onChange={(e) => handleInputChange("description", e.target.value)}
                   rows={3}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
                 />
               </div>
 
@@ -1053,10 +1055,10 @@ const GameModal: React.FC<GameModalProps> = ({
                 <select
                   value={formData.difficulty}
                   onChange={(e) => handleInputChange("difficulty", e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 bg-white"
                 >
                   {difficulties.map(diff => (
-                    <option key={diff.value} value={diff.value}>{diff.label}</option>
+                    <option key={diff.value} value={diff.value} className="text-gray-900">{diff.label}</option>
                   ))}
                 </select>
               </div>
@@ -1069,7 +1071,7 @@ const GameModal: React.FC<GameModalProps> = ({
                   type="url"
                   value={formData.imageUrl}
                   onChange={(e) => handleInputChange("imageUrl", e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
                 />
               </div>
 
@@ -1081,7 +1083,7 @@ const GameModal: React.FC<GameModalProps> = ({
                   value={formData.rules}
                   onChange={(e) => handleInputChange("rules", e.target.value)}
                   rows={4}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
                 />
               </div>
             </div>
@@ -1101,7 +1103,7 @@ const GameModal: React.FC<GameModalProps> = ({
                     step="0.01"
                     value={formData.minBet}
                     onChange={(e) => handleInputChange("minBet", parseFloat(e.target.value))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
                   />
                 </div>
 
@@ -1115,7 +1117,7 @@ const GameModal: React.FC<GameModalProps> = ({
                     step="0.01"
                     value={formData.maxBet}
                     onChange={(e) => handleInputChange("maxBet", parseFloat(e.target.value))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
                   />
                 </div>
               </div>
@@ -1132,7 +1134,7 @@ const GameModal: React.FC<GameModalProps> = ({
                     step="0.1"
                     value={formData.houseEdge}
                     onChange={(e) => handleInputChange("houseEdge", parseFloat(e.target.value))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
                   />
                 </div>
 
@@ -1147,7 +1149,7 @@ const GameModal: React.FC<GameModalProps> = ({
                     step="0.1"
                     value={formData.payoutRatio}
                     onChange={(e) => handleInputChange("payoutRatio", parseFloat(e.target.value))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
                   />
                 </div>
               </div>
@@ -1162,7 +1164,7 @@ const GameModal: React.FC<GameModalProps> = ({
                     min="1"
                     value={formData.maxPlayers}
                     onChange={(e) => handleInputChange("maxPlayers", parseInt(e.target.value))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
                   />
                 </div>
 
@@ -1175,7 +1177,7 @@ const GameModal: React.FC<GameModalProps> = ({
                     min="1"
                     value={formData.requiredLevel}
                     onChange={(e) => handleInputChange("requiredLevel", parseInt(e.target.value))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
                   />
                 </div>
               </div>
@@ -1230,7 +1232,7 @@ const GameModal: React.FC<GameModalProps> = ({
                       step="0.01"
                       value={formData.jackpotAmount}
                       onChange={(e) => handleInputChange("jackpotAmount", parseFloat(e.target.value))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
                     />
                   </div>
                 )}

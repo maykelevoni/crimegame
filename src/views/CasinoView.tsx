@@ -281,22 +281,22 @@ const CasinoView = () => {
   return (
     <BaseView title="Casino">
       {/* Balance Overview */}
-      <div className="mb-6 space-y-4">
+      <div className="mb-4 md:mb-6 space-y-3 md:space-y-4">
         {/* Cash Balance */}
-        <div className="p-4 bg-gradient-to-r from-yellow-500/20 to-yellow-600/20 border border-yellow-500/30 rounded-xl">
+        <div className="p-3 md:p-4 bg-gradient-to-r from-yellow-500/20 to-yellow-600/20 border border-yellow-500/30 rounded-xl">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <DollarSign size={24} className="text-yellow-400" />
               <div>
-                <p className="text-sm text-yellow-400/70">Cash Available</p>
-                <span className="text-xl font-bold text-yellow-400">
+                <p className="text-xs md:text-sm text-yellow-400/70">Cash Available</p>
+                <span className="text-lg md:text-xl font-bold text-yellow-400">
                   ${playerMoney.toLocaleString()}
                 </span>
               </div>
             </div>
-            <div className="flex items-center gap-2">
-              <Trophy size={20} className="text-yellow-400" />
-              <span className="text-sm text-yellow-400">
+            <div className="hidden sm:flex items-center gap-2">
+              <Trophy size={18} className="text-yellow-400" />
+              <span className="text-xs md:text-sm text-yellow-400">
                 Ready to bet
               </span>
             </div>
@@ -304,20 +304,20 @@ const CasinoView = () => {
         </div>
         
         {/* Energy Status */}
-        <div className="p-4 bg-gradient-to-r from-blue-500/20 to-blue-600/20 border border-blue-500/30 rounded-xl">
+        <div className="p-3 md:p-4 bg-gradient-to-r from-blue-500/20 to-blue-600/20 border border-blue-500/30 rounded-xl">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Zap size={24} className="text-blue-400" />
               <div>
-                <p className="text-sm text-blue-400/70">Energy</p>
-                <span className="text-xl font-bold text-blue-400">
+                <p className="text-xs md:text-sm text-blue-400/70">Energy</p>
+                <span className="text-lg md:text-xl font-bold text-blue-400">
                   {playerEnergy}/{player?.stats?.maxEnergy || 100}
                 </span>
               </div>
             </div>
-            <div className="flex items-center gap-2">
-              <Clock size={20} className="text-blue-400" />
-              <span className="text-sm text-blue-400">
+            <div className="hidden sm:flex items-center gap-2">
+              <Clock size={18} className="text-blue-400" />
+              <span className="text-xs md:text-sm text-blue-400">
                 Required for games
               </span>
             </div>
@@ -327,15 +327,15 @@ const CasinoView = () => {
 
       {/* Available Games */}
       <div>
-        <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+        <h2 className="text-lg md:text-xl font-bold text-white mb-3 md:mb-4 flex items-center gap-2">
           <Target size={24} className="text-cyan-400" />
           Available Games
         </h2>
-        <div className="grid gap-4">
+        <div className="grid gap-3 md:gap-4">
           {games.map((game) => (
             <div
               key={game.id}
-              className={`p-4 rounded-xl border ${game.difficultyColor.replace(
+              className={`p-3 md:p-4 rounded-xl border ${game.difficultyColor.replace(
                 "bg-",
                 "border-"
               )}/30 ${game.difficultyColor.replace(
@@ -344,62 +344,62 @@ const CasinoView = () => {
               )}/10 cursor-pointer hover:scale-[1.02] transition-transform`}
               onClick={() => handleGame(game)}
             >
-              <div className="flex items-start gap-4">
+              <div className="flex items-start gap-3 md:gap-4">
                 <img
                   src={game.image}
                   alt={game.name}
-                  className="w-16 h-16 rounded-lg object-cover"
+                  className="w-12 h-12 md:w-16 md:h-16 rounded-lg object-cover flex-shrink-0"
                 />
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-2">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-2 flex-wrap">
                     <span
                       className={`px-2 py-0.5 rounded text-xs font-bold text-white ${game.difficultyColor}`}
                     >
                       {game.difficulty}
                     </span>
-                    <h3 className="font-bold text-white">{game.name}</h3>
+                    <h3 className="font-bold text-white text-sm md:text-base truncate">{game.name}</h3>
                   </div>
-                  <p className="text-sm text-white/70 mb-3">
+                  <p className="text-xs md:text-sm text-white/70 mb-3 line-clamp-2">
                     {game.description}
                   </p>
-                  <div className="grid grid-cols-2 gap-4 text-sm">
-                    <div>
-                      <span className="text-white/60">Min Bet:</span>
-                      <span className="text-green-400 font-bold ml-2">
+                  <div className="grid grid-cols-2 gap-2 md:gap-4 text-xs md:text-sm">
+                    <div className="min-w-0">
+                      <span className="text-white/60 block sm:inline">Min Bet:</span>
+                      <span className="text-green-400 font-bold ml-0 sm:ml-2 block sm:inline truncate">
                         ${game.minBet.toLocaleString()}
                       </span>
                     </div>
-                    <div>
-                      <span className="text-white/60">Max Bet:</span>
-                      <span className="text-green-400 font-bold ml-2">
+                    <div className="min-w-0">
+                      <span className="text-white/60 block sm:inline">Max Bet:</span>
+                      <span className="text-green-400 font-bold ml-0 sm:ml-2 block sm:inline truncate">
                         ${game.maxBet.toLocaleString()}
                       </span>
                     </div>
-                    <div>
-                      <span className="text-white/60">Energy:</span>
-                      <span className="text-yellow-400 font-bold ml-2">
+                    <div className="min-w-0">
+                      <span className="text-white/60 block sm:inline">Energy:</span>
+                      <span className="text-yellow-400 font-bold ml-0 sm:ml-2 block sm:inline">
                         {game.energyCost}
                       </span>
                     </div>
-                    <div>
-                      <span className="text-white/60">House Edge:</span>
-                      <span className="text-red-400 font-bold ml-2">
+                    <div className="min-w-0">
+                      <span className="text-white/60 block sm:inline">House Edge:</span>
+                      <span className="text-red-400 font-bold ml-0 sm:ml-2 block sm:inline">
                         {(game.houseEdge * 100).toFixed(1)}%
                       </span>
                     </div>
                   </div>
                   <div className="mt-3 p-2 bg-cyan-500/10 border border-cyan-500/30 rounded">
-                    <span className="text-cyan-400 font-bold">
+                    <span className="text-cyan-400 font-bold text-xs md:text-sm">
                       💰 Max Win: {game.maxMultiplier}x bet
                     </span>
                   </div>
                   
                   {/* Play Button */}
-                  <div className="mt-4">
+                  <div className="mt-3 md:mt-4">
                     <button
                       onClick={() => handleGame(game)}
                       disabled={playerEnergy < game.energyCost || playerMoney < game.minBet}
-                      className={`w-full py-2 px-4 rounded-lg font-bold text-white transition-all hover:scale-[1.02] ${
+                      className={`w-full py-2 px-4 rounded-lg font-bold text-white transition-all hover:scale-[1.02] text-sm md:text-base ${
                         game.buttonColor
                       } ${
                         playerEnergy < game.energyCost || playerMoney < game.minBet
@@ -421,42 +421,42 @@ const CasinoView = () => {
 
       {/* Betting Modal */}
       {showGameModal && selectedGame && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-gray-800 p-6 rounded-xl border border-gray-600 max-w-md w-full mx-4">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-gray-800 p-4 md:p-6 rounded-xl border border-gray-600 max-w-md w-full max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-xl font-bold text-white">{selectedGame.name}</h3>
+              <h3 className="text-lg md:text-xl font-bold text-white truncate">{selectedGame.name}</h3>
               <button
                 onClick={() => setShowGameModal(false)}
-                className="text-gray-400 hover:text-white"
+                className="text-gray-400 hover:text-white text-xl leading-none flex-shrink-0 ml-2"
               >
                 ✕
               </button>
             </div>
             
             <div className="mb-4">
-              <p className="text-gray-300 mb-2">{selectedGame.description}</p>
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div>
-                  <span className="text-gray-400">Min Bet:</span>
-                  <span className="text-green-400 font-bold ml-2">
+              <p className="text-gray-300 mb-3 text-sm md:text-base line-clamp-3">{selectedGame.description}</p>
+              <div className="grid grid-cols-2 gap-3 md:gap-4 text-xs md:text-sm">
+                <div className="min-w-0">
+                  <span className="text-gray-400 block md:inline">Min Bet:</span>
+                  <span className="text-green-400 font-bold ml-0 md:ml-2 block md:inline truncate">
                     ${selectedGame.minBet.toLocaleString()}
                   </span>
                 </div>
-                <div>
-                  <span className="text-gray-400">Max Bet:</span>
-                  <span className="text-green-400 font-bold ml-2">
+                <div className="min-w-0">
+                  <span className="text-gray-400 block md:inline">Max Bet:</span>
+                  <span className="text-green-400 font-bold ml-0 md:ml-2 block md:inline truncate">
                     ${selectedGame.maxBet.toLocaleString()}
                   </span>
                 </div>
-                <div>
-                  <span className="text-gray-400">Energy Cost:</span>
-                  <span className="text-yellow-400 font-bold ml-2">
+                <div className="min-w-0">
+                  <span className="text-gray-400 block md:inline">Energy Cost:</span>
+                  <span className="text-yellow-400 font-bold ml-0 md:ml-2 block md:inline">
                     {selectedGame.energyCost}
                   </span>
                 </div>
-                <div>
-                  <span className="text-gray-400">Max Win:</span>
-                  <span className="text-cyan-400 font-bold ml-2">
+                <div className="min-w-0">
+                  <span className="text-gray-400 block md:inline">Max Win:</span>
+                  <span className="text-cyan-400 font-bold ml-0 md:ml-2 block md:inline">
                     {selectedGame.maxMultiplier}x
                   </span>
                 </div>
@@ -474,21 +474,21 @@ const CasinoView = () => {
                 placeholder="Enter bet amount"
                 min={selectedGame.minBet}
                 max={Math.min(selectedGame.maxBet, playerMoney)}
-                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white"
+                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white text-sm md:text-base focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
             
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-3 md:gap-4">
               <button
                 onClick={() => setShowGameModal(false)}
-                className="py-2 px-4 bg-gray-600 hover:bg-gray-700 text-white rounded font-bold transition-colors"
+                className="py-2 px-4 bg-gray-600 hover:bg-gray-700 text-white rounded font-bold transition-colors text-sm md:text-base"
               >
                 Cancel
               </button>
               <button
                 onClick={handlePlacebet}
                 disabled={isPlaying || !betAmount || parseInt(betAmount) < selectedGame.minBet}
-                className={`py-2 px-4 rounded font-bold text-white transition-colors ${
+                className={`py-2 px-4 rounded font-bold text-white transition-colors text-sm md:text-base ${
                   isPlaying || !betAmount || parseInt(betAmount) < selectedGame.minBet
                     ? "bg-gray-600 cursor-not-allowed"
                     : "bg-green-600 hover:bg-green-700"

@@ -928,9 +928,11 @@ export const useGameStore = create<GameStore>()(
           return;
         }
 
-        try {
-          // Subscribe to player changes
-          SupabaseService.subscribeToPlayer(userId, (payload: unknown) => {
+        // Add a small delay to prevent connection conflicts
+        setTimeout(() => {
+          try {
+            // Subscribe to player changes
+            SupabaseService.subscribeToPlayer(userId, (payload: unknown) => {
             const typedPayload = payload as {
               eventType: string;
               new: Record<string, unknown>;
@@ -988,14 +990,20 @@ export const useGameStore = create<GameStore>()(
           });
         } catch (error) {
           // Realtime sync setup failed - continue with local mode
+          console.debug('Realtime sync setup error:', error);
         }
+        }, 100); // Small delay to prevent connection conflicts
       },
 
       clearRealtimeSync: () => {
         try {
-          supabase.removeAllChannels();
+          const channels = supabase.getChannels();
+          if (channels && channels.length > 0) {
+            supabase.removeAllChannels();
+          }
         } catch (error) {
           // Silently handle realtime cleanup errors during development
+          console.debug('Realtime cleanup error:', error);
         }
       },
 

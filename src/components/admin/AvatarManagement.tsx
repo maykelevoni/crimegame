@@ -55,19 +55,27 @@ const AvatarManagement = () => {
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (error && error.code !== 'PGRST116' && error.code !== '42P01') {
-        throw error;
+      if (error) {
+        if (error.code === 'PGRST116' || error.code === '42P01' || error.code === 'PGRST301' || error.message?.includes('404')) {
+          // Avatar options table does not exist yet, use empty array for admin
+          console.debug('Avatar options table not found, showing empty admin interface');
+          setAvatars([]);
+          return;
+        } else {
+          throw error;
+        }
       }
 
       if (data && data.length > 0) {
         setAvatars(data);
       } else {
-        // Create table with initial data if empty
-        await createInitialAvatars();
+        // Empty table, show empty admin interface
+        setAvatars([]);
       }
     } catch (error) {
       console.error('Error loading avatars:', error);
-      toast.error('Failed to load avatars');
+      // Use empty array for admin when table doesn't exist
+      setAvatars([]);
     } finally {
       setLoading(false);
     }
@@ -135,7 +143,13 @@ const AvatarManagement = () => {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        if (error.code === 'PGRST116' || error.code === '42P01' || error.code === 'PGRST301' || error.message?.includes('404')) {
+          toast.error('Avatar options table not found. Please create the table first.');
+          return;
+        }
+        throw error;
+      }
 
       setAvatars(prev => [data, ...prev]);
       setShowAddModal(false);
@@ -170,7 +184,13 @@ const AvatarManagement = () => {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        if (error.code === 'PGRST116' || error.code === '42P01' || error.code === 'PGRST301' || error.message?.includes('404')) {
+          toast.error('Avatar options table not found. Please create the table first.');
+          return;
+        }
+        throw error;
+      }
 
       setAvatars(prev => prev.map(avatar => avatar.id === data.id ? data : avatar));
       setEditingAvatar(null);
@@ -190,7 +210,13 @@ const AvatarManagement = () => {
         .delete()
         .eq('id', id);
 
-      if (error) throw error;
+      if (error) {
+        if (error.code === 'PGRST116' || error.code === '42P01' || error.code === 'PGRST301' || error.message?.includes('404')) {
+          toast.error('Avatar options table not found. Please create the table first.');
+          return;
+        }
+        throw error;
+      }
 
       setAvatars(prev => prev.filter(avatar => avatar.id !== id));
       toast.success('Avatar deleted successfully!');
@@ -209,7 +235,13 @@ const AvatarManagement = () => {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        if (error.code === 'PGRST116' || error.code === '42P01' || error.code === 'PGRST301' || error.message?.includes('404')) {
+          toast.error('Avatar options table not found. Please create the table first.');
+          return;
+        }
+        throw error;
+      }
 
       setAvatars(prev => prev.map(a => a.id === data.id ? data : a));
       toast.success(`Avatar ${data.available ? 'enabled' : 'disabled'}`);
@@ -335,6 +367,11 @@ const AvatarManagement = () => {
                 src={avatar.image_url}
                 alt={avatar.name}
                 className="w-full h-full object-cover"
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  target.src = `https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&crop=face&auto=format&q=80`;
+                  target.onerror = null;
+                }}
               />
             </div>
             <div className="p-4">

@@ -147,6 +147,108 @@ export type Database = {
         }
         Relationships: []
       }
+      avatar_options: {
+        Row: {
+          id: string
+          name: string
+          image_url: string
+          category: string
+          description: string | null
+          available: boolean
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          name: string
+          image_url: string
+          category: string
+          description?: string | null
+          available?: boolean
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          name?: string
+          image_url?: string
+          category?: string
+          description?: string | null
+          available?: boolean
+          created_at?: string
+        }
+        Relationships: []
+      }
+      daily_rewards: {
+        Row: {
+          id: string
+          name: string
+          description: string | null
+          reward_type: string
+          reward_value: number
+          reward_item_id: string | null
+          rarity: string
+          probability: number
+          day_number: number
+          is_active: boolean
+          min_level: number
+          max_level: number | null
+          special_conditions: any
+          bonus_multiplier: number
+          streak_bonus: boolean
+          vip_only: boolean
+          image_url: string | null
+          effects: any
+          tags: string[]
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          name: string
+          description?: string | null
+          reward_type: string
+          reward_value?: number
+          reward_item_id?: string | null
+          rarity?: string
+          probability?: number
+          day_number?: number
+          is_active?: boolean
+          min_level?: number
+          max_level?: number | null
+          special_conditions?: any
+          bonus_multiplier?: number
+          streak_bonus?: boolean
+          vip_only?: boolean
+          image_url?: string | null
+          effects?: any
+          tags?: string[]
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          name?: string
+          description?: string | null
+          reward_type?: string
+          reward_value?: number
+          reward_item_id?: string | null
+          rarity?: string
+          probability?: number
+          day_number?: number
+          is_active?: boolean
+          min_level?: number
+          max_level?: number | null
+          special_conditions?: any
+          bonus_multiplier?: number
+          streak_bonus?: boolean
+          vip_only?: boolean
+          image_url?: string | null
+          effects?: any
+          tags?: string[]
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       crime_history: {
         Row: {
           created_at: string
