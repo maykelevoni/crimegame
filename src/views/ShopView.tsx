@@ -67,8 +67,8 @@ const ShopView = ({ onBack }: ShopViewProps) => {
   const categories = [
     { id: "all", name: "All", icon: ShoppingBag },
     { id: "weapon", name: "Weapons", icon: Target },
-    { id: "vehicle", name: "Vehicles", icon: TrendingUp },
-    { id: "protection", name: "Protection", icon: Shield },
+    { id: "special", name: "Vehicles", icon: TrendingUp },
+    { id: "armor", name: "Protection", icon: Shield },
     { id: "consumable", name: "Consumables", icon: Zap },
   ];
 

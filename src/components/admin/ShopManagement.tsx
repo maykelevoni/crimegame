@@ -30,7 +30,7 @@ interface ShopItem {
   name: string;
   description: string;
   price: number;
-  type: "weapon" | "vehicle" | "protection" | "consumable";
+  type: "weapon" | "armor" | "style" | "accessory" | "consumable" | "special";
   rarity: "common" | "rare" | "epic" | "legendary";
   effects: {
     damage?: number;
@@ -53,6 +53,18 @@ interface ShopItem {
   created_at: string;
 }
 
+// Mapping functions for rarity values
+const rarityToDb = (rarity: "common" | "rare" | "epic" | "legendary"): "comum" | "raro" | "epico" | "lendario" => {
+  const mapping = { common: "comum", rare: "raro", epic: "epico", legendary: "lendario" } as const;
+  return mapping[rarity];
+};
+
+const rarityFromDb = (rarity: "comum" | "raro" | "epico" | "lendario" | null | undefined): "common" | "rare" | "epic" | "legendary" => {
+  if (!rarity) return "common";
+  const mapping = { comum: "common", raro: "rare", epico: "epic", lendario: "legendary" } as const;
+  return mapping[rarity] || "common";
+};
+
 const ShopManagement = () => {
   const [items, setItems] = useState<ShopItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -66,149 +78,47 @@ const ShopManagement = () => {
     try {
       setLoading(true);
       
-      // Try to fetch from items table first
       const { data: shopItems, error } = await supabase
         .from('items')
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (error && error.code !== 'PGRST116' && error.code !== '42P01') { // Handle both relation does not exist codes
-        console.error('Error loading items:', error);
-        throw error;
+      if (error) {
+        console.error('Error loading items from database:', error);
+        toast.error('Failed to load items from database');
+        setItems([]);
+        return;
       }
 
-      if (shopItems && shopItems.length > 0 && !error) {
-        // Transform Supabase data to match our interface
+      if (shopItems && shopItems.length > 0) {
         const transformedItems: ShopItem[] = shopItems.map(item => ({
-          id: item.id,
-          name: item.name,
-          description: item.description || '',
-          price: item.price,
-          type: item.type as "weapon" | "vehicle" | "protection" | "consumable",
-          rarity: item.rarity as "common" | "rare" | "epic" | "legendary",
-          effects: item.effects || {},
-          image: item.image_url || 'https://images.unsplash.com/photo-1586953208448-b95a79798f07?w=400&h=300&fit=crop&crop=center',
-          inStock: item.in_stock,
-          discount: 0, // Add discount field to database later
-          category: item.category,
-          isActive: item.is_active,
-          stock_quantity: item.stock_quantity || 0,
-          sales_count: 0, // Add sales tracking later
-          created_at: item.created_at,
+            id: item.id,
+            name: item.name,
+            description: item.description || '',
+            price: item.price,
+            type: item.type as "weapon" | "armor" | "style" | "accessory" | "consumable" | "special",
+            rarity: rarityFromDb(item.rarity),
+            effects: item.bonus || {},
+            image: item.image || 'https://images.unsplash.com/photo-1586953208448-b95a79798f07?w=400&h=300&fit=crop&crop=center',
+            inStock: item.available,
+            discount: 0,
+            category: item.category,
+            isActive: true,
+            stock_quantity: 0,
+            sales_count: 0,
+            created_at: item.created_at,
         }));
         
         setItems(transformedItems);
-        toast.success('Items loaded from database');
+        toast.success(`Loaded ${transformedItems.length} items from database`);
       } else {
-        // Fall back to mock data if no items in database
-        const mockItems = [
-          {
-            id: "1",
-            name: "Combat Knife",
-            description: "Sharp tactical knife for close combat situations",
-            price: 500,
-            type: "weapon" as const,
-            rarity: "common" as const,
-            effects: {
-              damage: 10,
-              success_boost: 10,
-            },
-            image: "https://images.unsplash.com/photo-1586953208448-b95a79798f07?w=400&h=300&fit=crop&crop=center",
-            inStock: true,
-            discount: 0,
-            category: "Melee Weapons",
-            isActive: true,
-            stock_quantity: 50,
-            sales_count: 123,
-            created_at: new Date().toISOString(),
-          },
-          {
-            id: "2",
-            name: "Glock 17",
-            description: "Reliable 9mm pistol with good accuracy",
-            price: 2000,
-            type: "weapon" as const,
-            rarity: "rare" as const,
-            effects: {
-              damage: 25,
-              success_boost: 20,
-            },
-            image: "https://images.unsplash.com/photo-1595590424283-b8f17842773f?w=400&h=300&fit=crop&crop=center",
-            inStock: true,
-            discount: 10,
-            category: "Firearms",
-            isActive: true,
-            stock_quantity: 25,
-            sales_count: 89,
-            created_at: new Date().toISOString(),
-          },
-          {
-            id: "3",
-            name: "Sports Car",
-            description: "High-speed vehicle for quick escapes",
-            price: 20000,
-            type: "vehicle" as const,
-            rarity: "epic" as const,
-            effects: {
-              escape_boost: 40,
-              reputation: 15,
-            },
-            image: "https://images.unsplash.com/photo-1503736334956-4c8f8e92946d?w=400&h=300&fit=crop&crop=center",
-            inStock: true,
-            discount: 0,
-            category: "Luxury Vehicles",
-            isActive: true,
-            stock_quantity: 5,
-            sales_count: 12,
-            created_at: new Date().toISOString(),
-          },
-          {
-            id: "4",
-            name: "Bulletproof Vest",
-            description: "Advanced protection against small arms fire",
-            price: 1500,
-            type: "protection" as const,
-            rarity: "rare" as const,
-            effects: {
-              defense: 30,
-              health_protection: 20,
-            },
-            image: "https://images.unsplash.com/photo-1544966503-7cc5ac882d5f?w=400&h=300&fit=crop&crop=center",
-            inStock: true,
-            discount: 15,
-            category: "Body Armor",
-            isActive: true,
-            stock_quantity: 15,
-            sales_count: 67,
-            created_at: new Date().toISOString(),
-          },
-          {
-            id: "5",
-            name: "Medical Kit",
-            description: "Emergency medical supplies for field treatment",
-            price: 300,
-            type: "consumable" as const,
-            rarity: "common" as const,
-            effects: {
-              health: 50,
-            },
-            image: "https://images.unsplash.com/photo-1584362917165-526a968579e8?w=400&h=300&fit=crop&crop=center",
-            inStock: true,
-            discount: 0,
-            category: "Medical Supplies",
-            isActive: true,
-            stock_quantity: 100,
-            sales_count: 245,
-            created_at: new Date().toISOString(),
-          }
-        ];
-        
-        setItems(mockItems);
-        toast.info('Using mock data. Items table will be used when available.');
+        setItems([]);
+        toast.info('No items found in database');
       }
     } catch (error) {
       console.error('Error loading items:', error);
       toast.error('Failed to load items');
+      setItems([]);
     } finally {
       setLoading(false);
     }
@@ -257,7 +167,6 @@ const ShopManagement = () => {
 
   const addItem = async (newItem: Omit<ShopItem, "id" | "created_at" | "sales_count">) => {
     try {
-      // Try to insert into items table
       const { data, error } = await supabase
         .from('items')
         .insert([{
@@ -265,56 +174,42 @@ const ShopManagement = () => {
           description: newItem.description,
           price: newItem.price,
           type: newItem.type,
-          rarity: newItem.rarity,
-          effects: newItem.effects,
-          image_url: newItem.image,
-          in_stock: newItem.inStock,
+          rarity: rarityToDb(newItem.rarity),
+          bonus: newItem.effects,
+          image: newItem.image,
+          available: newItem.inStock,
           category: newItem.category,
-          is_active: newItem.isActive,
-          stock_quantity: newItem.stock_quantity,
+          stackable: newItem.type === 'consumable',
         }])
         .select()
         .single();
 
-      if (error && error.code !== 'PGRST116') { // PGRST116 = relation does not exist
-        throw error;
+      if (error) {
+        console.error('Error adding item:', error);
+        toast.error('Failed to add item to database');
+        return;
       }
 
-      if (data) {
-        // Transform back to our interface format
-        const transformedItem: ShopItem = {
-          id: data.id,
-          name: data.name,
-          description: data.description || '',
-          price: data.price,
-          type: data.type,
-          rarity: data.rarity,
-          effects: data.effects || {},
-          image: data.image_url || '/shop/placeholder.jpg',
-          inStock: data.in_stock,
-          discount: 0,
-          category: data.category,
-          isActive: data.is_active,
-          stock_quantity: data.stock_quantity || 0,
-          sales_count: 0,
-          created_at: data.created_at,
-        };
-        
-        setItems([...items, transformedItem]);
-        toast.success("Item added to database successfully");
-      } else {
-        // Fall back to local state if database isn't available
-        const item: ShopItem = {
-          ...newItem,
-          id: Date.now().toString(),
-          created_at: new Date().toISOString(),
-          sales_count: 0,
-        };
-        
-        setItems([...items, item]);
-        toast.success("Item added successfully (local only - database will sync when available)");
-      }
+      const transformedItem: ShopItem = {
+        id: data.id,
+        name: data.name,
+        description: data.description || '',
+        price: data.price,
+        type: data.type,
+        rarity: rarityFromDb(data.rarity),
+        effects: data.bonus || {},
+        image: data.image || '/shop/placeholder.jpg',
+        inStock: data.available,
+        discount: 0,
+        category: data.category,
+        isActive: true,
+        stock_quantity: 0,
+        sales_count: 0,
+        created_at: data.created_at,
+      };
       
+      setItems([...items, transformedItem]);
+      toast.success("Item added successfully");
       setShowAddModal(false);
     } catch (error) {
       console.error('Error adding item:', error);
@@ -324,40 +219,34 @@ const ShopManagement = () => {
 
   const updateItem = async (id: string, updates: Partial<ShopItem>) => {
     try {
-      // Try to update in items table
-      const { data, error } = await supabase
+      // Prepare update data with only defined values
+      const updateData: any = {};
+      if (updates.name !== undefined) updateData.name = updates.name;
+      if (updates.description !== undefined) updateData.description = updates.description;
+      if (updates.price !== undefined) updateData.price = updates.price;
+      if (updates.type !== undefined) updateData.type = updates.type;
+      if (updates.rarity !== undefined) updateData.rarity = rarityToDb(updates.rarity);
+      if (updates.effects !== undefined) updateData.bonus = updates.effects;
+      if (updates.image !== undefined) updateData.image = updates.image;
+      if (updates.category !== undefined) updateData.category = updates.category;
+      if (updates.inStock !== undefined) updateData.available = updates.inStock;
+
+      // Update in database
+      const { error } = await supabase
         .from('items')
-        .update({
-          name: updates.name,
-          description: updates.description,
-          price: updates.price,
-          type: updates.type,
-          rarity: updates.rarity,
-          effects: updates.effects,
-          image_url: updates.image,
-          in_stock: updates.inStock,
-          category: updates.category,
-          is_active: updates.isActive,
-          stock_quantity: updates.stock_quantity,
-        })
-        .eq('id', id)
-        .select()
-        .single();
+        .update(updateData)
+        .eq('id', id);
 
-      if (error && error.code !== 'PGRST116') { // PGRST116 = relation does not exist
-        throw error;
+      if (error) {
+        console.error('Supabase update error:', error);
+        toast.error(`Failed to update item: ${error.message}`);
+        return;
       }
 
-      // Update local state regardless of database operation
-      setItems(items.map(item => 
-        item.id === id ? { ...item, ...updates } : item
-      ));
+      toast.success("Item updated successfully");
       
-      if (data) {
-        toast.success("Item updated in database successfully");
-      } else {
-        toast.success("Item updated successfully (local only - database will sync when available)");
-      }
+      // Reload items from database to show the updated data
+      await loadItems();
       
       setEditingItem(null);
     } catch (error) {
@@ -370,24 +259,19 @@ const ShopManagement = () => {
     if (!confirm("Are you sure you want to delete this item?")) return;
     
     try {
-      // Try to delete from items table
       const { error } = await supabase
         .from('items')
         .delete()
         .eq('id', id);
 
-      if (error && error.code !== 'PGRST116') { // PGRST116 = relation does not exist
-        throw error;
+      if (error) {
+        console.error('Error deleting item:', error);
+        toast.error('Failed to delete item from database');
+        return;
       }
 
-      // Update local state regardless of database operation
       setItems(items.filter(item => item.id !== id));
-      
-      if (error && error.code === 'PGRST116') {
-        toast.success("Item deleted successfully (local only - database will sync when available)");
-      } else {
-        toast.success("Item deleted from database successfully");
-      }
+      toast.success("Item deleted successfully");
     } catch (error) {
       console.error('Error deleting item:', error);
       toast.error('Failed to delete item');
@@ -506,7 +390,7 @@ const ShopManagement = () => {
                 <input
                   type="number"
                   value={formData.price}
-                  onChange={(e) => setFormData({...formData, price: parseInt(e.target.value)})}
+                  onChange={(e) => setFormData({...formData, price: parseInt(e.target.value) || 0})}
                   className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
                   min="1"
                   required
@@ -522,7 +406,6 @@ const ShopManagement = () => {
                 >
                   <option value="common">Common</option>
                   <option value="rare">Rare</option>
-                  <option value="epic">Epic</option>
                   <option value="legendary">Legendary</option>
                 </select>
               </div>
@@ -544,7 +427,7 @@ const ShopManagement = () => {
                 <input
                   type="number"
                   value={formData.stock_quantity}
-                  onChange={(e) => setFormData({...formData, stock_quantity: parseInt(e.target.value)})}
+                  onChange={(e) => setFormData({...formData, stock_quantity: parseInt(e.target.value) || 0})}
                   className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
                   min="0"
                   required
@@ -556,7 +439,7 @@ const ShopManagement = () => {
                 <input
                   type="number"
                   value={formData.discount}
-                  onChange={(e) => setFormData({...formData, discount: parseInt(e.target.value)})}
+                  onChange={(e) => setFormData({...formData, discount: parseInt(e.target.value) || 0})}
                   className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
                   min="0"
                   max="90"
@@ -605,12 +488,58 @@ const ShopManagement = () => {
                         const input = document.createElement('input');
                         input.type = 'file';
                         input.accept = 'image/*';
-                        input.onchange = (e) => {
+                        input.onchange = async (e) => {
                           const file = (e.target as HTMLInputElement).files?.[0];
                           if (file) {
-                            const imageUrl = `https://images.unsplash.com/photo-1586953208448-b95a79798f07?w=400&h=300&fit=crop&crop=center`;
-                            setFormData({...formData, image: imageUrl});
-                            toast.info(`Image selected: ${file.name}. In production, this would upload to storage.`);
+                            try {
+                              toast.info('Uploading image...');
+                              
+                              // Check if bucket exists and is public, create if needed
+                              const { data: buckets, error: bucketsError } = await supabase.storage.listBuckets();
+                              const imagesBucket = buckets?.find(bucket => bucket.name === 'images');
+                              
+                              if (!imagesBucket) {
+                                toast.info('Creating images bucket...');
+                                const { error: createError } = await supabase.storage.createBucket('images', {
+                                  public: true,
+                                  allowedMimeTypes: ['image/*']
+                                });
+                                if (createError) {
+                                  console.error('Bucket creation error:', createError);
+                                  toast.error('Failed to create images bucket');
+                                  return;
+                                }
+                              }
+                              
+                              // Create unique filename
+                              const fileName = `${Date.now()}_${file.name}`;
+                              
+                              // Upload to Supabase storage
+                              const { data, error } = await supabase.storage
+                                .from('images')
+                                .upload(fileName, file, {
+                                  cacheControl: '3600',
+                                  upsert: false
+                                });
+                              
+                              if (error) {
+                                console.error('Upload error:', error);
+                                toast.error(`Failed to upload image: ${error.message}`);
+                                return;
+                              }
+                              
+                              // Get public URL (this requires the bucket to be public)
+                              const { data: { publicUrl } } = supabase.storage
+                                .from('images')
+                                .getPublicUrl(fileName);
+                              
+                              console.log('Generated public URL:', publicUrl);
+                              setFormData({...formData, image: publicUrl});
+                              toast.success('Image uploaded successfully');
+                            } catch (error) {
+                              console.error('Upload error:', error);
+                              toast.error('Failed to upload image');
+                            }
                           }
                         };
                         input.click();
@@ -965,7 +894,7 @@ const ShopManagement = () => {
                           <div className="text-sm text-gray-500">{item.description}</div>
                           <div className="flex items-center gap-2 mt-1">
                             <span className={`px-2 py-1 rounded-full text-xs font-medium border ${getRarityColor(item.rarity)}`}>
-                              {item.rarity.charAt(0).toUpperCase() + item.rarity.slice(1)}
+                              {item.rarity ? item.rarity.charAt(0).toUpperCase() + item.rarity.slice(1) : 'Unknown'}
                             </span>
                             <span className="text-xs text-gray-400">{item.category}</span>
                           </div>

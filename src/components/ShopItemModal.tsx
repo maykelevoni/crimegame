@@ -6,8 +6,21 @@ interface ShopItem {
   name: string;
   description: string;
   price: number;
+  type: "weapon" | "armor" | "style" | "accessory" | "consumable" | "special";
+  rarity: "common" | "rare" | "epic" | "legendary";
+  effects: {
+    damage?: number;
+    defense?: number;
+    health?: number;
+    energy?: number;
+    addiction?: number;
+    reputation?: number;
+    success_boost?: number;
+    escape_boost?: number;
+    health_protection?: number;
+  };
   image: string;
-  stats: Record<string, number>;
+  inStock: boolean;
   discount?: number;
 }
 
@@ -37,7 +50,7 @@ export default function ShopItemModal({
           <button
             onClick={onClose}
             className="p-2 rounded-lg bg-cyber-blue/20 hover:bg-cyber-blue/30 transition-colors focus:outline-none focus:ring-2 focus:ring-cyber-blue"
-            aria-label="Fechar"
+            aria-label="Close"
           >
             <X size={20} className="text-cyber-blue" />
           </button>
@@ -46,7 +59,7 @@ export default function ShopItemModal({
           <img
             src={item.image}
             alt={item.name}
-            className="w-20 h-20 object-contain drop-shadow"
+            className="w-32 h-32 object-contain drop-shadow"
             loading="lazy"
             draggable={false}
           />
@@ -54,14 +67,14 @@ export default function ShopItemModal({
         <div className="space-y-4">
           <p className="text-white/80">{item.description}</p>
           <div className="space-y-2">
-            <h3 className="font-semibold text-cyber-blue">Estatísticas:</h3>
+            <h3 className="font-semibold text-cyber-blue">Effects:</h3>
             <div className="grid grid-cols-2 gap-2">
-              {Object.entries(item.stats).map(([stat, value]) => (
+              {Object.entries(item.effects || {}).filter(([stat, value]) => value && value > 0).map(([stat, value]) => (
                 <div
                   key={stat}
                   className="flex items-center justify-between p-2 bg-cyber-blue/10 rounded"
                 >
-                  <span className="text-sm capitalize">{stat}:</span>
+                  <span className="text-sm capitalize">{stat.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}:</span>
                   <span className="font-bold text-green-400">+{value}</span>
                 </div>
               ))}
@@ -70,30 +83,16 @@ export default function ShopItemModal({
           <div className="flex items-center justify-between pt-4 border-t border-cyber-blue/20">
             <div className="flex items-center gap-2">
               <DollarSign size={20} className="text-yellow-400" />
-              <span
-                className={`text-xl font-bold ${
-                  item.discount
-                    ? "line-through text-white/50"
-                    : "text-yellow-400"
-                }`}
-              >
-                ${item.price.toLocaleString()}
+              <span className="text-xl font-bold text-yellow-400">
+                {item.price}
               </span>
-              {item.discount && (
-                <span className="text-xl font-bold text-green-400">
-                  $
-                  {Math.round(
-                    item.price * (1 - item.discount / 100)
-                  ).toLocaleString()}
-                </span>
-              )}
             </div>
             <button
               onClick={onBuy}
               disabled={isBuying}
               className="px-6 py-2 bg-gradient-to-r from-cyber-blue to-cyber-purple text-white font-bold rounded-lg hover:scale-105 transition-transform disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-cyber-blue"
             >
-              {isBuying ? "Comprando..." : "Comprar"}
+              {isBuying ? "Buying..." : "Buy"}
             </button>
           </div>
         </div>

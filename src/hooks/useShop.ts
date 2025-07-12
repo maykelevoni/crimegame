@@ -7,7 +7,7 @@ export interface ShopItem {
   name: string;
   description: string;
   price: number;
-  type: "weapon" | "vehicle" | "protection" | "consumable";
+  type: "weapon" | "armor" | "style" | "accessory" | "consumable" | "special";
   rarity: "common" | "rare" | "epic" | "legendary";
   effects: {
     damage?: number;
@@ -25,325 +25,54 @@ export interface ShopItem {
   discount?: number;
 }
 
-// MVP Shop Items - Simple but effective
-const mockShopItems: ShopItem[] = [
-  // WEAPONS - Affect crime success and damage
-  {
-    id: "knife-001",
-    name: "Knife",
-    description: "Basic blade for intimidation +10% success, +5% damage",
-    price: 500,
-    type: "weapon",
-    rarity: "common",
-    effects: { success_boost: 10, damage: 5 },
-    image: "https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?w=800&h=600&fit=crop&crop=center",
-    inStock: true,
-  },
-  {
-    id: "pistol-001", 
-    name: "Pistol",
-    description: "Reliable firearm +20% success, +10% damage",
-    price: 2000,
-    type: "weapon",
-    rarity: "rare",
-    effects: { success_boost: 20, damage: 10 },
-    image: "https://images.unsplash.com/photo-1586953208448-b95a79798f07?w=800&h=600&fit=crop&crop=center",
-    inStock: true,
-  },
-  {
-    id: "shotgun-001",
-    name: "Shotgun", 
-    description: "Devastating close-range weapon +30% success, +15% damage",
-    price: 5000,
-    type: "weapon",
-    rarity: "epic",
-    effects: { success_boost: 30, damage: 15 },
-    image: "https://images.unsplash.com/photo-1595590424283-b8f17842773f?w=800&h=600&fit=crop&crop=center",
-    inStock: true,
-  },
+// Mapping functions for rarity values
+const rarityFromDb = (rarity: "comum" | "raro" | "epico" | "lendario" | null | undefined): "common" | "rare" | "epic" | "legendary" => {
+  if (!rarity) return "common";
+  const mapping = { comum: "common", raro: "rare", epico: "epic", lendario: "legendary" } as const;
+  return mapping[rarity] || "common";
+};
 
-  // VEHICLES - Affect escape chance
-  {
-    id: "motorcycle-001",
-    name: "Motorcycle",
-    description: "Fast bike for quick escapes +15% escape chance",
-    price: 3000,
-    type: "vehicle", 
-    rarity: "common",
-    effects: { escape_boost: 15 },
-    image: "https://images.unsplash.com/photo-1503736334956-4c8f8e92946d?w=800&h=600&fit=crop&crop=center",
-    inStock: true,
-  },
-  {
-    id: "car-001",
-    name: "Car",
-    description: "Reliable getaway vehicle +25% escape chance", 
-    price: 8000,
-    type: "vehicle",
-    rarity: "rare", 
-    effects: { escape_boost: 25 },
-    image: "https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=800&h=600&fit=crop&crop=center",
-    inStock: true,
-  },
-  {
-    id: "sportscar-001",
-    name: "Sports Car",
-    description: "High-speed escape machine +40% escape chance",
-    price: 20000,
-    type: "vehicle",
-    rarity: "epic",
-    effects: { escape_boost: 40 },
-    image: "https://images.unsplash.com/photo-1544636331-e26879cd4d9b?w=800&h=600&fit=crop&crop=center", 
-    inStock: true,
-  },
-
-  // PROTECTION - Reduce health loss
-  {
-    id: "vest-001",
-    name: "Bulletproof Vest",
-    description: "Basic protection -20% health loss in crimes",
-    price: 1500,
-    type: "protection",
-    rarity: "common",
-    effects: { health_protection: 20 },
-    image: "https://images.unsplash.com/photo-1565814329452-e1efa11c5b89?w=800&h=600&fit=crop&crop=center",
-    inStock: true,
-  },
-  {
-    id: "armor-001", 
-    name: "Body Armor",
-    description: "Military-grade protection -40% health loss in crimes",
-    price: 4000,
-    type: "protection",
-    rarity: "rare",
-    effects: { health_protection: 40 },
-    image: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&h=600&fit=crop&crop=center",
-    inStock: true,
-  },
-
-  // CONSUMABLES - Recovery items
-  {
-    id: "medkit-001",
-    name: "Medical Kit",
-    description: "Emergency health restoration +50 Health",
-    price: 300,
-    type: "consumable", 
-    rarity: "common",
-    effects: { health: 50 },
-    image: "https://images.unsplash.com/photo-1584362917165-526a968579e8?w=800&h=600&fit=crop&crop=center",
-    inStock: true,
-  },
-  {
-    id: "energy-001",
-    name: "Energy Drink",
-    description: "Quick energy boost +40 Energy",
-    price: 200,
-    type: "consumable",
-    rarity: "common", 
-    effects: { energy: 40 },
-    image: "https://images.unsplash.com/photo-1527960471264-932f39eb5846?w=800&h=600&fit=crop&crop=center",
-    inStock: true,
-  },
-];
+// Mock data removed - all items now loaded from database
 
 export const useShopItems = () => {
   return useQuery({
     queryKey: ["shop-items"],
     queryFn: async () => {
       try {
-        // Use the items table
+        // Load items directly from database
         const { data: itemsData, error: itemsError } = await supabase
           .from('items')
           .select('*')
-          .eq('available', true)
           .order('price', { ascending: true });
         
         if (itemsData && itemsData.length > 0) {
-          // Transform items data to ShopItem format
+          // Transform database items to ShopItem format
           return itemsData.map(item => ({
             id: item.id,
             name: item.name,
-            description: item.description,
+            description: item.description || '',
             price: item.price,
             type: item.type as ShopItem['type'],
-            rarity: item.rarity as ShopItem['rarity'],
+            rarity: rarityFromDb(item.rarity),
             effects: item.bonus || {},
-            image: item.image || item.image_url,
-            inStock: item.available,
+            image: item.image || 'https://images.unsplash.com/photo-1586953208448-b95a79798f07?w=400&h=300&fit=crop&crop=center',
+            inStock: true,
             discount: 0,
           })) as ShopItem[];
         }
         
-        if (itemsError && itemsError.code !== 'PGRST116' && itemsError.code !== '42P01' && itemsError.code !== 'PGRST301') {
-          throw itemsError;
-        }
-        
-        // If table is empty, populate it with initial data
-        await populateInitialItems();
-        
-        // Try again after populating
-        const { data: newItemsData } = await supabase
-          .from('items')
-          .select('*')
-          .eq('available', true)
-          .order('price', { ascending: true });
-        
-        if (newItemsData && newItemsData.length > 0) {
-          return newItemsData.map(item => ({
-            id: item.id,
-            name: item.name,
-            description: item.description,
-            price: item.price,
-            type: item.type as ShopItem['type'],
-            rarity: item.rarity as ShopItem['rarity'],
-            effects: item.bonus || {},
-            image: item.image || item.image_url,
-            inStock: item.available,
-            discount: 0,
-          })) as ShopItem[];
-        }
-        
+        // If table doesn't exist or is empty, return empty array
+        // Migration should be run to populate the table
         return [];
       } catch (error) {
+        console.error('Error loading shop items:', error);
         return [];
       }
     },
   });
 };
 
-const populateInitialItems = async () => {
-  try {
-    const initialItems = [
-      {
-        name: "Combat Knife",
-        description: "Sharp tactical knife for close combat situations",
-        price: 500,
-        type: "weapon",
-        rarity: "common",
-        effects: { damage: 10, success_boost: 10 },
-        image_url: "https://via.placeholder.com/100x100/ff6b6b/ffffff?text=🔪",
-        in_stock: true,
-        category: "Melee Weapons",
-        is_active: true,
-        stock_quantity: 50,
-      },
-      {
-        name: "Glock 17",
-        description: "Reliable 9mm pistol with good accuracy",
-        price: 2000,
-        type: "weapon",
-        rarity: "rare",
-        effects: { damage: 25, success_boost: 20 },
-        image_url: "https://via.placeholder.com/100x100/4ecdc4/ffffff?text=🔫",
-        in_stock: true,
-        category: "Firearms",
-        is_active: true,
-        stock_quantity: 25,
-      },
-      {
-        name: "AR-15 Rifle",
-        description: "Military-grade assault rifle for maximum damage",
-        price: 5000,
-        type: "weapon",
-        rarity: "epic",
-        effects: { damage: 40, success_boost: 30 },
-        image_url: "https://via.placeholder.com/100x100/a855f7/ffffff?text=⚔️",
-        in_stock: true,
-        category: "Firearms",
-        is_active: true,
-        stock_quantity: 10,
-      },
-      {
-        name: "Motorcycle",
-        description: "Fast bike for quick escapes",
-        price: 3000,
-        type: "vehicle",
-        rarity: "common",
-        effects: { escape_boost: 15 },
-        image_url: "https://via.placeholder.com/100x100/3b82f6/ffffff?text=🏍️",
-        in_stock: true,
-        category: "Vehicles",
-        is_active: true,
-        stock_quantity: 20,
-      },
-      {
-        name: "Sports Car",
-        description: "High-speed vehicle for quick escapes",
-        price: 20000,
-        type: "vehicle",
-        rarity: "epic",
-        effects: { escape_boost: 40, reputation: 15 },
-        image_url: "https://via.placeholder.com/100x100/eab308/ffffff?text=🏎️",
-        in_stock: true,
-        category: "Luxury Vehicles",
-        is_active: true,
-        stock_quantity: 5,
-      },
-      {
-        name: "Bulletproof Vest",
-        description: "Advanced protection against small arms fire",
-        price: 1500,
-        type: "protection",
-        rarity: "rare",
-        effects: { defense: 30, health_protection: 20 },
-        image_url: "https://via.placeholder.com/100x100/10b981/ffffff?text=🦺",
-        in_stock: true,
-        category: "Body Armor",
-        is_active: true,
-        stock_quantity: 15,
-      },
-      {
-        name: "Body Armor",
-        description: "Military-grade protection -40% health loss in crimes",
-        price: 4000,
-        type: "protection",
-        rarity: "epic",
-        effects: { health_protection: 40 },
-        image_url: "https://via.placeholder.com/100x100/6366f1/ffffff?text=🛡️",
-        in_stock: true,
-        category: "Body Armor",
-        is_active: true,
-        stock_quantity: 8,
-      },
-      {
-        name: "Medical Kit",
-        description: "Emergency medical supplies for field treatment",
-        price: 300,
-        type: "consumable",
-        rarity: "common",
-        effects: { health: 50 },
-        image_url: "https://via.placeholder.com/100x100/ef4444/ffffff?text=🏥",
-        in_stock: true,
-        category: "Medical Supplies",
-        is_active: true,
-        stock_quantity: 100,
-      },
-      {
-        name: "Energy Drink",
-        description: "Quick energy boost +40 Energy",
-        price: 200,
-        type: "consumable",
-        rarity: "common",
-        effects: { energy: 40 },
-        image_url: "https://via.placeholder.com/100x100/f59e0b/ffffff?text=⚡",
-        in_stock: true,
-        category: "Energy",
-        is_active: true,
-        stock_quantity: 200,
-      },
-    ];
-
-    const { error } = await supabase
-      .from('items')
-      .insert(initialItems);
-
-    if (error) {
-      console.error('Error populating initial items:', error);
-    }
-  } catch (error) {
-    console.error('Error in populateInitialItems:', error);
-  }
-};
+// populateInitialItems function removed - items now managed via database migrations
 
 export const useBuyItem = () => {
   const queryClient = useQueryClient();
@@ -387,12 +116,12 @@ export const useBuyItem = () => {
       const item = {
         id: itemData.id,
         name: itemData.name,
-        description: itemData.description,
+        description: itemData.description || '',
         price: itemData.price,
         type: itemData.type,
-        rarity: itemData.rarity,
+        rarity: rarityFromDb(itemData.rarity),
         effects: itemData.bonus || {},
-        image: itemData.image,
+        image: itemData.image || 'https://images.unsplash.com/photo-1586953208448-b95a79798f07?w=400&h=300&fit=crop&crop=center',
         inStock: itemData.available,
         discount: 0,
       } as ShopItem;

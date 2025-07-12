@@ -19,6 +19,7 @@ import {
   Zap,
   Heart,
   Edit,
+  Trash2,
 } from "lucide-react";
 import BaseView from "./BaseView";
 import { useGameStore } from "../stores/gameStore";
@@ -36,18 +37,30 @@ const STATUS_BASE = {
 };
 
 const ITEM_TYPES = {
-  weapon: "Arma",
-  armor: "Colete",
-  consumable: "Uso",
+  weapon: "Weapon",
+  vehicle: "Vehicle", 
+  protection: "Protection",
+  armor: "Armor",
+  consumable: "Consumable",
 };
 
 const RARITY_ICONS: { [key: string]: JSX.Element } = {
+  common: <span className="w-2 h-2 bg-gray-500 rounded-full" />,
+  rare: <span className="w-2 h-2 bg-blue-500 rounded-full" />,
+  epic: <span className="w-2 h-2 bg-purple-500 rounded-full" />,
+  legendary: <span className="w-2 h-2 bg-yellow-400 rounded-full" />,
+  // Portuguese compatibility
+  comum: <span className="w-2 h-2 bg-gray-500 rounded-full" />,
   raro: <span className="w-2 h-2 bg-blue-500 rounded-full" />,
+  épico: <span className="w-2 h-2 bg-purple-500 rounded-full" />,
+  lendário: <span className="w-2 h-2 bg-yellow-400 rounded-full" />,
   lendario: <span className="w-2 h-2 bg-yellow-400 rounded-full" />,
 };
 
 const TYPE_ICONS = {
   weapon: <Sword className="w-4 h-4 text-red-400" />,
+  vehicle: <Car className="w-4 h-4 text-green-400" />,
+  protection: <Shield className="w-4 h-4 text-blue-400" />,
   armor: <Shield className="w-4 h-4 text-blue-400" />,
   style: <Shirt className="w-4 h-4 text-purple-400" />,
   accessory: <Glasses className="w-4 h-4 text-cyan-400" />,
@@ -160,6 +173,7 @@ export default function InventoryView() {
   const [usedMessage, setUsedMessage] = useState("");
   const [usedItemId, setUsedItemId] = useState<string | null>(null);
   const [consumedIds, setConsumedIds] = useState<string[]>([]);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   // Load equipped items from localStorage when inventory changes
   useEffect(() => {
@@ -303,6 +317,63 @@ export default function InventoryView() {
     setUsedMessage(`You used: ${item.name}!`);
     setUsedItemId(item.id);
     setConsumedIds((prev) => [...prev, item.id]);
+  }
+
+  async function confirmDeleteItem(item: Item) {
+    if (!player?.id) return;
+    
+    try {
+      // Remove from localStorage
+      const localInventoryKey = `inventory_${player.id}`;
+      const existingInventory = JSON.parse(localStorage.getItem(localInventoryKey) || '[]');
+      const itemToDelete = existingInventory.find((invItem: any) => invItem.id === item.id);
+      
+      if (itemToDelete) {
+        // Remove from localStorage
+        const updatedInventory = existingInventory.filter((invItem: any) => invItem.id !== item.id);
+        localStorage.setItem(localInventoryKey, JSON.stringify(updatedInventory));
+        
+        // Try to delete from database if it exists there
+        try {
+          // Check if there's a corresponding database entry
+          const { data: dbItems, error: fetchError } = await supabase
+            .from('player_items')
+            .select('*')
+            .eq('player_id', player.id)
+            .eq('item_id', itemToDelete.item_id || itemToDelete.weapon_id);
+          
+          if (!fetchError && dbItems && dbItems.length > 0) {
+            // Delete from database
+            const { error: deleteError } = await supabase
+              .from('player_items')
+              .delete()
+              .eq('player_id', player.id)
+              .eq('item_id', itemToDelete.item_id || itemToDelete.weapon_id);
+            
+            if (deleteError) {
+              console.warn('Failed to delete from database:', deleteError);
+            }
+          }
+        } catch (dbError) {
+          console.warn('Database deletion failed:', dbError);
+          // Continue anyway since localStorage was updated
+        }
+      }
+      
+      // If item was equipped, unequip it
+      if (item.equipped) {
+        setEquipped(prev => ({ ...prev, [item.type]: null }));
+      }
+      
+      // Close modal and refresh
+      setSelectedItem(null);
+      setShowDeleteConfirm(false);
+      window.location.reload(); // Simple refresh to update inventory
+      
+    } catch (error) {
+      console.error('Error deleting item:', error);
+      alert('Failed to delete item. Please try again.');
+    }
   }
 
   return (
@@ -483,6 +554,7 @@ export default function InventoryView() {
                   setSelectedItem(null);
                   setUsedMessage("");
                   setUsedItemId(null);
+                  setShowDeleteConfirm(false);
                 }}
               >
                 <X size={20} />
@@ -501,12 +573,12 @@ export default function InventoryView() {
                 </p>
                 {selectedItem.bonus && (
                   <div className="flex flex-wrap gap-1">
-                    {Object.entries(selectedItem.bonus).map(([key, val]) => (
+                    {Object.entries(selectedItem.bonus).filter(([key, val]) => val && Number(val) > 0).map(([key, val]) => (
                       <span
                         key={key}
                         className="bg-cyan-900/60 text-cyan-200 px-2 py-1 rounded text-xs"
                       >
-                        {key}: {String(val)}
+                        {key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}: +{String(val)}
                       </span>
                     ))}
                   </div>
@@ -541,11 +613,43 @@ export default function InventoryView() {
                   Use
                 </button>
               ) : null}
+              <button
+                className="bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded font-bold text-sm flex items-center gap-1"
+                onClick={() => setShowDeleteConfirm(true)}
+                title="Delete item"
+              >
+                <Trash2 size={14} />
+              </button>
             </div>
 
             {usedMessage && usedItemId === selectedItem.id && (
               <div className="mt-4 p-3 bg-green-700/20 border border-green-500/30 rounded text-center text-green-400 font-bold text-sm">
                 {usedMessage}
+              </div>
+            )}
+
+            {showDeleteConfirm && (
+              <div className="mt-4 p-4 bg-red-700/20 border border-red-500/30 rounded">
+                <p className="text-red-400 font-bold text-sm mb-3 text-center">
+                  Are you sure you want to delete "{selectedItem.name}"?
+                </p>
+                <p className="text-red-300 text-xs mb-4 text-center">
+                  This action cannot be undone.
+                </p>
+                <div className="flex gap-2">
+                  <button
+                    className="flex-1 bg-gray-600 hover:bg-gray-700 text-white px-3 py-2 rounded font-bold text-sm"
+                    onClick={() => setShowDeleteConfirm(false)}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    className="flex-1 bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded font-bold text-sm"
+                    onClick={() => confirmDeleteItem(selectedItem)}
+                  >
+                    Delete
+                  </button>
+                </div>
               </div>
             )}
           </div>
