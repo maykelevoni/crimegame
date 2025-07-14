@@ -63,7 +63,6 @@ const GameLayout = ({
     { id: "drugs", label: "DRUGS", icon: Pill },
     { id: "factories", label: "FACTORIES", icon: Factory },
     { id: "nightlife", label: "NIGHTLIFE", icon: Music },
-    { id: "businesses", label: "BUSINESSES", icon: Building2 },
     { id: "hospital", label: "HOSPITAL", icon: Hospital },
     { id: "prison", label: "PRISON", icon: Lock },
     { id: "bank", label: "BANK", icon: Landmark },

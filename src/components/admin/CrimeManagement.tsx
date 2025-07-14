@@ -165,7 +165,7 @@ const CrimeManagement = () => {
           health_cost: 0,
           risk_level: crime.risk,
           success_rate: Math.max(10, 100 - (crime.risk * 8)),
-          image_url: `https://images.unsplash.com/photo-1556075798-4825dfaaf498?w=400&h=300&fit=crop&crop=center`,
+          image_url: crime.image_url || `https://images.unsplash.com/photo-1556075798-4825dfaaf498?w=400&h=300&fit=crop&crop=center`,
           difficulty: crime.risk <= 2 ? 'Easy' : crime.risk <= 4 ? 'Medium' : crime.risk <= 6 ? 'Hard' : crime.risk <= 8 ? 'Very Hard' : 'Extreme',
           isActive: true
         }));
@@ -219,7 +219,8 @@ const CrimeManagement = () => {
           min_level: newCrime.min_level,
           energy_cost: newCrime.energy_cost,
           reward: newCrime.base_reward || newCrime.reward || 100,
-          risk: newCrime.risk_level || newCrime.risk || 5
+          risk: newCrime.risk_level || newCrime.risk || 5,
+          image_url: newCrime.image_url
         }])
         .select();
 
@@ -249,7 +250,8 @@ const CrimeManagement = () => {
           min_level: updates.min_level,
           energy_cost: updates.energy_cost,
           reward: updates.base_reward || updates.reward,
-          risk: updates.risk_level || updates.risk
+          risk: updates.risk_level || updates.risk,
+          image_url: updates.image_url
         })
         .eq('id', id);
 

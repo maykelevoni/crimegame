@@ -6,10 +6,20 @@ export interface BusinessType {
   name: string;
   type:
     | "restaurant"
-    | "nightclub"
-    | "convenience"
-    | "weapon_factory"
-    | "casino";
+    | "nightclub" 
+    | "convenience_store"
+    | "laundromat"
+    | "auto_shop"
+    | "pawn_shop"
+    | "strip_club"
+    | "drug_lab"
+    | "cocaine_lab"
+    | "meth_lab"
+    | "counterfeit_money"
+    | "weed_farm"
+    | "black_market_syndicate"
+    | "arms_dealer"
+    | "office";
   description: string;
   base_price: number;
   base_income: number;

@@ -38,7 +38,7 @@ interface Business {
   maxSupplies: number;
   supplyCost: number;
   upgradeCost: number;
-  type: "counterfeit" | "weapons" | "drugs" | "garage" | "casino";
+  type: "restaurant" | "nightclub" | "convenience_store" | "laundromat" | "auto_shop" | "pawn_shop" | "strip_club" | "drug_lab" | "cocaine_lab" | "meth_lab" | "counterfeit_money" | "weed_farm" | "black_market_syndicate" | "arms_dealer" | "office";
   owned: boolean;
   lastCollection?: number;
   productionRate: number; // products per hour
@@ -70,14 +70,35 @@ const BusinessView = () => {
 
   const getBusinessImage = (type: string) => {
     const imageMap: { [key: string]: string } = {
+      // Legal/Semi-Legal
+      restaurant: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800&h=600&fit=crop&crop=center",
+      nightclub: "https://images.unsplash.com/photo-1566737236500-c8ac43014a8e?w=800&h=600&fit=crop&crop=center",
+      convenience: "https://images.unsplash.com/photo-1534723328310-e82dad3ee43f?w=800&h=600&fit=crop&crop=center",
+      casino: "https://images.unsplash.com/photo-1551269901-5c5e14c25df7?w=800&h=600&fit=crop&crop=center",
+      laundromat: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&h=600&fit=crop&crop=center",
+      auto_shop: "https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?w=800&h=600&fit=crop&crop=center",
+      pawn_shop: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=800&h=600&fit=crop&crop=center",
+      strip_club: "https://images.unsplash.com/photo-1566737236500-c8ac43014a8e?w=800&h=600&fit=crop&crop=center",
+      
+      // Illegal Operations
+      drug_lab: "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=800&h=600&fit=crop&crop=center",
+      counterfeit_money: "https://images.unsplash.com/photo-1580519542036-c47de6196ba5?w=800&h=600&fit=crop&crop=center",
+      weapon_factory: "https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?w=800&h=600&fit=crop&crop=center",
+      arms_dealer: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=800&h=600&fit=crop&crop=center",
+      chop_shop: "https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?w=800&h=600&fit=crop&crop=center",
+      smuggling_ring: "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=800&h=600&fit=crop&crop=center",
+      cyber_crime: "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=800&h=600&fit=crop&crop=center",
+      fake_documents: "https://images.unsplash.com/photo-1586953208448-b95a79798f07?w=800&h=600&fit=crop&crop=center",
+      human_trafficking: "https://images.unsplash.com/photo-1557804506-669a67965ba0?w=800&h=600&fit=crop&crop=center",
+      loan_shark: "https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=800&h=600&fit=crop&crop=center",
+      protection_racket: "https://images.unsplash.com/photo-1557804506-669a67965ba0?w=800&h=600&fit=crop&crop=center",
+      illegal_gambling: "https://images.unsplash.com/photo-1596838132731-3301c3fd4317?w=800&h=600&fit=crop&crop=center",
+      
+      // Legacy types
       counterfeit: "https://images.unsplash.com/photo-1580519542036-c47de6196ba5?w=800&h=600&fit=crop&crop=center",
       weapons: "https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?w=800&h=600&fit=crop&crop=center",
       drugs: "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=800&h=600&fit=crop&crop=center",
-      garage: "https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?w=800&h=600&fit=crop&crop=center",
-      casino: "https://images.unsplash.com/photo-1551269901-5c5e14c25df7?w=800&h=600&fit=crop&crop=center",
-      restaurant: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800&h=600&fit=crop&crop=center",
-      nightclub: "https://images.unsplash.com/photo-1566737236500-c8ac43014a8e?w=800&h=600&fit=crop&crop=center",
-      convenience: "https://images.unsplash.com/photo-1534723328310-e82dad3ee43f?w=800&h=600&fit=crop&crop=center"
+      garage: "https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?w=800&h=600&fit=crop&crop=center"
     };
     return imageMap[type] || "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&h=600&fit=crop&crop=center";
   };
@@ -401,6 +422,51 @@ const BusinessView = () => {
 
   const getBusinessTypeIcon = (type: string) => {
     switch (type) {
+      // Legal/Semi-Legal
+      case "restaurant":
+        return <Package size={20} className="text-orange-500" />;
+      case "nightclub":
+        return <Users size={20} className="text-purple-500" />;
+      case "convenience":
+        return <Package size={20} className="text-blue-500" />;
+      case "casino":
+        return <Star size={20} className="text-yellow-500" />;
+      case "laundromat":
+        return <Factory size={20} className="text-cyan-500" />;
+      case "auto_shop":
+        return <Truck size={20} className="text-blue-500" />;
+      case "pawn_shop":
+        return <DollarSign size={20} className="text-green-500" />;
+      case "strip_club":
+        return <Users size={20} className="text-pink-500" />;
+      
+      // Illegal Operations
+      case "drug_lab":
+        return <Zap size={20} className="text-purple-500" />;
+      case "counterfeit_money":
+        return <DollarSign size={20} className="text-green-500" />;
+      case "weapon_factory":
+        return <Shield size={20} className="text-red-500" />;
+      case "arms_dealer":
+        return <Shield size={20} className="text-red-500" />;
+      case "chop_shop":
+        return <Truck size={20} className="text-gray-500" />;
+      case "smuggling_ring":
+        return <Package size={20} className="text-indigo-500" />;
+      case "cyber_crime":
+        return <Zap size={20} className="text-blue-500" />;
+      case "fake_documents":
+        return <Factory size={20} className="text-amber-500" />;
+      case "human_trafficking":
+        return <AlertTriangle size={20} className="text-red-600" />;
+      case "loan_shark":
+        return <DollarSign size={20} className="text-red-500" />;
+      case "protection_racket":
+        return <Shield size={20} className="text-orange-500" />;
+      case "illegal_gambling":
+        return <Star size={20} className="text-red-500" />;
+        
+      // Legacy types
       case "counterfeit":
         return <DollarSign size={20} className="text-green-500" />;
       case "weapons":
@@ -409,8 +475,6 @@ const BusinessView = () => {
         return <Zap size={20} className="text-purple-500" />;
       case "garage":
         return <Truck size={20} className="text-blue-500" />;
-      case "casino":
-        return <Star size={20} className="text-yellow-500" />;
       default:
         return <Factory size={20} className="text-gray-500" />;
     }
@@ -418,6 +482,51 @@ const BusinessView = () => {
 
   const getBusinessTypeColor = (type: string) => {
     switch (type) {
+      // Legal/Semi-Legal (Green/Blue tones)
+      case "restaurant":
+        return "border-orange-500/30 bg-orange-500/10";
+      case "nightclub":
+        return "border-purple-500/30 bg-purple-500/10";
+      case "convenience":
+        return "border-blue-500/30 bg-blue-500/10";
+      case "casino":
+        return "border-yellow-500/30 bg-yellow-500/10";
+      case "laundromat":
+        return "border-cyan-500/30 bg-cyan-500/10";
+      case "auto_shop":
+        return "border-blue-500/30 bg-blue-500/10";
+      case "pawn_shop":
+        return "border-green-500/30 bg-green-500/10";
+      case "strip_club":
+        return "border-pink-500/30 bg-pink-500/10";
+      
+      // Illegal Operations (Red/Dark tones)
+      case "drug_lab":
+        return "border-purple-600/30 bg-purple-600/10";
+      case "counterfeit_money":
+        return "border-green-600/30 bg-green-600/10";
+      case "weapon_factory":
+        return "border-red-600/30 bg-red-600/10";
+      case "arms_dealer":
+        return "border-red-600/30 bg-red-600/10";
+      case "chop_shop":
+        return "border-gray-600/30 bg-gray-600/10";
+      case "smuggling_ring":
+        return "border-indigo-600/30 bg-indigo-600/10";
+      case "cyber_crime":
+        return "border-blue-600/30 bg-blue-600/10";
+      case "fake_documents":
+        return "border-amber-600/30 bg-amber-600/10";
+      case "human_trafficking":
+        return "border-red-700/30 bg-red-700/10";
+      case "loan_shark":
+        return "border-red-600/30 bg-red-600/10";
+      case "protection_racket":
+        return "border-orange-600/30 bg-orange-600/10";
+      case "illegal_gambling":
+        return "border-red-600/30 bg-red-600/10";
+        
+      // Legacy types
       case "counterfeit":
         return "border-green-500/30 bg-green-500/10";
       case "weapons":
@@ -426,8 +535,6 @@ const BusinessView = () => {
         return "border-purple-500/30 bg-purple-500/10";
       case "garage":
         return "border-blue-500/30 bg-blue-500/10";
-      case "casino":
-        return "border-yellow-500/30 bg-yellow-500/10";
       default:
         return "border-gray-500/30 bg-gray-500/10";
     }

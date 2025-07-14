@@ -228,7 +228,7 @@ const CrimesView = () => {
                 onClick={() => canExecute && handleStart(crime)}
               >
                 <div className="flex items-start gap-4">
-                  <div className="w-16 h-16 rounded-lg relative overflow-hidden">
+                  <div className="w-24 h-full rounded-lg relative overflow-hidden">
                     <img
                       src={crime.image_url}
                       alt={crime.name}

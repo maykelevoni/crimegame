@@ -31,7 +31,7 @@ interface NightlifeVenue {
   id: string;
   name: string;
   description: string;
-  type: "bar" | "rave" | "club" | "lounge";
+  type: "bar" | "rave" | "prostitutes";
   price: number;
   energy_cost: number;
   effects: {
@@ -97,54 +97,62 @@ const NightlifeManagement = () => {
       if (prostituteData && prostituteData.length > 0) {
         setProstitutes(prostituteData);
       } else {
-        // Mock data fallback
+        // Mock data fallback - using names inspired by crime game avatar list
         const mockProstitutes: Prostitute[] = [
           {
             id: "1",
-            name: "Sophia",
-            description: "Elegant and sophisticated companion for upscale clientele",
-            price: 200,
+            name: "Valentina",
+            description: "Femme fatale with dangerous elegance and sophisticated charm",
+            price: 250,
             energy_cost: 5,
-            venue_id: "5", // Luxury Escort Service
-            image_url: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400&h=400&fit=crop&crop=faces",
-            effects: { energy: 40, addiction: 3 },
-            available: true,
             created_at: new Date().toISOString(),
           },
           {
             id: "2",
-            name: "Carmen",
-            description: "Experienced and discreet professional services",
-            price: 150,
+            name: "Scarlett",
+            description: "Professional assassin offering discreet companionship services",
+            price: 300,
             energy_cost: 3,
-            venue_id: "4", // Red Light District
-            image_url: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400&h=400&fit=crop&crop=faces",
-            effects: { energy: 25, addiction: 5 },
-            available: true,
             created_at: new Date().toISOString(),
           },
           {
             id: "3",
-            name: "Isabella",
-            description: "Young and enthusiastic companion with great personality",
-            price: 100,
-            energy_cost: 2,
-            venue_id: "4", // Red Light District
-            image_url: "https://images.unsplash.com/photo-1494790108755-2616b2e31b89?w=400&h=400&fit=crop&crop=faces",
-            effects: { energy: 15, addiction: 8 },
-            available: true,
+            name: "Victoria",
+            description: "Drug queenpin's right hand with connections and attitude",
+            price: 200,
+            energy_cost: 4,
             created_at: new Date().toISOString(),
           },
           {
             id: "4",
-            name: "Maria",
-            description: "Friendly and approachable with excellent service",
-            price: 120,
+            name: "Raven",
+            description: "Nightclub queen who runs the underground entertainment scene",
+            price: 180,
             energy_cost: 2,
-            venue_id: "5", // Luxury Escort Service
-            image_url: "https://images.unsplash.com/photo-1489424731084-a5d8b219a5bb?w=400&h=400&fit=crop&crop=faces",
-            effects: { energy: 20, addiction: 4 },
-            available: true,
+            created_at: new Date().toISOString(),
+          },
+          {
+            id: "5",
+            name: "Luna",
+            description: "Gang queen with street smarts and fierce loyalty",
+            price: 150,
+            energy_cost: 3,
+            created_at: new Date().toISOString(),
+          },
+          {
+            id: "6",
+            name: "Jade",
+            description: "Black widow who knows how to eliminate problems and please clients",
+            price: 220,
+            energy_cost: 4,
+            created_at: new Date().toISOString(),
+          },
+          {
+            id: "7",
+            name: "Sophia",
+            description: "Crime boss daughter with access to exclusive high-society circles",
+            price: 280,
+            energy_cost: 2,
             created_at: new Date().toISOString(),
           },
         ];
@@ -182,16 +190,16 @@ const NightlifeManagement = () => {
         }));
         setVenues(transformedVenues);
       } else {
-        // Mock data fallback
+        // Mock data fallback - crime-themed nightlife venues
         const mockVenues: NightlifeVenue[] = [
           {
             id: "1",
-            name: "The Crimson Lounge",
-            description: "Upscale bar with premium drinks and live music",
+            name: "The Godfather's Den",
+            description: "Upscale speakeasy where crime bosses conduct business over premium whiskey",
             type: "bar",
-            price: 50,
+            price: 80,
             energy_cost: 3,
-            effects: { energy: 20, reputation: 5 },
+            effects: { energy: 25, reputation: 10 },
             image_url: "https://images.unsplash.com/photo-1514933651103-005eec06c04b?w=800&h=600&fit=crop&crop=center",
             risk_level: 2,
             isActive: true,
@@ -199,35 +207,61 @@ const NightlifeManagement = () => {
           },
           {
             id: "2",
-            name: "Underground Rave",
-            description: "High-energy electronic music venue with party atmosphere",
+            name: "Biker's Paradise",
+            description: "Rough bar where motorcycle club members and enforcers drink and brawl",
+            type: "bar",
+            price: 35,
+            energy_cost: 4,
+            effects: { energy: 30, reputation: -5 },
+            image_url: "https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?w=800&h=600&fit=crop&crop=center",
+            risk_level: 6,
+            isActive: true,
+            created_at: new Date().toISOString(),
+          },
+          {
+            id: "3",
+            name: "The Velvet Bar",
+            description: "High-end establishment where arms dealers and drug kingpins network",
+            type: "bar",
+            price: 120,
+            energy_cost: 2,
+            effects: { energy: 40, reputation: 15 },
+            image_url: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=800&h=600&fit=crop&crop=center",
+            risk_level: 2,
+            isActive: true,
+            created_at: new Date().toISOString(),
+          },
+          {
+            id: "4",
+            name: "Neon Underworld",
+            description: "Underground rave where street hustlers and hackers gather for illegal deals",
             type: "rave",
-            price: 30,
+            price: 40,
+            energy_cost: 6,
+            effects: { energy: 60, addiction: 3 },
+            image_url: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=800&h=600&fit=crop&crop=center",
+            risk_level: 5,
+            isActive: true,
+            created_at: new Date().toISOString(),
+          },
+          {
+            id: "5",
+            name: "Street Racer's Rave",
+            description: "Underground party where car thieves and street racers gather after midnight",
+            type: "rave",
+            price: 60,
             energy_cost: 5,
-            effects: { energy: 50, addiction: 2 },
+            effects: { energy: 45, addiction: 2 },
             image_url: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=800&h=600&fit=crop&crop=center",
             risk_level: 4,
             isActive: true,
             created_at: new Date().toISOString(),
           },
           {
-            id: "3",
-            name: "Elite Members Club",
-            description: "Exclusive club for high-class clientele",
-            type: "club",
-            price: 100,
-            energy_cost: 4,
-            effects: { energy: 30, reputation: 15 },
-            image_url: "https://images.unsplash.com/photo-1566737236500-c8ac43014a8e?w=800&h=600&fit=crop&crop=center",
-            risk_level: 1,
-            isActive: true,
-            created_at: new Date().toISOString(),
-          },
-          {
-            id: "4",
+            id: "6",
             name: "Red Light District",
-            description: "Discreet services for adult entertainment",
-            type: "companion",
+            description: "Discreet services for adult entertainment in the shadowy back streets",
+            type: "prostitutes",
             price: 150,
             energy_cost: 0,
             effects: { energy: 25, addiction: 5 },
@@ -237,10 +271,10 @@ const NightlifeManagement = () => {
             created_at: new Date().toISOString(),
           },
           {
-            id: "5",
-            name: "Luxury Escort Service",
-            description: "High-end companionship for elite clients",
-            type: "companion",
+            id: "7",
+            name: "Elite Escort Service",
+            description: "High-end companionship for crime bosses and wealthy criminals",
+            type: "prostitutes",
             price: 300,
             energy_cost: 0,
             effects: { energy: 40, addiction: 3 },
@@ -487,8 +521,7 @@ const NightlifeManagement = () => {
     const colors = {
       bar: "bg-blue-100 text-blue-800 border-blue-300",
       rave: "bg-purple-100 text-purple-800 border-purple-300",
-      club: "bg-green-100 text-green-800 border-green-300",
-      lounge: "bg-orange-100 text-orange-800 border-orange-300"
+      prostitutes: "bg-pink-100 text-pink-800 border-pink-300",
     };
     return colors[type as keyof typeof colors] || colors.bar;
   };
@@ -556,8 +589,7 @@ const NightlifeManagement = () => {
                 >
                   <option value="bar">Bar</option>
                   <option value="rave">Rave</option>
-                  <option value="club">Club</option>
-                  <option value="lounge">Lounge</option>
+                  <option value="prostitutes">Prostitutes</option>
                 </select>
               </div>
 

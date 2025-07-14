@@ -390,7 +390,7 @@ const ShopManagement = () => {
                 <input
                   type="number"
                   value={formData.price}
-                  onChange={(e) => setFormData({...formData, price: parseInt(e.target.value) || 0})}
+                  onChange={(e) => setFormData({...formData, price: parseInt(e.target.value)})}
                   className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
                   min="1"
                   required
@@ -427,7 +427,7 @@ const ShopManagement = () => {
                 <input
                   type="number"
                   value={formData.stock_quantity}
-                  onChange={(e) => setFormData({...formData, stock_quantity: parseInt(e.target.value) || 0})}
+                  onChange={(e) => setFormData({...formData, stock_quantity: parseInt(e.target.value)})}
                   className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
                   min="0"
                   required
@@ -439,7 +439,7 @@ const ShopManagement = () => {
                 <input
                   type="number"
                   value={formData.discount}
-                  onChange={(e) => setFormData({...formData, discount: parseInt(e.target.value) || 0})}
+                  onChange={(e) => setFormData({...formData, discount: parseInt(e.target.value)})}
                   className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
                   min="0"
                   max="90"
@@ -580,7 +580,7 @@ const ShopManagement = () => {
                     <input
                       type="number"
                       value={formData.effects.damage}
-                      onChange={(e) => setFormData({...formData, effects: {...formData.effects, damage: parseInt(e.target.value) || 0}})}
+                      onChange={(e) => setFormData({...formData, effects: {...formData.effects, damage: parseInt(e.target.value)}})}
                       className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
                       min="0"
                       max="100"
@@ -592,7 +592,7 @@ const ShopManagement = () => {
                     <input
                       type="number"
                       value={formData.effects.defense}
-                      onChange={(e) => setFormData({...formData, effects: {...formData.effects, defense: parseInt(e.target.value) || 0}})}
+                      onChange={(e) => setFormData({...formData, effects: {...formData.effects, defense: parseInt(e.target.value)}})}
                       className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
                       min="0"
                       max="100"
@@ -604,7 +604,7 @@ const ShopManagement = () => {
                     <input
                       type="number"
                       value={formData.effects.health}
-                      onChange={(e) => setFormData({...formData, effects: {...formData.effects, health: parseInt(e.target.value) || 0}})}
+                      onChange={(e) => setFormData({...formData, effects: {...formData.effects, health: parseInt(e.target.value)}})}
                       className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
                       min="0"
                       max="100"
@@ -616,7 +616,7 @@ const ShopManagement = () => {
                     <input
                       type="number"
                       value={formData.effects.energy}
-                      onChange={(e) => setFormData({...formData, effects: {...formData.effects, energy: parseInt(e.target.value) || 0}})}
+                      onChange={(e) => setFormData({...formData, effects: {...formData.effects, energy: parseInt(e.target.value)}})}
                       className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
                       min="0"
                       max="100"
@@ -628,7 +628,7 @@ const ShopManagement = () => {
                     <input
                       type="number"
                       value={formData.effects.success_boost}
-                      onChange={(e) => setFormData({...formData, effects: {...formData.effects, success_boost: parseInt(e.target.value) || 0}})}
+                      onChange={(e) => setFormData({...formData, effects: {...formData.effects, success_boost: parseInt(e.target.value)}})}
                       className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
                       min="0"
                       max="50"
@@ -640,7 +640,7 @@ const ShopManagement = () => {
                     <input
                       type="number"
                       value={formData.effects.escape_boost}
-                      onChange={(e) => setFormData({...formData, effects: {...formData.effects, escape_boost: parseInt(e.target.value) || 0}})}
+                      onChange={(e) => setFormData({...formData, effects: {...formData.effects, escape_boost: parseInt(e.target.value)}})}
                       className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
                       min="0"
                       max="50"
@@ -652,7 +652,7 @@ const ShopManagement = () => {
                     <input
                       type="number"
                       value={formData.effects.health_protection}
-                      onChange={(e) => setFormData({...formData, effects: {...formData.effects, health_protection: parseInt(e.target.value) || 0}})}
+                      onChange={(e) => setFormData({...formData, effects: {...formData.effects, health_protection: parseInt(e.target.value)}})}
                       className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
                       min="0"
                       max="50"
@@ -664,7 +664,7 @@ const ShopManagement = () => {
                     <input
                       type="number"
                       value={formData.effects.reputation}
-                      onChange={(e) => setFormData({...formData, effects: {...formData.effects, reputation: parseInt(e.target.value) || 0}})}
+                      onChange={(e) => setFormData({...formData, effects: {...formData.effects, reputation: parseInt(e.target.value)}})}
                       className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
                       min="0"
                       max="50"
@@ -676,7 +676,7 @@ const ShopManagement = () => {
                     <input
                       type="number"
                       value={formData.effects.addiction}
-                      onChange={(e) => setFormData({...formData, effects: {...formData.effects, addiction: parseInt(e.target.value) || 0}})}
+                      onChange={(e) => setFormData({...formData, effects: {...formData.effects, addiction: parseInt(e.target.value)}})}
                       className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
                       min="-50"
                       max="50"

@@ -21,7 +21,6 @@ import {
 import AdminDashboard from "../components/admin/AdminDashboard";
 import PlayerManagement from "../components/admin/PlayerManagement";
 import ShopManagement from "../components/admin/ShopManagement";
-import BusinessManagement from "../components/admin/BusinessManagement";
 import BusinessTypesManagement from "../components/admin/BusinessTypesManagement";
 import CrimeManagement from "../components/admin/CrimeManagement";
 import NightlifeManagement from "../components/admin/NightlifeManagement";
@@ -33,7 +32,6 @@ type AdminSection =
   | "dashboard" 
   | "players" 
   | "shop" 
-  | "businesses"
   | "business-types"
   | "crimes" 
   | "nightlife" 
@@ -62,12 +60,6 @@ const AdminView = () => {
       label: "Shop Items",
       icon: ShoppingCart,
       description: "Manage Store Inventory"
-    },
-    {
-      id: "businesses" as AdminSection,
-      label: "Businesses",
-      icon: Building2,
-      description: "Manage Business Instances"
     },
     {
       id: "business-types" as AdminSection,
@@ -115,8 +107,6 @@ const AdminView = () => {
         return <PlayerManagement />;
       case "shop":
         return <ShopManagement />;
-      case "businesses":
-        return <BusinessManagement />;
       case "business-types":
         return <BusinessTypesManagement />;
       case "crimes":
