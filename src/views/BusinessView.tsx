@@ -68,40 +68,6 @@ const BusinessView = () => {
     loadOwnedBusinesses();
   }, [player?.id]);
 
-  const getBusinessImage = (type: string) => {
-    const imageMap: { [key: string]: string } = {
-      // Legal/Semi-Legal
-      restaurant: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800&h=600&fit=crop&crop=center",
-      nightclub: "https://images.unsplash.com/photo-1566737236500-c8ac43014a8e?w=800&h=600&fit=crop&crop=center",
-      convenience: "https://images.unsplash.com/photo-1534723328310-e82dad3ee43f?w=800&h=600&fit=crop&crop=center",
-      casino: "https://images.unsplash.com/photo-1551269901-5c5e14c25df7?w=800&h=600&fit=crop&crop=center",
-      laundromat: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&h=600&fit=crop&crop=center",
-      auto_shop: "https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?w=800&h=600&fit=crop&crop=center",
-      pawn_shop: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=800&h=600&fit=crop&crop=center",
-      strip_club: "https://images.unsplash.com/photo-1566737236500-c8ac43014a8e?w=800&h=600&fit=crop&crop=center",
-      
-      // Illegal Operations
-      drug_lab: "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=800&h=600&fit=crop&crop=center",
-      counterfeit_money: "https://images.unsplash.com/photo-1580519542036-c47de6196ba5?w=800&h=600&fit=crop&crop=center",
-      weapon_factory: "https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?w=800&h=600&fit=crop&crop=center",
-      arms_dealer: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=800&h=600&fit=crop&crop=center",
-      chop_shop: "https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?w=800&h=600&fit=crop&crop=center",
-      smuggling_ring: "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=800&h=600&fit=crop&crop=center",
-      cyber_crime: "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=800&h=600&fit=crop&crop=center",
-      fake_documents: "https://images.unsplash.com/photo-1586953208448-b95a79798f07?w=800&h=600&fit=crop&crop=center",
-      human_trafficking: "https://images.unsplash.com/photo-1557804506-669a67965ba0?w=800&h=600&fit=crop&crop=center",
-      loan_shark: "https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=800&h=600&fit=crop&crop=center",
-      protection_racket: "https://images.unsplash.com/photo-1557804506-669a67965ba0?w=800&h=600&fit=crop&crop=center",
-      illegal_gambling: "https://images.unsplash.com/photo-1596838132731-3301c3fd4317?w=800&h=600&fit=crop&crop=center",
-      
-      // Legacy types
-      counterfeit: "https://images.unsplash.com/photo-1580519542036-c47de6196ba5?w=800&h=600&fit=crop&crop=center",
-      weapons: "https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?w=800&h=600&fit=crop&crop=center",
-      drugs: "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=800&h=600&fit=crop&crop=center",
-      garage: "https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?w=800&h=600&fit=crop&crop=center"
-    };
-    return imageMap[type] || "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&h=600&fit=crop&crop=center";
-  };
 
   const loadBusinesses = async () => {
     try {
@@ -121,7 +87,7 @@ const BusinessView = () => {
           id: business.id,
           name: business.name,
           description: business.description,
-          image: getBusinessImage(business.type),
+          image: business.image || "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&h=600&fit=crop&crop=center",
           price: business.base_price,
           baseIncome: business.base_income,
           level: 1,
@@ -186,7 +152,7 @@ const BusinessView = () => {
             id: business.id,
             name: businessType?.name || 'Unknown Business',
             description: businessType?.description || 'No description',
-            image: getBusinessImage(businessType?.type || 'convenience'),
+            image: businessType?.image || "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&h=600&fit=crop&crop=center",
             price: businessType?.base_price || 0,
             baseIncome: business.income_per_hour || businessType?.base_income || 0,
             level: business.level || 1,
@@ -735,7 +701,7 @@ const BusinessView = () => {
             <img
               src={selectedBusiness.image}
               alt={selectedBusiness.name}
-              className="w-full h-32 object-cover rounded-lg mb-4"
+              className="w-48 h-48 object-cover rounded-lg mb-4 mx-auto"
             />
             <p className="text-white/70 mb-4">{selectedBusiness.description}</p>
             <div className="space-y-3 mb-6">

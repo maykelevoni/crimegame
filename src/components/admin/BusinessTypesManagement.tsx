@@ -18,6 +18,7 @@ import {
   Eye,
 } from "lucide-react";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 interface BusinessType {
   id: string;
@@ -63,242 +64,38 @@ const BusinessTypesManagement = () => {
     try {
       setLoading(true);
       
-      // Updated business types matching our new system (15 types)
-      const mockBusinessTypes: BusinessType[] = [
-        // LEGAL/SEMI-LEGAL BUSINESSES (7)
-        {
-          id: "1",
-          name: "Pizza Restaurant",
-          description: "Small family restaurant serving delicious food to the community",
-          category: "legal",
-          icon: "🍕",
-          image: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800&h=600&fit=crop&crop=center",
-          color: "#F97316",
-          isActive: true,
-          basePrice: 25000,
-          baseIncome: 150,
-          riskLevel: 1,
-          maxLevel: 5,
-          created_at: new Date().toISOString(),
-        },
-        {
-          id: "2",
-          name: "Coin Laundromat",
-          description: "Self-service laundromat perfect for cleaning dirty money",
-          category: "semi-legal",
-          icon: "🧺",
-          image: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&h=600&fit=crop&crop=center",
-          color: "#06B6D4",
-          isActive: true,
-          basePrice: 35000,
-          baseIncome: 200,
-          riskLevel: 2,
-          maxLevel: 5,
-          created_at: new Date().toISOString(),
-        },
-        {
-          id: "3",
-          name: "Corner Store",
-          description: "Convenience store in a busy neighborhood",
-          category: "legal",
-          icon: "🏪",
-          image: "https://images.unsplash.com/photo-1534723328310-e82dad3ee43f?w=800&h=600&fit=crop&crop=center",
-          color: "#3B82F6",
-          isActive: true,
-          basePrice: 45000,
-          baseIncome: 250,
-          riskLevel: 1,
-          maxLevel: 5,
-          created_at: new Date().toISOString(),
-        },
-        {
-          id: "4",
-          name: "Golden Pawn Shop",
-          description: "Buy and sell valuable items, no questions asked",
-          category: "semi-legal",
-          icon: "💰",
-          image: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=800&h=600&fit=crop&crop=center",
-          color: "#10B981",
-          isActive: true,
-          basePrice: 55000,
-          baseIncome: 300,
-          riskLevel: 2,
-          maxLevel: 5,
-          created_at: new Date().toISOString(),
-        },
-        {
-          id: "5",
-          name: "Elite Auto Shop",
-          description: "Professional car repair and modification services",
-          category: "semi-legal",
-          icon: "🔧",
-          image: "https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?w=800&h=600&fit=crop&crop=center",
-          color: "#3B82F6",
-          isActive: true,
-          basePrice: 75000,
-          baseIncome: 400,
-          riskLevel: 2,
-          maxLevel: 5,
-          created_at: new Date().toISOString(),
-        },
-        {
-          id: "6",
-          name: "Pink Diamond Strip Club",
-          description: "Adult entertainment venue with VIP services",
-          category: "semi-legal",
-          icon: "💃",
-          image: "https://images.unsplash.com/photo-1566737236500-c8ac43014a8e?w=800&h=600&fit=crop&crop=center",
-          color: "#EC4899",
-          isActive: true,
-          basePrice: 150000,
-          baseIncome: 800,
-          riskLevel: 3,
-          maxLevel: 5,
-          created_at: new Date().toISOString(),
-        },
-        {
-          id: "7",
-          name: "Neon Nights Nightclub",
-          description: "High-end nightclub with exclusive clientele",
-          category: "semi-legal",
-          icon: "🍾",
-          image: "https://images.unsplash.com/photo-1566737236500-c8ac43014a8e?w=800&h=600&fit=crop&crop=center",
-          color: "#8B5CF6",
-          isActive: true,
-          basePrice: 200000,
-          baseIncome: 1000,
-          riskLevel: 3,
-          maxLevel: 5,
-          created_at: new Date().toISOString(),
-        },
+      const { data, error } = await supabase
+        .from('business_types')
+        .select('*')
+        .order('base_price', { ascending: true });
+
+      if (error && error.code !== 'PGRST116' && error.code !== '42P01') {
+        throw error;
+      }
+
+      if (data && data.length > 0) {
+        const transformedTypes = data.map(type => ({
+          id: type.id,
+          name: type.name,
+          description: type.description,
+          category: type.category || "legal",
+          icon: type.icon || "🏢",
+          image: type.image || "",
+          color: type.color || "#3B82F6",
+          isActive: type.available || true,
+          basePrice: type.base_price || 0,
+          baseIncome: type.base_income || 0,
+          riskLevel: type.risk_level || 1,
+          maxLevel: type.max_level || 5,
+          created_at: type.created_at || new Date().toISOString(),
+        }));
         
-        // CRIMINAL OPERATIONS (4)
-        {
-          id: "8",
-          name: "Underground Drug Lab",
-          description: "Advanced laboratory for manufacturing various drugs",
-          category: "illegal",
-          icon: "⚗️",
-          image: "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=800&h=600&fit=crop&crop=center",
-          color: "#7C3AED",
-          isActive: true,
-          basePrice: 300000,
-          baseIncome: 1500,
-          riskLevel: 8,
-          maxLevel: 5,
-          created_at: new Date().toISOString(),
-        },
-        {
-          id: "9",
-          name: "Cocaine Processing Lab",
-          description: "Specialized facility for high-purity cocaine production",
-          category: "illegal",
-          icon: "❄️",
-          image: "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=800&h=600&fit=crop&crop=center",
-          color: "#DC2626",
-          isActive: true,
-          basePrice: 500000,
-          baseIncome: 2500,
-          riskLevel: 9,
-          maxLevel: 5,
-          created_at: new Date().toISOString(),
-        },
-        {
-          id: "10",
-          name: "Crystal Meth Lab",
-          description: "High-tech methamphetamine manufacturing facility",
-          category: "illegal",
-          icon: "💎",
-          image: "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=800&h=600&fit=crop&crop=center",
-          color: "#DC2626",
-          isActive: true,
-          basePrice: 400000,
-          baseIncome: 2000,
-          riskLevel: 8,
-          maxLevel: 5,
-          created_at: new Date().toISOString(),
-        },
-        {
-          id: "11",
-          name: "Counterfeit Money Operation",
-          description: "Professional currency counterfeiting setup",
-          category: "illegal",
-          icon: "💵",
-          image: "https://images.unsplash.com/photo-1580519542036-c47de6196ba5?w=800&h=600&fit=crop&crop=center",
-          color: "#059669",
-          isActive: true,
-          basePrice: 350000,
-          baseIncome: 1800,
-          riskLevel: 7,
-          maxLevel: 5,
-          created_at: new Date().toISOString(),
-        },
-        
-        // SPECIAL OPERATIONS (4)
-        {
-          id: "12",
-          name: "Cannabis Farm",
-          description: "Large-scale marijuana cultivation facility",
-          category: "illegal",
-          icon: "🌿",
-          image: "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=800&h=600&fit=crop&crop=center",
-          color: "#22C55E",
-          isActive: true,
-          basePrice: 250000,
-          baseIncome: 1200,
-          riskLevel: 6,
-          maxLevel: 5,
-          created_at: new Date().toISOString(),
-        },
-        {
-          id: "13",
-          name: "Arms Dealing Network",
-          description: "Illegal weapons trafficking operation",
-          category: "illegal",
-          icon: "🔫",
-          image: "https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?w=800&h=600&fit=crop&crop=center",
-          color: "#DC2626",
-          isActive: true,
-          basePrice: 600000,
-          baseIncome: 3000,
-          riskLevel: 10,
-          maxLevel: 5,
-          created_at: new Date().toISOString(),
-        },
-        {
-          id: "14",
-          name: "Cyber Crime Office",
-          description: "High-tech digital fraud and hacking operations",
-          category: "illegal",
-          icon: "💻",
-          image: "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=800&h=600&fit=crop&crop=center",
-          color: "#3B82F6",
-          isActive: true,
-          basePrice: 450000,
-          baseIncome: 2200,
-          riskLevel: 7,
-          maxLevel: 5,
-          created_at: new Date().toISOString(),
-        },
-        {
-          id: "15",
-          name: "Black Market Syndicate",
-          description: "Extremely dangerous and highly profitable illegal syndicate operations",
-          category: "illegal",
-          icon: "🚫",
-          image: "https://images.unsplash.com/photo-1557804506-669a67965ba0?w=800&h=600&fit=crop&crop=center",
-          color: "#7F1D1D",
-          isActive: true,
-          basePrice: 800000,
-          baseIncome: 4000,
-          riskLevel: 10,
-          maxLevel: 5,
-          created_at: new Date().toISOString(),
-        },
-      ];
-      
-      setBusinessTypes(mockBusinessTypes);
-      toast.success('Business types loaded successfully');
+        setBusinessTypes(transformedTypes);
+        toast.success('Business types loaded from database');
+      } else {
+        setBusinessTypes([]);
+        toast.info('No business types found in database');
+      }
     } catch (error) {
       console.error('Error loading business types:', error);
       toast.error('Failed to load business types');
@@ -332,31 +129,83 @@ const BusinessTypesManagement = () => {
     return matchesCategory && matchesSearch;
   });
 
-  const addBusinessType = (newType: Omit<BusinessType, "id" | "created_at">) => {
-    const type: BusinessType = {
-      ...newType,
-      id: Date.now().toString(),
-      created_at: new Date().toISOString(),
-    };
-    
-    setBusinessTypes([...businessTypes, type]);
-    setShowAddModal(false);
-    toast.success("Business type added successfully");
+  const addBusinessType = async (newType: Omit<BusinessType, "id" | "created_at">) => {
+    try {
+      const { data, error } = await supabase
+        .from('business_types')
+        .insert({
+          name: newType.name,
+          description: newType.description,
+          type: newType.name.toLowerCase().replace(/\s+/g, '_'),
+          base_price: newType.basePrice,
+          base_income: newType.baseIncome,
+          max_level: newType.maxLevel,
+          image: newType.image,
+          category: newType.category,
+          icon: newType.icon,
+          color: newType.color,
+          available: newType.isActive,
+          risk_level: newType.riskLevel,
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      await loadBusinessTypes();
+      setShowAddModal(false);
+      toast.success("Business type added successfully");
+    } catch (error) {
+      console.error('Error adding business type:', error);
+      toast.error("Failed to add business type");
+    }
   };
 
-  const updateBusinessType = (id: string, updates: Partial<BusinessType>) => {
-    setBusinessTypes(businessTypes.map(type => 
-      type.id === id ? { ...type, ...updates } : type
-    ));
-    setEditingType(null);
-    toast.success("Business type updated successfully");
+  const updateBusinessType = async (id: string, updates: Partial<BusinessType>) => {
+    try {
+      const { error } = await supabase
+        .from('business_types')
+        .update({
+          name: updates.name,
+          description: updates.description,
+          base_price: updates.basePrice,
+          base_income: updates.baseIncome,
+          max_level: updates.maxLevel,
+          image: updates.image,
+          category: updates.category,
+          icon: updates.icon,
+          color: updates.color,
+          available: updates.isActive,
+          risk_level: updates.riskLevel,
+        })
+        .eq('id', id);
+
+      if (error) throw error;
+
+      await loadBusinessTypes();
+      setEditingType(null);
+      toast.success("Business type updated successfully");
+    } catch (error) {
+      console.error('Error updating business type:', error);
+      toast.error("Failed to update business type");
+    }
   };
 
-  const deleteBusinessType = (id: string) => {
-    if (!confirm("Are you sure you want to delete this business type? This will affect all existing businesses of this type.")) return;
-    
-    setBusinessTypes(businessTypes.filter(type => type.id !== id));
-    toast.success("Business type deleted successfully");
+  const deleteBusinessType = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('business_types')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+
+      await loadBusinessTypes();
+      toast.success("Business type deleted successfully");
+    } catch (error) {
+      console.error('Error deleting business type:', error);
+      toast.error("Failed to delete business type");
+    }
   };
 
   const toggleTypeStatus = (id: string) => {
@@ -515,8 +364,8 @@ const BusinessTypesManagement = () => {
                   value={formData.baseIncome}
                   onChange={(e) => setFormData({...formData, baseIncome: parseInt(e.target.value)})}
                   className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
-                  min="100"
-                  step="100"
+                  min="50"
+                  step="50"
                   required
                 />
               </div>
