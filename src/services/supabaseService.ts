@@ -130,6 +130,8 @@ export class SupabaseService {
       .from("players")
       .select("*")
       .eq("user_id", userId)
+      .order('created_at', { ascending: false })
+      .limit(1)
       .single();
 
     if (error) {

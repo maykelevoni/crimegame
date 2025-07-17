@@ -155,7 +155,7 @@ export default function InventoryView() {
     enabled: !!player?.id && shopItems.length > 0, // Wait for shop items to load first
   });
 
-  const [avatar, setAvatar] = useState(player?.avatar || "");
+  const [avatar, setAvatar] = useState(player?.avatarUrl || "");
   const [showAvatarSelector, setShowAvatarSelector] = useState(false);
   const [equipped, setEquipped] = useState<{
     weapon: Item | null;
@@ -174,6 +174,13 @@ export default function InventoryView() {
   const [usedItemId, setUsedItemId] = useState<string | null>(null);
   const [consumedIds, setConsumedIds] = useState<string[]>([]);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+
+  // Update avatar when player data changes
+  useEffect(() => {
+    if (player?.avatarUrl) {
+      setAvatar(player.avatarUrl);
+    }
+  }, [player?.avatarUrl]);
 
   // Load equipped items from localStorage when inventory changes
   useEffect(() => {

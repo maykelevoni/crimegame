@@ -553,7 +553,6 @@ const BusinessView = () => {
                   />
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-2">
-                      {getBusinessTypeIcon(business.type)}
                       <h3 className="font-bold text-white">{business.name}</h3>
                     </div>
                     <p className="text-sm text-white/70 mb-3">
@@ -609,10 +608,13 @@ const BusinessView = () => {
                         </div>
                       </div>
                     </div>
-                    <div className="mt-3 p-2 bg-green-500/10 border border-green-500/30 rounded">
-                      <span className="text-green-400 font-bold">
-                        +${calculateCurrentIncome(business).toLocaleString()}/hour
-                      </span>
+                    <div className="mt-4 p-3 bg-green-500/10 border border-green-500/30 rounded">
+                      <div className="text-center">
+                        <div className="text-xs text-green-300 mb-1">Income per hour</div>
+                        <span className="text-green-400 font-bold text-lg">
+                          +${calculateCurrentIncome(business).toLocaleString()}
+                        </span>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -655,13 +657,12 @@ const BusinessView = () => {
                   />
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-2">
-                      {getBusinessTypeIcon(business.type)}
                       <h3 className="font-bold text-white">{business.name}</h3>
                     </div>
                     <p className="text-sm text-white/70 mb-3">
                       {business.description}
                     </p>
-                    <div className="flex items-center justify-between">
+                    <div className="space-y-2">
                       <div className="text-sm">
                         <span className="text-white/60">Price:</span>
                         <span className="text-white font-bold ml-2">
@@ -704,18 +705,20 @@ const BusinessView = () => {
               className="w-48 h-48 object-cover rounded-lg mb-4 mx-auto"
             />
             <p className="text-white/70 mb-4">{selectedBusiness.description}</p>
-            <div className="space-y-3 mb-6">
-              <div className="flex justify-between">
-                <span className="text-white/60">Price:</span>
-                <span className="text-white font-bold">
-                  ${selectedBusiness.price.toLocaleString()}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-white/60">Income per hour:</span>
-                <span className="text-green-400 font-bold">
-                  +${(selectedBusiness.baseIncome || 0).toLocaleString()}
-                </span>
+            <div className="space-y-4 mb-6">
+              <div>
+                <div className="flex justify-between">
+                  <span className="text-white/60">Price:</span>
+                  <span className="text-white font-bold">
+                    ${selectedBusiness.price.toLocaleString()}
+                  </span>
+                </div>
+                <div className="flex justify-between mt-2">
+                  <span className="text-white/60">Income per hour:</span>
+                  <span className="text-green-400 font-bold">
+                    +${(selectedBusiness.baseIncome || 0).toLocaleString()}
+                  </span>
+                </div>
               </div>
               <div className="flex justify-between">
                 <span className="text-white/60">Employees:</span>

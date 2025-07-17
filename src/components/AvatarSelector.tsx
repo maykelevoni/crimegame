@@ -6,10 +6,10 @@ import { useGameStore } from "@/stores/gameStore";
 
 interface AvatarOption {
   id: string;
-  name: string;
   image_url: string;
   category: "male" | "female" | "neutral";
-  description: string;
+  available: boolean;
+  created_at: string;
 }
 
 interface AvatarSelectorProps {
@@ -36,75 +36,47 @@ const AvatarSelector: React.FC<AvatarSelectorProps> = ({ isOpen, onClose, curren
     // Use fallback avatars by default to avoid 404 errors
     const fallbackAvatars = [
       {
-        id: "avatar_1",
-        name: "Street Fighter",
-        image_url: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&crop=face&auto=format&q=80",
-        category: "male",
-        description: "Tough street fighter with attitude"
+        id: "1",
+        image_url: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face",
+        category: "male" as const,
+        available: true,
+        created_at: "2024-01-01T00:00:00Z",
       },
       {
-        id: "avatar_2",
-        name: "Gang Leader",
-        image_url: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop&crop=face&auto=format&q=80",
-        category: "male",
-        description: "Experienced gang leader"
+        id: "2",
+        image_url: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face",
+        category: "male" as const,
+        available: true,
+        created_at: "2024-01-01T00:00:00Z",
       },
       {
-        id: "avatar_3",
-        name: "Businessman",
-        image_url: "https://images.unsplash.com/photo-1560250097-0b93528c311a?w=400&h=400&fit=crop&crop=face&auto=format&q=80",
-        category: "male",
-        description: "Legitimate business owner"
+        id: "3",
+        image_url: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop&crop=face",
+        category: "female" as const,
+        available: true,
+        created_at: "2024-01-01T00:00:00Z",
       },
       {
-        id: "avatar_4",
-        name: "Enforcer",
-        image_url: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400&h=400&fit=crop&crop=face&auto=format&q=80",
-        category: "male",
-        description: "Muscle for hire"
+        id: "4",
+        image_url: "https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=100&h=100&fit=crop&crop=face",
+        category: "female" as const,
+        available: true,
+        created_at: "2024-01-01T00:00:00Z",
       },
       {
-        id: "avatar_5",
-        name: "Street Queen",
-        image_url: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400&h=400&fit=crop&crop=face&auto=format&q=80",
-        category: "female",
-        description: "Fierce street queen who rules the block"
+        id: "5",
+        image_url: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop&crop=face",
+        category: "male" as const,
+        available: true,
+        created_at: "2024-01-01T00:00:00Z",
       },
       {
-        id: "avatar_6",
-        name: "Crime Mastermind",
-        image_url: "https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=400&h=400&fit=crop&crop=face&auto=format&q=80",
-        category: "female",
-        description: "Brilliant criminal mastermind"
+        id: "6",
+        image_url: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100&h=100&fit=crop&crop=face",
+        category: "female" as const,
+        available: true,
+        created_at: "2024-01-01T00:00:00Z",
       },
-      {
-        id: "avatar_7",
-        name: "Businesswoman",
-        image_url: "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=400&h=400&fit=crop&crop=face&auto=format&q=80",
-        category: "female",
-        description: "Powerful businesswoman"
-      },
-      {
-        id: "avatar_8",
-        name: "Femme Fatale",
-        image_url: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&h=400&fit=crop&crop=face&auto=format&q=80",
-        category: "female",
-        description: "Dangerous and seductive"
-      },
-      {
-        id: "avatar_9",
-        name: "Mysterious Figure",
-        image_url: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400&h=400&fit=crop&crop=face&auto=format&q=80",
-        category: "neutral",
-        description: "Identity unknown"
-      },
-      {
-        id: "avatar_10",
-        name: "Hacker",
-        image_url: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=400&h=400&fit=crop&crop=face&auto=format&q=80",
-        category: "neutral",
-        description: "Digital underground expert"
-      }
     ];
 
     try {
@@ -115,27 +87,18 @@ const AvatarSelector: React.FC<AvatarSelectorProps> = ({ isOpen, onClose, curren
         .order('category', { ascending: true });
 
       if (error) {
-        if (error.code === 'PGRST116' || error.code === '42P01' || error.code === 'PGRST301' || error.message?.includes('404')) {
-          // Avatar options table does not exist yet, using fallback avatars
-          setAvatarOptions(fallbackAvatars);
-          return;
-        } else {
-          console.error('Error loading avatar options:', error);
-          // Use fallback avatars on any error
-          setAvatarOptions(fallbackAvatars);
-          return;
-        }
+        console.error('Error loading avatar options:', error);
+        setAvatarOptions(fallbackAvatars);
+        return;
       }
 
       if (data && data.length > 0) {
         setAvatarOptions(data as AvatarOption[]);
       } else {
-        // Fallback avatar options if database is empty
         setAvatarOptions(fallbackAvatars);
       }
     } catch (error) {
       console.error('Error loading avatar options:', error);
-      // Use fallback avatars on any error
       setAvatarOptions(fallbackAvatars);
     }
   };
@@ -154,8 +117,12 @@ const AvatarSelector: React.FC<AvatarSelectorProps> = ({ isOpen, onClose, curren
 
       toast.success('🎭 Avatar updated successfully!');
       
-      // Reload game data to update the UI
-      await loadGameData(player.id);
+      // Reload game data to update the UI - use user_id, not player.id
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        await loadGameData(user.id);
+      }
+      
       onClose();
     } catch (error) {
       console.error('Error updating avatar:', error);
@@ -185,51 +152,54 @@ const AvatarSelector: React.FC<AvatarSelectorProps> = ({ isOpen, onClose, curren
           </button>
         </div>
 
-        {/* Avatar Grid - Simple 4x4 with 16 images */}
-        <div className="p-6">
+        {/* Avatar Grid - 4x5 with 20 images */}
+        <div className="p-6 overflow-y-auto max-h-[60vh]">
           <div className="grid grid-cols-4 gap-3 max-w-md mx-auto">
-            {avatarOptions.slice(0, 16).map((avatar, index) => (
-              <div
-                key={avatar.id || index}
-                className={`relative cursor-pointer rounded-lg border-2 transition-all hover:scale-110 ${
-                  selectedAvatar === avatar.image_url
-                    ? "border-cyber-blue border-4"
-                    : "border-gray-600 hover:border-cyber-blue/50"
-                }`}
-                onClick={() => setSelectedAvatar(avatar.image_url)}
-              >
-                <div className="aspect-square rounded-lg overflow-hidden">
-                  <img
-                    src={avatar.image_url}
-                    alt={avatar.name || "Avatar"}
-                    className="w-full h-full object-cover"
-                    onError={(e) => {
-                      // Fallback to a placeholder when image fails to load
-                      const target = e.target as HTMLImageElement;
-                      target.src = `https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&crop=face&auto=format&q=80`;
-                      target.onerror = null; // Prevent infinite loop
-                    }}
-                  />
-                </div>
-                
-                {/* Selection Indicator */}
-                {selectedAvatar === avatar.image_url && (
-                  <div className="absolute inset-0 bg-cyber-blue/20 rounded-lg flex items-center justify-center">
-                    <Check size={20} className="text-cyber-blue bg-white rounded-full p-1" />
+            {Array.from({ length: 20 }).map((_, index) => {
+              const avatar = avatarOptions[index];
+              return (
+                <div
+                  key={avatar?.id || `slot-${index}`}
+                  className={`relative cursor-pointer rounded-lg border-2 transition-all hover:scale-110 ${
+                    avatar && selectedAvatar === avatar.image_url
+                      ? "border-cyber-blue border-4"
+                      : avatar
+                      ? "border-gray-600 hover:border-cyber-blue/50"
+                      : "border-dashed border-gray-600 bg-gray-800/50"
+                  }`}
+                  onClick={() => avatar && setSelectedAvatar(avatar.image_url)}
+                >
+                  <div className="aspect-square rounded-lg overflow-hidden">
+                    {avatar ? (
+                      <>
+                        <img
+                          src={avatar.image_url}
+                          alt={`Avatar ${index + 1}`}
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            // Fallback to a placeholder when image fails to load
+                            const target = e.target as HTMLImageElement;
+                            target.src = `https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&crop=face&auto=format&q=80`;
+                            target.onerror = null; // Prevent infinite loop
+                          }}
+                        />
+                        
+                        {/* Selection Indicator */}
+                        {selectedAvatar === avatar.image_url && (
+                          <div className="absolute inset-0 bg-cyber-blue/20 rounded-lg flex items-center justify-center">
+                            <Check size={20} className="text-cyber-blue bg-white rounded-full p-1" />
+                          </div>
+                        )}
+                      </>
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <span className="text-gray-500 text-xs">Empty</span>
+                      </div>
+                    )}
                   </div>
-                )}
-              </div>
-            ))}
-            
-            {/* Fill empty slots if less than 16 avatars */}
-            {Array.from({ length: Math.max(0, 16 - avatarOptions.length) }).map((_, index) => (
-              <div
-                key={`empty-${index}`}
-                className="aspect-square rounded-lg border-2 border-dashed border-gray-600 bg-gray-800/50 flex items-center justify-center"
-              >
-                <span className="text-gray-500 text-xs">Empty</span>
-              </div>
-            ))}
+                </div>
+              );
+            })}
           </div>
         </div>
 

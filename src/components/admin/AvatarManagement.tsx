@@ -6,8 +6,10 @@ import {
   X,
   Eye,
   EyeOff,
+  Edit,
 } from "lucide-react";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 interface AvatarOption {
   id: string;
@@ -21,6 +23,7 @@ const AvatarManagement = () => {
   const [avatars, setAvatars] = useState<AvatarOption[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [editingAvatar, setEditingAvatar] = useState<AvatarOption | null>(null);
   const [selectedCategory, setSelectedCategory] = useState("all");
 
   const [newAvatar, setNewAvatar] = useState({
@@ -29,51 +32,6 @@ const AvatarManagement = () => {
     available: true,
   });
 
-  // Mock data for demonstration
-  const mockAvatars: AvatarOption[] = [
-    {
-      id: "1",
-      image_url: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face",
-      category: "male",
-      available: true,
-      created_at: "2024-01-01T00:00:00Z",
-    },
-    {
-      id: "2", 
-      image_url: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face",
-      category: "male",
-      available: true,
-      created_at: "2024-01-01T00:00:00Z",
-    },
-    {
-      id: "3",
-      image_url: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop&crop=face",
-      category: "female",
-      available: true,
-      created_at: "2024-01-01T00:00:00Z",
-    },
-    {
-      id: "4",
-      image_url: "https://images.unsplash.com/photo-1494790108755-2616b2e31b89?w=100&h=100&fit=crop&crop=face",
-      category: "female",
-      available: false,
-      created_at: "2024-01-01T00:00:00Z",
-    },
-    {
-      id: "5",
-      image_url: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop&crop=face",
-      category: "male",
-      available: true,
-      created_at: "2024-01-01T00:00:00Z",
-    },
-    {
-      id: "6",
-      image_url: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100&h=100&fit=crop&crop=face",
-      category: "female",
-      available: true,
-      created_at: "2024-01-01T00:00:00Z",
-    },
-  ];
 
   useEffect(() => {
     loadAvatars();
@@ -82,12 +40,30 @@ const AvatarManagement = () => {
   const loadAvatars = async () => {
     try {
       setLoading(true);
-      // Using mock data for now
-      setAvatars(mockAvatars);
-      toast.success('Avatars loaded successfully');
+      
+      const { data, error } = await supabase
+        .from('avatar_options')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Database error:', error);
+        setAvatars([]);
+        toast.error(`Database error: ${error.message}`);
+        return;
+      }
+
+      if (data && data.length > 0) {
+        setAvatars(data as AvatarOption[]);
+        toast.success(`Loaded ${data.length} avatars from database`);
+      } else {
+        setAvatars([]);
+        toast.info('Avatar table is empty - add some avatars to get started');
+      }
     } catch (error) {
       console.error('Error loading avatars:', error);
-      toast.error('Failed to load avatars');
+      setAvatars([]);
+      toast.error('Failed to load avatars from database');
     } finally {
       setLoading(false);
     }
@@ -100,15 +76,25 @@ const AvatarManagement = () => {
     }
 
     try {
-      const newAvatarData: AvatarOption = {
-        id: Date.now().toString(),
-        image_url: newAvatar.image_url,
-        category: newAvatar.category,
-        available: newAvatar.available,
-        created_at: new Date().toISOString(),
-      };
+      // Extract name from image URL
+      const imageName = newAvatar.image_url.split('/').pop()?.split('?')[0] || `Avatar ${Date.now()}`;
+      
+      const { data, error } = await supabase
+        .from('avatar_options')
+        .insert({
+          name: imageName,
+          image_url: newAvatar.image_url,
+          category: newAvatar.category,
+          available: newAvatar.available,
+        })
+        .select()
+        .single();
 
-      setAvatars(prev => [newAvatarData, ...prev]);
+      if (error) throw error;
+
+      // Reload avatars from database
+      await loadAvatars();
+      
       setShowAddModal(false);
       setNewAvatar({
         image_url: "",
@@ -124,7 +110,15 @@ const AvatarManagement = () => {
 
   const handleDeleteAvatar = async (id: string) => {
     try {
-      setAvatars(prev => prev.filter(avatar => avatar.id !== id));
+      const { error } = await supabase
+        .from('avatar_options')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+
+      // Reload avatars from database
+      await loadAvatars();
       toast.success('Avatar deleted successfully!');
     } catch (error) {
       console.error('Error deleting avatar:', error);
@@ -132,11 +126,46 @@ const AvatarManagement = () => {
     }
   };
 
+  const handleEditAvatar = async (updatedAvatar: Omit<AvatarOption, 'id' | 'created_at'>) => {
+    if (!editingAvatar) return;
+
+    console.log('Editing avatar with ID:', editingAvatar.id, 'Type:', typeof editingAvatar.id);
+    console.log('Full editing avatar:', editingAvatar);
+
+    try {
+      const { error } = await supabase
+        .from('avatar_options')
+        .update({
+          image_url: updatedAvatar.image_url,
+          category: updatedAvatar.category,
+          available: updatedAvatar.available,
+        })
+        .eq('id', editingAvatar.id);
+
+      if (error) throw error;
+
+      // Reload avatars from database
+      await loadAvatars();
+      setEditingAvatar(null);
+      toast.success('Avatar updated successfully!');
+    } catch (error) {
+      console.error('Error updating avatar:', error);
+      toast.error('Failed to update avatar');
+    }
+  };
+
   const handleToggleAvailable = async (avatar: AvatarOption) => {
     try {
-      const updatedAvatar = { ...avatar, available: !avatar.available };
-      setAvatars(prev => prev.map(a => a.id === avatar.id ? updatedAvatar : a));
-      toast.success(`Avatar ${updatedAvatar.available ? 'enabled' : 'disabled'}`);
+      const { error } = await supabase
+        .from('avatar_options')
+        .update({ available: !avatar.available })
+        .eq('id', avatar.id);
+
+      if (error) throw error;
+
+      // Reload avatars from database
+      await loadAvatars();
+      toast.success(`Avatar ${!avatar.available ? 'enabled' : 'disabled'}`);
     } catch (error) {
       console.error('Error toggling avatar availability:', error);
       toast.error('Failed to update avatar');
@@ -282,24 +311,20 @@ const AvatarManagement = () => {
               </div>
 
               {/* Actions buttons */}
-              <div className="flex gap-2 justify-center">
+              <div className="flex gap-1 justify-center">
                 <button
-                  onClick={() => handleToggleAvailable(avatar)}
-                  className={`p-2 rounded-lg ${
-                    avatar.available 
-                      ? 'bg-red-600 hover:bg-red-700 text-white'
-                      : 'bg-green-600 hover:bg-green-700 text-white'
-                  }`}
-                  title={avatar.available ? 'Disable' : 'Enable'}
+                  onClick={() => setEditingAvatar(avatar)}
+                  className="p-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg"
+                  title="Edit"
                 >
-                  {avatar.available ? <EyeOff size={18} /> : <Eye size={18} />}
+                  <Edit size={16} />
                 </button>
                 <button
                   onClick={() => handleDeleteAvatar(avatar.id)}
                   className="p-2 bg-red-600 hover:bg-red-700 text-white rounded-lg"
                   title="Delete"
                 >
-                  <Trash2 size={18} />
+                  <Trash2 size={16} />
                 </button>
               </div>
             </div>
@@ -393,6 +418,139 @@ const AvatarManagement = () => {
           </div>
         </div>
       )}
+
+      {/* Edit Avatar Modal */}
+      {editingAvatar && (
+        <EditAvatarForm
+          avatar={editingAvatar}
+          onSubmit={handleEditAvatar}
+          onCancel={() => setEditingAvatar(null)}
+        />
+      )}
+    </div>
+  );
+};
+
+// Edit Avatar Form Component
+const EditAvatarForm = ({ avatar, onSubmit, onCancel }: {
+  avatar: AvatarOption;
+  onSubmit: (avatar: Omit<AvatarOption, 'id' | 'created_at'>) => void;
+  onCancel: () => void;
+}) => {
+  const [editAvatar, setEditAvatar] = useState({
+    image_url: avatar.image_url,
+    category: avatar.category,
+    available: avatar.available,
+  });
+
+  const quickImageOptions = [
+    { name: "Male 1", url: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face" },
+    { name: "Female 1", url: "https://images.unsplash.com/photo-1494790108755-2616b2e31b89?w=100&h=100&fit=crop&crop=face" },
+    { name: "Male 2", url: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face" },
+    { name: "Female 2", url: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop&crop=face" },
+  ];
+
+  const handleSubmit = () => {
+    if (!editAvatar.image_url) {
+      toast.error('Image URL is required');
+      return;
+    }
+    onSubmit(editAvatar);
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-xl p-6 w-full max-w-md">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-xl font-bold text-gray-900">Edit Avatar</h3>
+          <button
+            onClick={onCancel}
+            className="text-gray-400 hover:text-gray-600"
+          >
+            <X size={24} />
+          </button>
+        </div>
+
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Image URL</label>
+            <input
+              type="url"
+              value={editAvatar.image_url}
+              onChange={(e) => setEditAvatar(prev => ({ ...prev, image_url: e.target.value }))}
+              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
+              placeholder="https://..."
+              required
+            />
+            
+            <div className="mt-2">
+              <p className="text-sm text-gray-500 mb-2">Quick options:</p>
+              <div className="grid grid-cols-2 gap-2">
+                {quickImageOptions.map((option) => (
+                  <button
+                    key={option.name}
+                    onClick={() => setEditAvatar(prev => ({ ...prev, image_url: option.url }))}
+                    className="text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 py-1 px-2 rounded"
+                  >
+                    {option.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Category</label>
+            <select
+              value={editAvatar.category}
+              onChange={(e) => setEditAvatar(prev => ({ ...prev, category: e.target.value as any }))}
+              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
+            >
+              <option value="male">Male</option>
+              <option value="female">Female</option>
+              <option value="neutral">Neutral</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={editAvatar.available}
+                onChange={(e) => setEditAvatar(prev => ({ ...prev, available: e.target.checked }))}
+                className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+              />
+              <span className="text-sm font-medium text-gray-700">Available</span>
+            </label>
+          </div>
+
+          {editAvatar.image_url && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Preview</label>
+              <img
+                src={editAvatar.image_url}
+                alt="Preview"
+                className="w-20 h-20 rounded-lg object-cover border border-gray-200"
+              />
+            </div>
+          )}
+        </div>
+
+        <div className="flex gap-3 mt-6">
+          <button
+            onClick={onCancel}
+            className="flex-1 py-2 px-4 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleSubmit}
+            className="flex-1 py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-lg"
+          >
+            Update Avatar
+          </button>
+        </div>
+      </div>
     </div>
   );
 };

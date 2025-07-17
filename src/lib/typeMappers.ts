@@ -149,7 +149,8 @@ export const createNewPlayerData = (
 ): Record<string, unknown> => {
   // Usando Record em vez de any
   return {
-    username: name, // Usar username em vez de name
+    name: name,
+    username: name, // Keep both for compatibility
     avatar_url: "",
     health: 100,
     max_health: 100,
