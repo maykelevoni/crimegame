@@ -657,18 +657,30 @@ const NightlifeView = () => {
                 </div>
               ) : (
                 <div className="space-y-6">
-                  {barVenues.map((venue) => (
+                  {barVenues.map((venue) => {
+                    console.log(`🎯 [NightlifeView] Rendering bar venue "${venue.name}" with image:`, venue.image_url);
+                    return (
                     <div
                       key={venue.id}
                       className="cyber-border p-6 bg-cyber-dark-medium hover:bg-cyber-dark transition-colors"
                     >
                       <div className="flex items-center gap-6">
                         <div className="w-20 h-20 rounded-lg overflow-hidden bg-cyber-dark flex-shrink-0">
-                          <img
-                            src={venue.image_url}
-                            alt={venue.name}
-                            className="w-full h-full object-cover"
-                          />
+                          {venue.image_url && venue.image_url.trim() !== "" ? (
+                            <img
+                              src={venue.image_url}
+                              alt={venue.name}
+                              className="w-full h-full object-cover"
+                              onError={(e) => {
+                                console.log(`❌ [NightlifeView] Failed to load image for bar venue "${venue.name}":`, venue.image_url);
+                                e.currentTarget.style.display = 'none';
+                              }}
+                            />
+                          ) : (
+                            <div className="w-full h-full bg-gray-600 flex items-center justify-center">
+                              <span className="text-gray-400 text-xs">No Image</span>
+                            </div>
+                          )}
                         </div>
                         <div className="flex-1">
                           <h4 className="text-xl font-bold text-cyber-blue mb-2">
@@ -686,7 +698,8 @@ const NightlifeView = () => {
                         </div>
                       </div>
                     </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </div>
@@ -704,18 +717,30 @@ const NightlifeView = () => {
                 </div>
               ) : (
                 <div className="space-y-6">
-                  {raveVenues.map((venue) => (
+                  {raveVenues.map((venue) => {
+                    console.log(`🎯 [NightlifeView] Rendering rave venue "${venue.name}" with image:`, venue.image_url);
+                    return (
                     <div
                       key={venue.id}
                       className="cyber-border p-6 bg-cyber-dark-medium hover:bg-cyber-dark transition-colors"
                     >
                       <div className="flex items-center gap-6">
                         <div className="w-20 h-20 rounded-lg overflow-hidden bg-cyber-dark flex-shrink-0">
-                          <img
-                            src={venue.image_url}
-                            alt={venue.name}
-                            className="w-full h-full object-cover"
-                          />
+                          {venue.image_url && venue.image_url.trim() !== "" ? (
+                            <img
+                              src={venue.image_url}
+                              alt={venue.name}
+                              className="w-full h-full object-cover"
+                              onError={(e) => {
+                                console.log(`❌ [NightlifeView] Failed to load image for rave venue "${venue.name}":`, venue.image_url);
+                                e.currentTarget.style.display = 'none';
+                              }}
+                            />
+                          ) : (
+                            <div className="w-full h-full bg-gray-600 flex items-center justify-center">
+                              <span className="text-gray-400 text-xs">No Image</span>
+                            </div>
+                          )}
                         </div>
                         <div className="flex-1">
                           <h4 className="text-xl font-bold text-purple-400 mb-2">
@@ -733,7 +758,8 @@ const NightlifeView = () => {
                         </div>
                       </div>
                     </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </div>
@@ -756,18 +782,30 @@ const NightlifeView = () => {
                       No brothels found
                     </div>
                   ) : (
-                    brothelVenues.map((venue) => (
+                    brothelVenues.map((venue) => {
+                      console.log(`🎯 [NightlifeView] Rendering brothel venue "${venue.name}" with image:`, venue.image_url);
+                      return (
                       <div
                         key={venue.id}
                         className="cyber-border p-6 bg-cyber-dark-medium hover:bg-cyber-dark transition-colors"
                       >
                         <div className="flex items-center gap-6">
                           <div className="w-20 h-20 rounded-lg overflow-hidden bg-cyber-dark flex-shrink-0">
-                            <img
-                              src={venue.image_url}
-                              alt={venue.name}
-                              className="w-full h-full object-cover"
-                            />
+                            {venue.image_url && venue.image_url.trim() !== "" ? (
+                              <img
+                                src={venue.image_url}
+                                alt={venue.name}
+                                className="w-full h-full object-cover"
+                                onError={(e) => {
+                                  console.log(`❌ [NightlifeView] Failed to load image for brothel venue "${venue.name}":`, venue.image_url);
+                                  e.currentTarget.style.display = 'none';
+                                }}
+                              />
+                            ) : (
+                              <div className="w-full h-full bg-gray-600 flex items-center justify-center">
+                                <span className="text-gray-400 text-xs">No Image</span>
+                              </div>
+                            )}
                           </div>
                           <div className="flex-1">
                             <h4 className="text-xl font-bold text-cyber-pink mb-2">
@@ -785,7 +823,8 @@ const NightlifeView = () => {
                           </div>
                         </div>
                       </div>
-                    ))
+                      );
+                    })
                   )}
                 </div>
               )}
