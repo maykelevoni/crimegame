@@ -5,16 +5,25 @@ import GameStatusBar from "./components/GameStatusBar";
 import { GameInterface } from "./components/GameInterface";
 import { LoginModal } from "./components/auth/LoginModal";
 import { RegisterModal } from "./components/auth/RegisterModal";
+import { ForgotPasswordModal } from "./components/auth/ForgotPasswordModal";
+import { ResetPassword } from "./pages/ResetPassword";
 import { LoadingSpinner } from "./components/ui/LoadingSpinner";
 import { Toaster } from "./components/ui/toaster";
 
 function AppContent() {
   const [showLogin, setShowLogin] = useState(false);
   const [showRegister, setShowRegister] = useState(false);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
 
   const { user, signOut } = useAuth();
   const { player, userId, setUserId, loadGameData, syncStatus } =
     useGameStore();
+
+  // Simple routing check
+  const currentPath = window.location.pathname;
+  if (currentPath === '/auth/reset-password') {
+    return <ResetPassword />;
+  }
 
   // Clear old localStorage data on first run
   useEffect(() => {
@@ -106,6 +115,10 @@ function AppContent() {
             setShowLogin(false);
             setShowRegister(true);
           }}
+          onSwitchToForgotPassword={() => {
+            setShowLogin(false);
+            setShowForgotPassword(true);
+          }}
         />
 
         <RegisterModal
@@ -115,6 +128,11 @@ function AppContent() {
             setShowRegister(false);
             setShowLogin(true);
           }}
+        />
+
+        <ForgotPasswordModal
+          isOpen={showForgotPassword}
+          onClose={() => setShowForgotPassword(false)}
         />
       </div>
     );

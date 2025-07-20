@@ -37,7 +37,7 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({
   });
 
   const { signUp, error, clearError } = useAuth();
-  const { setUserId } = useGameStore();
+  const { setUserId, loadGameData } = useGameStore();
 
   // Input sanitization function
   const sanitizeInput = (input: string): string => {
@@ -214,18 +214,22 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({
           result.data.user.id
         );
 
-
-        
         // Store username-email mapping for login
         const userMap = JSON.parse(localStorage.getItem('crimegame_users') || '{}');
         userMap[formData.username] = formData.email;
         localStorage.setItem('crimegame_users', JSON.stringify(userMap));
         
-        // Small delay to ensure database operations complete
-        setTimeout(() => {
-          setUserId(result.data.user.id);
-          onClose();
-        }, 100);
+        // Assign random avatar automatically
+        await assignRandomAvatar(player.id);
+        
+        // Complete registration and login user
+        setUserId(result.data.user.id);
+        
+        // Load game data to get the updated avatar
+        await loadGameData(result.data.user.id);
+        
+        toast.success("Welcome! Your account is ready!");
+        onClose();
       } else {
 
         // Rate limit handling
@@ -255,6 +259,50 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({
     }
   };
 
+  // Assign random avatar to new player
+  const assignRandomAvatar = async (playerId: string) => {
+    try {
+      // Get avatars from database
+      const { data: avatars, error } = await supabase
+        .from('avatar_options')
+        .select('image_url')
+        .eq('available', true);
+
+      if (error || !avatars || avatars.length === 0) {
+        return;
+      }
+
+      // Pick random avatar
+      const randomAvatar = avatars[Math.floor(Math.random() * avatars.length)];
+
+      // Update player with avatar
+      await supabase
+        .from('players')
+        .update({ avatar_url: randomAvatar.image_url })
+        .eq('id', playerId);
+
+    } catch (error) {
+      // Silently handle avatar assignment errors
+    }
+  };
+
+  const resetModal = () => {
+    setFormData({
+      username: "",
+      email: "",
+      password: "",
+      confirmPassword: "",
+    });
+    setUsernameStatus('idle');
+  };
+
+  // Reset modal when it closes
+  useEffect(() => {
+    if (!isOpen) {
+      resetModal();
+    }
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
   return (
@@ -270,9 +318,9 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({
 
         {/* Header */}
         <div className="text-center mb-6">
-          <h2 className="text-2xl font-bold text-white mb-2">Register</h2>
+          <h2 className="text-2xl font-bold text-white mb-2">Create Account</h2>
           <p className="text-cyber-blue/80">
-            Create your account and start your journey
+            Join the game and start your criminal career
           </p>
         </div>
 
@@ -459,20 +507,6 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({
             )}
           </div>
 
-          {/* Security tip */}
-          <div className="bg-cyber-blue/10 border border-cyber-blue/20 rounded-lg p-3">
-            <div className="flex items-start gap-2">
-              <Info size={14} className="text-cyber-blue mt-0.5 flex-shrink-0" />
-              <div className="text-xs text-cyber-blue/80">
-                <p className="font-medium mb-1">🔐 Security Tips:</p>
-                <ul className="text-cyber-blue/60 space-y-0.5">
-                  <li>• Use a unique password you don't use anywhere else</li>
-                  <li>• Your password must be at least 12 characters</li>
-                  <li>• Include uppercase, lowercase, numbers and symbols</li>
-                </ul>
-              </div>
-            </div>
-          </div>
 
           {/* Submit button */}
           <button

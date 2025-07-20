@@ -16,9 +16,10 @@ interface AvatarSelectorProps {
   isOpen: boolean;
   onClose: () => void;
   currentAvatar?: string;
+  playerId?: string; // Optional player ID for registration flow
 }
 
-const AvatarSelector: React.FC<AvatarSelectorProps> = ({ isOpen, onClose, currentAvatar }) => {
+const AvatarSelector: React.FC<AvatarSelectorProps> = ({ isOpen, onClose, currentAvatar, playerId }) => {
   const [selectedAvatar, setSelectedAvatar] = useState<string>(currentAvatar || "");
   const [loading, setLoading] = useState(false);
   const [avatarOptions, setAvatarOptions] = useState<AvatarOption[]>([]);
@@ -104,23 +105,26 @@ const AvatarSelector: React.FC<AvatarSelectorProps> = ({ isOpen, onClose, curren
   };
 
   const handleSaveAvatar = async () => {
-    if (!player?.id || !selectedAvatar) return;
+    const currentPlayerId = playerId || player?.id;
+    if (!currentPlayerId || !selectedAvatar) return;
 
     setLoading(true);
     try {
       const { error } = await supabase
         .from('players')
         .update({ avatar_url: selectedAvatar })
-        .eq('id', player.id);
+        .eq('id', currentPlayerId);
 
       if (error) throw error;
 
       toast.success('🎭 Avatar updated successfully!');
       
-      // Reload game data to update the UI - use user_id, not player.id
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        await loadGameData(user.id);
+      // Reload game data to update the UI - only if not in registration flow
+      if (player?.id && !playerId) {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          await loadGameData(user.id);
+        }
       }
       
       onClose();

@@ -8,12 +8,14 @@ interface LoginModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSwitchToRegister: () => void;
+  onSwitchToForgotPassword: () => void;
 }
 
 export const LoginModal: React.FC<LoginModalProps> = ({
   isOpen,
   onClose,
   onSwitchToRegister,
+  onSwitchToForgotPassword,
 }) => {
   const [playerName, setPlayerName] = useState("");
   const [password, setPassword] = useState("");
@@ -177,9 +179,18 @@ export const LoginModal: React.FC<LoginModalProps> = ({
                 )}
               </button>
             </div>
-            <p className="text-cyber-blue/60 text-xs mt-1">
-              💡 Forgot your password? Create a new account for now
-            </p>
+            <div className="flex items-center justify-between mt-1">
+              <p className="text-cyber-blue/60 text-xs">
+                💡 Use your player name or email to login
+              </p>
+              <button
+                type="button"
+                onClick={onSwitchToForgotPassword}
+                className="text-cyber-blue hover:text-white transition-colors text-xs font-medium"
+              >
+                Forgot Password?
+              </button>
+            </div>
           </div>
 
           {/* Submit button */}

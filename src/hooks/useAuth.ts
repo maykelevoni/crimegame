@@ -225,34 +225,19 @@ export const useAuth = () => {
     }
   };
 
-  const resetPassword = async (email: string) => {
+  const sendPasswordByEmail = async (email: string) => {
     try {
-      setAuthState((prev) => ({ ...prev, loading: true, error: null }));
-
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/reset-password`,
+        redirectTo: `${window.location.origin}/auth/reset-password`,
       });
 
       if (error) {
-        setAuthState((prev) => ({
-          ...prev,
-          error: error.message,
-          loading: false,
-        }));
         return { success: false, error: error.message };
       }
 
-      setAuthState((prev) => ({ ...prev, loading: false }));
       return { success: true };
     } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : "Unknown error";
-      setAuthState((prev) => ({
-        ...prev,
-        error: errorMessage,
-        loading: false,
-      }));
-      return { success: false, error: errorMessage };
+      return { success: false, error: "Failed to send reset email" };
     }
   };
 
@@ -296,7 +281,7 @@ export const useAuth = () => {
     signIn,
     signUp,
     signOut,
-    resetPassword,
+    sendPasswordByEmail,
     updatePassword,
     clearError,
   };

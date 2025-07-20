@@ -95,6 +95,7 @@ const GameLayout = ({
       {/* Header */}
       <TopStatusBar
         playerName={player.name}
+        avatarUrl={player.avatarUrl}
         health={player.stats.health}
         maxHealth={player.stats.maxHealth}
         energy={player.stats.energy}

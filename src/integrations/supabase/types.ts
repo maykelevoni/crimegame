@@ -9,45 +9,6 @@
 export type Database = {
   public: {
     Tables: {
-      business_history: {
-        Row: {
-          business_id: string
-          created_at: string
-          id: string
-          income: number
-          player_id: string
-        }
-        Insert: {
-          business_id: string
-          created_at?: string
-          id?: string
-          income: number
-          player_id: string
-        }
-        Update: {
-          business_id?: string
-          created_at?: string
-          id?: string
-          income?: number
-          player_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "business_history_business_id_fkey"
-            columns: ["business_id"]
-            isOneToOne: false
-            referencedRelation: "businesses"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "business_history_player_id_fkey"
-            columns: ["player_id"]
-            isOneToOne: false
-            referencedRelation: "players"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       businesses: {
         Row: {
           created_at: string
@@ -248,48 +209,6 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
-      }
-      crime_history: {
-        Row: {
-          created_at: string
-          crime_id: string
-          id: string
-          player_id: string
-          reward: number
-          success: boolean
-        }
-        Insert: {
-          created_at?: string
-          crime_id: string
-          id?: string
-          player_id: string
-          reward: number
-          success: boolean
-        }
-        Update: {
-          created_at?: string
-          crime_id?: string
-          id?: string
-          player_id?: string
-          reward?: number
-          success?: boolean
-        }
-        Relationships: [
-          {
-            foreignKeyName: "crime_history_crime_id_fkey"
-            columns: ["crime_id"]
-            isOneToOne: false
-            referencedRelation: "crimes"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "crime_history_player_id_fkey"
-            columns: ["player_id"]
-            isOneToOne: false
-            referencedRelation: "players"
-            referencedColumns: ["id"]
-          },
-        ]
       }
       crimes: {
         Row: {

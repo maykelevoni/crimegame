@@ -14,16 +14,29 @@ import {
   Filter,
   Upload,
   Image,
+  ChevronDown,
+  ChevronUp,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
-interface Prostitute {
+
+interface NightlifeConsumable {
   id: string;
   name: string;
   description: string;
   price: number;
-  energy_cost: number;
+  type: "drink" | "drug" | "brothel";
+  effects: {
+    energy?: number;
+    health?: number;
+    addiction?: number;
+    reputation?: number;
+  };
+  image_url?: string;
+  available: boolean;
   created_at: string;
 }
 
@@ -31,7 +44,7 @@ interface NightlifeVenue {
   id: string;
   name: string;
   description: string;
-  type: "bar" | "rave" | "prostitutes";
+  type: "bar" | "rave" | "brothel";
   price: number;
   energy_cost: number;
   effects: {
@@ -46,17 +59,38 @@ interface NightlifeVenue {
   created_at: string;
 }
 
+interface VenueConsumable {
+  id: string;
+  venue_id: string;
+  consumable_id: string;
+  venue_price: number;
+  venue_effects: {
+    energy?: number;
+    addiction?: number;
+    health?: number;
+    reputation?: number;
+  };
+  available: boolean;
+  created_at: string;
+  updated_at: string;
+  venue?: NightlifeVenue;
+  consumable?: NightlifeConsumable;
+}
+
 
 const NightlifeManagement = () => {
-  const [prostitutes, setProstitutes] = useState<Prostitute[]>([]);
+  const [nightlifeConsumables, setNightlifeConsumables] = useState<NightlifeConsumable[]>([]);
   const [venues, setVenues] = useState<NightlifeVenue[]>([]);
+  const [venueConsumables, setVenueConsumables] = useState<VenueConsumable[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<"venues" | "prostitutes">("venues");
+  const [activeTab, setActiveTab] = useState<"venues" | "consumables" | "venue-consumables" | "grouped">("venues");
   const [showAddModal, setShowAddModal] = useState(false);
-  const [editingProstitute, setEditingProstitute] = useState<Prostitute | null>(null);
+  const [editingConsumable, setEditingConsumable] = useState<NightlifeConsumable | null>(null);
   const [editingVenue, setEditingVenue] = useState<NightlifeVenue | null>(null);
+  const [editingVenueConsumable, setEditingVenueConsumable] = useState<VenueConsumable | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedType, setSelectedType] = useState("all");
+  const [expandedVenues, setExpandedVenues] = useState<Set<string>>(new Set());
 
   const [stats, setStats] = useState({
     totalVenues: 0,
@@ -74,94 +108,14 @@ const NightlifeManagement = () => {
   const loadData = async () => {
     try {
       setLoading(true);
-      await Promise.all([loadProstitutes(), loadVenues()]);
+      await Promise.all([loadVenues(), loadNightlifeConsumables(), loadVenueConsumables()]);
     } catch (error) {
-      console.error('Error loading nightlife data:', error);
       toast.error('Failed to load nightlife data');
     } finally {
       setLoading(false);
     }
   };
 
-  const loadProstitutes = async () => {
-    try {
-      const { data: prostituteData, error } = await supabase
-        .from('prostitutes')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error && error.code !== 'PGRST116' && error.code !== '42P01') {
-        throw error;
-      }
-
-      if (prostituteData && prostituteData.length > 0) {
-        setProstitutes(prostituteData);
-      } else {
-        // Mock data fallback - using names inspired by crime game avatar list
-        const mockProstitutes: Prostitute[] = [
-          {
-            id: "1",
-            name: "Valentina",
-            description: "Femme fatale with dangerous elegance and sophisticated charm",
-            price: 250,
-            energy_cost: 5,
-            created_at: new Date().toISOString(),
-          },
-          {
-            id: "2",
-            name: "Scarlett",
-            description: "Professional assassin offering discreet companionship services",
-            price: 300,
-            energy_cost: 3,
-            created_at: new Date().toISOString(),
-          },
-          {
-            id: "3",
-            name: "Victoria",
-            description: "Drug queenpin's right hand with connections and attitude",
-            price: 200,
-            energy_cost: 4,
-            created_at: new Date().toISOString(),
-          },
-          {
-            id: "4",
-            name: "Raven",
-            description: "Nightclub queen who runs the underground entertainment scene",
-            price: 180,
-            energy_cost: 2,
-            created_at: new Date().toISOString(),
-          },
-          {
-            id: "5",
-            name: "Luna",
-            description: "Gang queen with street smarts and fierce loyalty",
-            price: 150,
-            energy_cost: 3,
-            created_at: new Date().toISOString(),
-          },
-          {
-            id: "6",
-            name: "Jade",
-            description: "Black widow who knows how to eliminate problems and please clients",
-            price: 220,
-            energy_cost: 4,
-            created_at: new Date().toISOString(),
-          },
-          {
-            id: "7",
-            name: "Sophia",
-            description: "Crime boss daughter with access to exclusive high-society circles",
-            price: 280,
-            energy_cost: 2,
-            created_at: new Date().toISOString(),
-          },
-        ];
-        setProstitutes(mockProstitutes);
-      }
-    } catch (error) {
-      console.error('Error loading prostitutes:', error);
-    }
-  };
 
   const loadVenues = async () => {
     try {
@@ -180,12 +134,12 @@ const NightlifeManagement = () => {
           name: venue.name,
           description: venue.description,
           type: venue.type,
-          price: venue.price,
-          energy_cost: venue.energy_cost,
+          price: venue.money_cost || 0,
+          energy_cost: venue.energy_cost || 0,
           effects: venue.effects || {},
           image_url: venue.image_url,
-          risk_level: venue.risk_level,
-          isActive: venue.is_active,
+          risk_level: venue.risk_level || 1,
+          isActive: venue.available || false,
           created_at: venue.created_at,
         }));
         setVenues(transformedVenues);
@@ -287,23 +241,74 @@ const NightlifeManagement = () => {
         setVenues(mockVenues);
       }
     } catch (error) {
-      console.error('Error loading venues:', error);
+    }
+  };
+
+  const loadNightlifeConsumables = async () => {
+    try {
+      const { data: consumableData, error } = await supabase
+        .from('nightlife_consumables')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        throw error;
+      }
+
+      if (consumableData && consumableData.length > 0) {
+        // Force update to ensure we're using real database data
+        setNightlifeConsumables([]);
+        setTimeout(() => {
+          setNightlifeConsumables(consumableData);
+        }, 100);
+      } else {
+        setNightlifeConsumables([]);
+      }
+    } catch (error) {
+      // Set empty array on error
+      setNightlifeConsumables([]);
+    }
+  };
+
+  const loadVenueConsumables = async () => {
+    try {
+      const { data: venueConsumableData, error } = await supabase
+        .from('venue_consumables')
+        .select(`
+          *,
+          venue:nightlife_venues(*),
+          consumable:nightlife_consumables(*)
+        `)
+        .order('created_at', { ascending: false });
+
+      if (error && error.code !== 'PGRST116' && error.code !== '42P01') {
+        throw error;
+      }
+
+      if (venueConsumableData && venueConsumableData.length > 0) {
+        setVenueConsumables(venueConsumableData);
+      } else {
+        setVenueConsumables([]);
+      }
+    } catch (error) {
+      setVenueConsumables([]);
     }
   };
 
   useEffect(() => {
     calculateStats();
-  }, [venues, prostitutes]);
+  }, [venues, nightlifeConsumables, venueConsumables]);
 
   const calculateStats = () => {
     const totalVenues = venues.length;
-    const totalProstitutes = prostitutes.length;
+    const totalConsumables = nightlifeConsumables.length;
     const activeVenues = venues.filter(v => v.isActive).length;
-    const averagePrice = [...venues, ...prostitutes].reduce((sum, item) => sum + item.price, 0) / (totalVenues + totalProstitutes);
+    const allItems = [...venues, ...nightlifeConsumables];
+    const averagePrice = allItems.reduce((sum, item) => sum + item.price, 0) / allItems.length;
 
     setStats({
       totalVenues,
-      totalProstitutes,
+      totalProstitutes: totalConsumables,
       totalVisits: 1234, // Mock data
       averagePrice: averagePrice || 0,
       activeVenues,
@@ -319,11 +324,83 @@ const NightlifeManagement = () => {
     return matchesType && matchesSearch;
   });
 
-  const filteredProstitutes = prostitutes.filter(prostitute => {
-    const matchesSearch = prostitute.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         prostitute.description.toLowerCase().includes(searchTerm.toLowerCase());
+  const filteredConsumables = nightlifeConsumables.filter(consumable => {
+    const matchesSearch = consumable.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         consumable.description.toLowerCase().includes(searchTerm.toLowerCase());
     return matchesSearch;
   });
+
+  // Venue-Consumable management functions
+  const addVenueConsumable = async (newVenueConsumable: Omit<VenueConsumable, "id" | "created_at" | "updated_at" | "venue" | "consumable">) => {
+    try {
+      const { data, error } = await supabase
+        .from('venue_consumables')
+        .insert([{
+          venue_id: newVenueConsumable.venue_id,
+          consumable_id: newVenueConsumable.consumable_id,
+          venue_price: newVenueConsumable.venue_price,
+          venue_effects: newVenueConsumable.venue_effects,
+          available: newVenueConsumable.available,
+        }])
+        .select(`
+          *,
+          venue:nightlife_venues(*),
+          consumable:nightlife_consumables(*)
+        `)
+        .single();
+
+      if (error) throw error;
+
+      if (data) {
+        setVenueConsumables([...venueConsumables, data]);
+        toast.success("Venue pricing added successfully");
+      }
+      setShowAddModal(false);
+    } catch (error) {
+      toast.error('Failed to add venue pricing');
+    }
+  };
+
+  const updateVenueConsumable = async (id: string, updates: Partial<VenueConsumable>) => {
+    try {
+      const { error } = await supabase
+        .from('venue_consumables')
+        .update({
+          venue_price: updates.venue_price,
+          venue_effects: updates.venue_effects,
+          available: updates.available,
+        })
+        .eq('id', id);
+
+      if (error) throw error;
+
+      setVenueConsumables(venueConsumables.map(vc => 
+        vc.id === id ? { ...vc, ...updates } : vc
+      ));
+      toast.success("Venue pricing updated successfully");
+      setEditingVenueConsumable(null);
+    } catch (error) {
+      toast.error('Failed to update venue pricing');
+    }
+  };
+
+  const deleteVenueConsumable = async (id: string) => {
+    if (!confirm("Are you sure you want to delete this venue pricing?")) return;
+    
+    try {
+      const { error } = await supabase
+        .from('venue_consumables')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+
+      setVenueConsumables(venueConsumables.filter(vc => vc.id !== id));
+      toast.success("Venue pricing deleted successfully");
+    } catch (error) {
+      toast.error('Failed to delete venue pricing');
+    }
+  };
 
   // Venue management functions
   const addVenue = async (newVenue: Omit<NightlifeVenue, "id" | "created_at">) => {
@@ -334,12 +411,10 @@ const NightlifeManagement = () => {
           name: newVenue.name,
           description: newVenue.description,
           type: newVenue.type,
-          price: newVenue.price,
+          money_cost: newVenue.price,
           energy_cost: newVenue.energy_cost,
-          effects: newVenue.effects,
           image_url: newVenue.image_url,
-          risk_level: newVenue.risk_level,
-          is_active: newVenue.isActive,
+          available: newVenue.isActive,
         }])
         .select()
         .single();
@@ -367,7 +442,6 @@ const NightlifeManagement = () => {
       }
       setShowAddModal(false);
     } catch (error) {
-      console.error('Error adding venue:', error);
       toast.error('Failed to add venue');
     }
   };
@@ -380,16 +454,24 @@ const NightlifeManagement = () => {
           name: updates.name,
           description: updates.description,
           type: updates.type,
-          price: updates.price,
+          money_cost: updates.price,
           energy_cost: updates.energy_cost,
-          effects: updates.effects,
           image_url: updates.image_url,
-          risk_level: updates.risk_level,
-          is_active: updates.isActive,
+          available: updates.isActive,
         })
         .eq('id', id);
 
       if (error && error.code !== 'PGRST116' && error.code !== '42P01') {
+        console.log('Venue update error:', error);
+        console.log('Update data sent:', {
+          name: updates.name,
+          description: updates.description,
+          type: updates.type,
+          money_cost: updates.price,
+          energy_cost: updates.energy_cost,
+          image_url: updates.image_url,
+          available: updates.isActive,
+        });
         throw error;
       }
 
@@ -399,7 +481,6 @@ const NightlifeManagement = () => {
       toast.success("Venue updated successfully");
       setEditingVenue(null);
     } catch (error) {
-      console.error('Error updating venue:', error);
       toast.error('Failed to update venue');
     }
   };
@@ -420,21 +501,23 @@ const NightlifeManagement = () => {
       setVenues(venues.filter(venue => venue.id !== id));
       toast.success("Venue deleted successfully");
     } catch (error) {
-      console.error('Error deleting venue:', error);
       toast.error('Failed to delete venue');
     }
   };
 
-  // Prostitute management functions
-  const addProstitute = async (newProstitute: Omit<Prostitute, "id" | "created_at">) => {
+  // Consumable management functions
+  const addConsumable = async (newConsumable: Omit<NightlifeConsumable, "id" | "created_at">) => {
     try {
       const { data, error } = await supabase
-        .from('prostitutes')
+        .from('nightlife_consumables')
         .insert([{
-          name: newProstitute.name,
-          description: newProstitute.description,
-          price: newProstitute.price,
-          energy_cost: newProstitute.energy_cost,
+          name: newConsumable.name,
+          description: newConsumable.description,
+          price: newConsumable.price,
+          type: newConsumable.type,
+          effects: newConsumable.effects,
+          image_url: newConsumable.image_url,
+          available: newConsumable.available,
         }])
         .select()
         .single();
@@ -444,57 +527,66 @@ const NightlifeManagement = () => {
       }
 
       if (data) {
-        setProstitutes([...prostitutes, data]);
-        toast.success("Prostitute added successfully");
-      } else {
-        const prostitute: Prostitute = {
-          ...newProstitute,
-          id: Date.now().toString(),
-          created_at: new Date().toISOString(),
-        };
-        setProstitutes([...prostitutes, prostitute]);
-        toast.success("Prostitute added successfully (local only)");
+        setNightlifeConsumables([...nightlifeConsumables, data]);
+        toast.success("Consumable added successfully");
       }
       setShowAddModal(false);
+      // Reload data to ensure UI is up to date
+      await loadNightlifeConsumables();
     } catch (error) {
-      console.error('Error adding prostitute:', error);
-      toast.error('Failed to add prostitute');
+      toast.error('Failed to add consumable');
     }
   };
 
-  const updateProstitute = async (id: string, updates: Partial<Prostitute>) => {
+  const updateConsumable = async (id: string, updates: Partial<NightlifeConsumable>) => {
     try {
-      const { error } = await supabase
-        .from('prostitutes')
+      
+      // First check if the record exists
+      const { data: existingRecord } = await supabase
+        .from('nightlife_consumables')
+        .select('*')
+        .eq('id', id)
+        .single();
+      
+      
+      const { data, error } = await supabase
+        .from('nightlife_consumables')
         .update({
           name: updates.name,
           description: updates.description,
           price: updates.price,
-          energy_cost: updates.energy_cost,
+          type: updates.type,
+          effects: updates.effects,
+          image_url: updates.image_url,
+          available: updates.available,
         })
-        .eq('id', id);
+        .eq('id', id)
+        .select();
 
-      if (error && error.code !== 'PGRST116' && error.code !== '42P01') {
+      
+      if (error) {
         throw error;
       }
+      
 
-      setProstitutes(prostitutes.map(prostitute => 
-        prostitute.id === id ? { ...prostitute, ...updates } : prostitute
+      setNightlifeConsumables(nightlifeConsumables.map(consumable => 
+        consumable.id === id ? { ...consumable, ...updates } : consumable
       ));
-      toast.success("Prostitute updated successfully");
-      setEditingProstitute(null);
+      toast.success("Consumable updated successfully");
+      setEditingConsumable(null);
+      // Reload data to ensure UI is up to date
+      await loadNightlifeConsumables();
     } catch (error) {
-      console.error('Error updating prostitute:', error);
-      toast.error('Failed to update prostitute');
+      toast.error('Failed to update consumable');
     }
   };
 
-  const deleteProstitute = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this prostitute?")) return;
+  const deleteConsumable = async (id: string) => {
+    if (!confirm("Are you sure you want to delete this consumable?")) return;
     
     try {
       const { error } = await supabase
-        .from('prostitutes')
+        .from('nightlife_consumables')
         .delete()
         .eq('id', id);
 
@@ -502,11 +594,10 @@ const NightlifeManagement = () => {
         throw error;
       }
 
-      setProstitutes(prostitutes.filter(prostitute => prostitute.id !== id));
-      toast.success("Prostitute deleted successfully");
+      setNightlifeConsumables(nightlifeConsumables.filter(consumable => consumable.id !== id));
+      toast.success("Consumable deleted successfully");
     } catch (error) {
-      console.error('Error deleting prostitute:', error);
-      toast.error('Failed to delete prostitute');
+      toast.error('Failed to delete consumable');
     }
   };
 
@@ -521,7 +612,7 @@ const NightlifeManagement = () => {
     const colors = {
       bar: "bg-blue-100 text-blue-800 border-blue-300",
       rave: "bg-purple-100 text-purple-800 border-purple-300",
-      prostitutes: "bg-pink-100 text-pink-800 border-pink-300",
+      brothel: "bg-pink-100 text-pink-800 border-pink-300",
     };
     return colors[type as keyof typeof colors] || colors.bar;
   };
@@ -530,6 +621,25 @@ const NightlifeManagement = () => {
     if (riskLevel >= 7) return "text-red-600 bg-red-100";
     if (riskLevel >= 4) return "text-orange-600 bg-orange-100";
     return "text-green-600 bg-green-100";
+  };
+
+  // Helper functions for grouped view
+  const toggleVenueExpanded = (venueId: string) => {
+    const newExpanded = new Set(expandedVenues);
+    if (newExpanded.has(venueId)) {
+      newExpanded.delete(venueId);
+    } else {
+      newExpanded.add(venueId);
+    }
+    setExpandedVenues(newExpanded);
+  };
+
+  const expandAllVenues = () => {
+    setExpandedVenues(new Set(venues.map(v => v.id)));
+  };
+
+  const collapseAllVenues = () => {
+    setExpandedVenues(new Set());
   };
 
   // Form Components
@@ -589,7 +699,7 @@ const NightlifeManagement = () => {
                 >
                   <option value="bar">Bar</option>
                   <option value="rave">Rave</option>
-                  <option value="prostitutes">Prostitutes</option>
+                  <option value="brothel">Brothel</option>
                 </select>
               </div>
 
@@ -642,6 +752,32 @@ const NightlifeManagement = () => {
               </div>
 
               <div className="col-span-3">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <Image size={16} className="inline mr-1" />
+                  Image URL
+                </label>
+                <input
+                  type="url"
+                  value={formData.image_url}
+                  onChange={(e) => setFormData({...formData, image_url: e.target.value})}
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
+                  placeholder="https://example.com/image.jpg"
+                />
+                {formData.image_url && (
+                  <div className="mt-2">
+                    <img 
+                      src={formData.image_url} 
+                      alt="Preview" 
+                      className="w-32 h-20 object-cover rounded border"
+                      onError={(e) => {
+                        e.currentTarget.style.display = 'none';
+                      }}
+                    />
+                  </div>
+                )}
+              </div>
+
+              <div className="col-span-3">
                 <label className="flex items-center gap-2">
                   <input
                     type="checkbox"
@@ -675,16 +811,24 @@ const NightlifeManagement = () => {
     );
   };
 
-  const ProstituteForm = ({ prostitute, onSubmit, onCancel }: {
-    prostitute?: Prostitute;
-    onSubmit: (prostitute: Omit<Prostitute, "id" | "created_at">) => void;
+  const ConsumableForm = ({ consumable, onSubmit, onCancel }: {
+    consumable?: NightlifeConsumable;
+    onSubmit: (consumable: Omit<NightlifeConsumable, "id" | "created_at">) => void;
     onCancel: () => void;
   }) => {
     const [formData, setFormData] = useState({
-      name: prostitute?.name || "",
-      description: prostitute?.description || "",
-      price: prostitute?.price || 50,
-      energy_cost: prostitute?.energy_cost || 5,
+      name: consumable?.name || "",
+      description: consumable?.description || "",
+      price: consumable?.price || 50,
+      type: consumable?.type || "drink" as NightlifeConsumable["type"],
+      effects: {
+        energy: consumable?.effects?.energy || 0,
+        health: consumable?.effects?.health || 0,
+        addiction: consumable?.effects?.addiction || 0,
+        reputation: consumable?.effects?.reputation || 0,
+      },
+      image_url: consumable?.image_url || "",
+      available: consumable?.available ?? true,
     });
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -696,7 +840,7 @@ const NightlifeManagement = () => {
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
         <div className="bg-white rounded-xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
           <h3 className="text-xl font-bold mb-4">
-            {prostitute ? "Edit Prostitute" : "Add New Prostitute"}
+            {consumable ? "Edit Consumable" : "Add New Consumable"}
           </h3>
           
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -724,6 +868,20 @@ const NightlifeManagement = () => {
               </div>
 
               <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Type</label>
+                <select
+                  value={formData.type}
+                  onChange={(e) => setFormData({...formData, type: e.target.value as NightlifeConsumable["type"]})}
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
+                  required
+                >
+                  <option value="drink">Drink</option>
+                  <option value="drug">Drug</option>
+                  <option value="brothel">Brothel</option>
+                </select>
+              </div>
+
+              <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Price ($)</label>
                 <input
                   type="number"
@@ -736,15 +894,81 @@ const NightlifeManagement = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Energy Cost</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Energy Effect</label>
                 <input
                   type="number"
-                  value={formData.energy_cost}
-                  onChange={(e) => setFormData({...formData, energy_cost: parseInt(e.target.value)})}
+                  value={formData.effects.energy}
+                  onChange={(e) => setFormData({...formData, effects: {...formData.effects, energy: parseInt(e.target.value) || 0}})}
                   className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
-                  min="0"
-                  required
                 />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Health Effect</label>
+                <input
+                  type="number"
+                  value={formData.effects.health}
+                  onChange={(e) => setFormData({...formData, effects: {...formData.effects, health: parseInt(e.target.value) || 0}})}
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Reputation Effect</label>
+                <input
+                  type="number"
+                  value={formData.effects.reputation}
+                  onChange={(e) => setFormData({...formData, effects: {...formData.effects, reputation: parseInt(e.target.value) || 0}})}
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Addiction Effect</label>
+                <input
+                  type="number"
+                  value={formData.effects.addiction}
+                  onChange={(e) => setFormData({...formData, effects: {...formData.effects, addiction: parseInt(e.target.value) || 0}})}
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
+                />
+              </div>
+
+              <div className="col-span-2">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <Image size={16} className="inline mr-1" />
+                  Image URL
+                </label>
+                <input
+                  type="url"
+                  value={formData.image_url}
+                  onChange={(e) => setFormData({...formData, image_url: e.target.value})}
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
+                  placeholder="https://example.com/image.jpg"
+                />
+                {formData.image_url && (
+                  <div className="mt-2">
+                    <img 
+                      src={formData.image_url} 
+                      alt="Preview" 
+                      className="w-32 h-20 object-cover rounded border"
+                      onError={(e) => {
+                        e.currentTarget.style.display = 'none';
+                      }}
+                    />
+                  </div>
+                )}
+              </div>
+
+              <div className="col-span-2">
+                <label className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    checked={formData.available}
+                    onChange={(e) => setFormData({...formData, available: e.target.checked})}
+                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  />
+                  <span className="text-sm font-medium text-gray-700">Available</span>
+                </label>
               </div>
             </div>
 
@@ -760,7 +984,198 @@ const NightlifeManagement = () => {
                 type="submit"
                 className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
               >
-                {prostitute ? "Update" : "Add"} Prostitute
+                {consumable ? "Update" : "Add"} Consumable
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    );
+  };
+
+  const VenueConsumableForm = ({ venues, consumables, venueConsumable, onSubmit, onCancel }: {
+    venues: NightlifeVenue[];
+    consumables: NightlifeConsumable[];
+    venueConsumable?: VenueConsumable;
+    onSubmit: (venueConsumable: Omit<VenueConsumable, "id" | "created_at" | "updated_at" | "venue" | "consumable">) => void;
+    onCancel: () => void;
+  }) => {
+    const [formData, setFormData] = useState({
+      venue_id: venueConsumable?.venue_id || "",
+      consumable_id: venueConsumable?.consumable_id || "",
+      venue_price: venueConsumable?.venue_price || 50,
+      venue_effects: {
+        energy: venueConsumable?.venue_effects?.energy || 0,
+        health: venueConsumable?.venue_effects?.health || 0,
+        addiction: venueConsumable?.venue_effects?.addiction || 0,
+        reputation: venueConsumable?.venue_effects?.reputation || 0,
+      },
+      available: venueConsumable?.available ?? true,
+    });
+
+    const handleSubmit = (e: React.FormEvent) => {
+      e.preventDefault();
+      if (!formData.venue_id || !formData.consumable_id) {
+        toast.error("Please select both venue and consumable");
+        return;
+      }
+      onSubmit(formData);
+    };
+
+    const selectedConsumable = consumables.find(c => c.id === formData.consumable_id);
+
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+        <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+          <div className="p-6 border-b border-gray-200">
+            <h3 className="text-xl font-bold text-gray-900">
+              {venueConsumable ? "Edit" : "Add"} Venue Pricing
+            </h3>
+            <p className="text-gray-600 mt-1">
+              Set venue-specific pricing and effects for consumables
+            </p>
+          </div>
+          
+          <form onSubmit={handleSubmit} className="p-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Venue</label>
+                <select
+                  value={formData.venue_id}
+                  onChange={(e) => setFormData({...formData, venue_id: e.target.value})}
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
+                  required
+                >
+                  <option value="">Select a venue</option>
+                  {venues.map((venue) => (
+                    <option key={venue.id} value={venue.id}>
+                      {venue.name} ({venue.type})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Consumable</label>
+                <select
+                  value={formData.consumable_id}
+                  onChange={(e) => setFormData({...formData, consumable_id: e.target.value})}
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
+                  required
+                >
+                  <option value="">Select a consumable</option>
+                  {consumables.map((consumable) => (
+                    <option key={consumable.id} value={consumable.id}>
+                      {consumable.name} (${consumable.price} - {consumable.type})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Venue Price
+                  {selectedConsumable && (
+                    <span className="text-sm text-gray-500 ml-2">
+                      (Base: ${selectedConsumable.price})
+                    </span>
+                  )}
+                </label>
+                <input
+                  type="number"
+                  value={formData.venue_price}
+                  onChange={(e) => setFormData({...formData, venue_price: parseFloat(e.target.value)})}
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
+                  min="0"
+                  step="0.01"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Available</label>
+                <label className="flex items-center gap-2 mt-3">
+                  <input
+                    type="checkbox"
+                    checked={formData.available}
+                    onChange={(e) => setFormData({...formData, available: e.target.checked})}
+                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  />
+                  <span className="text-sm font-medium text-gray-700">Available for purchase</span>
+                </label>
+              </div>
+
+              <div className="col-span-2">
+                <h4 className="text-lg font-semibold text-gray-900 mb-3">Venue-Specific Effects</h4>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Energy</label>
+                    <input
+                      type="number"
+                      value={formData.venue_effects.energy}
+                      onChange={(e) => setFormData({
+                        ...formData, 
+                        venue_effects: {...formData.venue_effects, energy: parseInt(e.target.value) || 0}
+                      })}
+                      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Health</label>
+                    <input
+                      type="number"
+                      value={formData.venue_effects.health}
+                      onChange={(e) => setFormData({
+                        ...formData, 
+                        venue_effects: {...formData.venue_effects, health: parseInt(e.target.value) || 0}
+                      })}
+                      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Addiction</label>
+                    <input
+                      type="number"
+                      value={formData.venue_effects.addiction}
+                      onChange={(e) => setFormData({
+                        ...formData, 
+                        venue_effects: {...formData.venue_effects, addiction: parseInt(e.target.value) || 0}
+                      })}
+                      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Reputation</label>
+                    <input
+                      type="number"
+                      value={formData.venue_effects.reputation}
+                      onChange={(e) => setFormData({
+                        ...formData, 
+                        venue_effects: {...formData.venue_effects, reputation: parseInt(e.target.value) || 0}
+                      })}
+                      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-3 pt-6">
+              <button
+                type="button"
+                onClick={onCancel}
+                className="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+              >
+                {venueConsumable ? "Update" : "Add"} Venue Pricing
               </button>
             </div>
           </form>
@@ -799,7 +1214,7 @@ const NightlifeManagement = () => {
             <Heart className="text-pink-600" size={24} />
             <div>
               <h3 className="text-2xl font-bold text-gray-900">{stats.totalProstitutes}</h3>
-              <p className="text-gray-600 font-medium">Prostitutes</p>
+              <p className="text-gray-600 font-medium">Consumables</p>
             </div>
           </div>
         </div>
@@ -839,7 +1254,7 @@ const NightlifeManagement = () => {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-xl font-bold text-gray-900">Nightlife Management</h2>
-          <p className="text-gray-600">Manage venues and entertainment services</p>
+          <p className="text-gray-600">Manage venues and their consumables</p>
         </div>
 
         <button
@@ -847,7 +1262,7 @@ const NightlifeManagement = () => {
           className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
         >
           <Plus size={16} />
-          Add {activeTab === "venues" ? "Venue" : "Prostitute"}
+          Add {activeTab === "venues" ? "Venue" : activeTab === "consumables" ? "Consumable" : activeTab === "venue-consumables" ? "Venue Pricing" : "Item"}
         </button>
       </div>
 
@@ -865,14 +1280,34 @@ const NightlifeManagement = () => {
             Venues ({venues.length})
           </button>
           <button
-            onClick={() => setActiveTab("prostitutes")}
+            onClick={() => setActiveTab("consumables")}
             className={`flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-              activeTab === "prostitutes"
+              activeTab === "consumables"
                 ? "bg-blue-600 text-white"
                 : "text-gray-600 hover:text-gray-900"
             }`}
           >
-            Prostitutes ({prostitutes.length})
+            Consumables ({nightlifeConsumables.length})
+          </button>
+          <button
+            onClick={() => setActiveTab("venue-consumables")}
+            className={`flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+              activeTab === "venue-consumables"
+                ? "bg-blue-600 text-white"
+                : "text-gray-600 hover:text-gray-900"
+            }`}
+          >
+            Venue Pricing
+          </button>
+          <button
+            onClick={() => setActiveTab("grouped")}
+            className={`flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+              activeTab === "grouped"
+                ? "bg-blue-600 text-white"
+                : "text-gray-600 hover:text-gray-900"
+            }`}
+          >
+            Grouped View
           </button>
         </div>
       </div>
@@ -917,6 +1352,7 @@ const NightlifeManagement = () => {
             <table className="w-full">
               <thead className="bg-gray-50 border-b border-gray-200">
                 <tr>
+                  <th className="text-left p-4 font-medium text-gray-900">Image</th>
                   <th className="text-left p-4 font-medium text-gray-900">Venue</th>
                   <th className="text-left p-4 font-medium text-gray-900">Type</th>
                   <th className="text-left p-4 font-medium text-gray-900">Price</th>
@@ -929,6 +1365,22 @@ const NightlifeManagement = () => {
               <tbody className="divide-y divide-gray-200">
                 {filteredVenues.map((venue) => (
                   <tr key={venue.id} className="hover:bg-gray-50">
+                    <td className="p-4">
+                      {venue.image_url ? (
+                        <img
+                          src={venue.image_url}
+                          alt={venue.name}
+                          className="w-12 h-12 rounded-lg object-cover"
+                          onError={(e) => {
+                            e.currentTarget.style.display = 'none';
+                          }}
+                        />
+                      ) : (
+                        <div className="w-12 h-12 rounded-lg bg-gray-200 flex items-center justify-center">
+                          <Image size={20} className="text-gray-400" />
+                        </div>
+                      )}
+                    </td>
                     <td className="p-4">
                       <div>
                         <div className="font-medium text-gray-900">{venue.name}</div>
@@ -1004,61 +1456,110 @@ const NightlifeManagement = () => {
                 ))}
               </tbody>
             </table>
-          ) : (
+          ) : activeTab === "consumables" ? (
             <table className="w-full">
               <thead className="bg-gray-50 border-b border-gray-200">
                 <tr>
                   <th className="text-left p-4 font-medium text-gray-900">Image</th>
                   <th className="text-left p-4 font-medium text-gray-900">Name</th>
+                  <th className="text-left p-4 font-medium text-gray-900">Type</th>
                   <th className="text-left p-4 font-medium text-gray-900">Description</th>
                   <th className="text-left p-4 font-medium text-gray-900">Price</th>
-                  <th className="text-left p-4 font-medium text-gray-900">Energy Cost</th>
+                  <th className="text-left p-4 font-medium text-gray-900">Effects</th>
                   <th className="text-right p-4 font-medium text-gray-900">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
-                {filteredProstitutes.map((prostitute) => (
-                  <tr key={prostitute.id} className="hover:bg-gray-50">
+                {filteredConsumables.map((consumable) => (
+                  <tr key={consumable.id} className="hover:bg-gray-50">
                     <td className="p-4">
-                      <img
-                        src={prostitute.image_url}
-                        alt={prostitute.name}
-                        className="w-12 h-12 rounded-lg object-cover"
-                      />
+                      {consumable.image_url ? (
+                        <img
+                          src={consumable.image_url}
+                          alt={consumable.name}
+                          className="w-12 h-12 rounded-lg object-cover"
+                          onError={(e) => {
+                            e.currentTarget.style.display = 'none';
+                          }}
+                        />
+                      ) : (
+                        <div className="w-12 h-12 rounded-lg bg-gray-200 flex items-center justify-center">
+                          <Image size={20} className="text-gray-400" />
+                        </div>
+                      )}
                     </td>
                     <td className="p-4">
-                      <div className="font-medium text-gray-900">{prostitute.name}</div>
+                      <div className="font-medium text-gray-900">{consumable.name}</div>
                     </td>
 
                     <td className="p-4">
-                      <div className="text-sm text-gray-500">{prostitute.description}</div>
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium border ${
+                        consumable.type === 'brothel' 
+                          ? 'bg-pink-100 text-pink-800 border-pink-200'
+                          : consumable.type === 'drink'
+                          ? 'bg-amber-100 text-amber-800 border-amber-200'
+                          : 'bg-purple-100 text-purple-800 border-purple-200'
+                      }`}>
+                        {consumable.type === 'brothel' ? 'Brothel' : 
+                         consumable.type === 'drink' ? 'Drink' : 'Drug'}
+                      </span>
+                    </td>
+
+                    <td className="p-4">
+                      <div className="text-sm text-gray-500">{consumable.description}</div>
                     </td>
 
                     <td className="p-4">
                       <div className="flex items-center gap-1">
                         <DollarSign size={14} className="text-green-500" />
-                        <span className="font-medium">${prostitute.price}</span>
+                        <span className="font-medium">${consumable.price}</span>
                       </div>
                     </td>
 
                     <td className="p-4">
-                      <div className="flex items-center gap-1">
-                        <Zap size={14} className="text-blue-500" />
-                        <span className="font-medium">{prostitute.energy_cost}</span>
+                      <div className="flex flex-wrap gap-1">
+                        {consumable.effects?.energy && (
+                          <span className={`px-2 py-1 text-xs rounded ${
+                            consumable.effects.energy > 0 
+                              ? 'bg-blue-100 text-blue-800' 
+                              : 'bg-red-100 text-red-800'
+                          }`}>
+                            {consumable.effects.energy > 0 ? '+' : ''}{consumable.effects.energy} Energy
+                          </span>
+                        )}
+                        {consumable.effects?.health && (
+                          <span className={`px-2 py-1 text-xs rounded ${
+                            consumable.effects.health > 0 
+                              ? 'bg-green-100 text-green-800' 
+                              : 'bg-red-100 text-red-800'
+                          }`}>
+                            {consumable.effects.health > 0 ? '+' : ''}{consumable.effects.health} Health
+                          </span>
+                        )}
+                        {consumable.effects?.reputation && (
+                          <span className="px-2 py-1 bg-yellow-100 text-yellow-800 text-xs rounded">
+                            +{consumable.effects.reputation} Reputation
+                          </span>
+                        )}
+                        {consumable.effects?.addiction && (
+                          <span className="px-2 py-1 bg-orange-100 text-orange-800 text-xs rounded">
+                            +{consumable.effects.addiction} Addiction
+                          </span>
+                        )}
                       </div>
                     </td>
 
                     <td className="p-4">
                       <div className="flex items-center justify-end gap-2">
                         <button
-                          onClick={() => setEditingProstitute(prostitute)}
+                          onClick={() => setEditingConsumable(consumable)}
                           className="p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded"
                         >
                           <Edit size={16} />
                         </button>
                         
                         <button
-                          onClick={() => deleteProstitute(prostitute.id)}
+                          onClick={() => deleteConsumable(consumable.id)}
                           className="p-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded"
                         >
                           <Trash2 size={16} />
@@ -1069,7 +1570,380 @@ const NightlifeManagement = () => {
                 ))}
               </tbody>
             </table>
-          )}
+          ) : activeTab === "venue-consumables" ? (
+            <table className="w-full">
+              <thead className="bg-gray-50 border-b border-gray-200">
+                <tr>
+                  <th className="text-left p-4 font-medium text-gray-900">Venue</th>
+                  <th className="text-left p-4 font-medium text-gray-900">Consumable</th>
+                  <th className="text-left p-4 font-medium text-gray-900">Type</th>
+                  <th className="text-left p-4 font-medium text-gray-900">Base Price</th>
+                  <th className="text-left p-4 font-medium text-gray-900">Venue Price</th>
+                  <th className="text-left p-4 font-medium text-gray-900">Venue Effects</th>
+                  <th className="text-left p-4 font-medium text-gray-900">Status</th>
+                  <th className="text-right p-4 font-medium text-gray-900">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200">
+                {venueConsumables.map((vc) => (
+                  <tr key={vc.id} className="hover:bg-gray-50">
+                    <td className="p-4">
+                      <div className="font-medium text-gray-900">{vc.venue?.name || 'Unknown Venue'}</div>
+                      <div className="text-sm text-gray-500">{vc.venue?.type}</div>
+                    </td>
+                    <td className="p-4">
+                      <div className="font-medium text-gray-900">{vc.consumable?.name || 'Unknown Consumable'}</div>
+                    </td>
+                    <td className="p-4">
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium border ${
+                        vc.consumable?.type === 'brothel' 
+                          ? 'bg-pink-100 text-pink-800 border-pink-200'
+                          : vc.consumable?.type === 'drink'
+                          ? 'bg-amber-100 text-amber-800 border-amber-200'
+                          : 'bg-purple-100 text-purple-800 border-purple-200'
+                      }`}>
+                        {vc.consumable?.type === 'brothel' ? 'Brothel' : 
+                         vc.consumable?.type === 'drink' ? 'Drink' : 'Drug'}
+                      </span>
+                    </td>
+                    <td className="p-4">
+                      <div className="flex items-center gap-1">
+                        <DollarSign size={14} className="text-gray-400" />
+                        <span className="text-gray-600">${vc.consumable?.price || 0}</span>
+                      </div>
+                    </td>
+                    <td className="p-4">
+                      <div className="flex items-center gap-1">
+                        <DollarSign size={14} className="text-green-500" />
+                        <span className="font-medium">${vc.venue_price}</span>
+                      </div>
+                    </td>
+                    <td className="p-4">
+                      <div className="flex flex-wrap gap-1">
+                        {vc.venue_effects?.energy && (
+                          <span className={`px-2 py-1 text-xs rounded ${
+                            vc.venue_effects.energy > 0 
+                              ? 'bg-blue-100 text-blue-800' 
+                              : 'bg-red-100 text-red-800'
+                          }`}>
+                            {vc.venue_effects.energy > 0 ? '+' : ''}{vc.venue_effects.energy} Energy
+                          </span>
+                        )}
+                        {vc.venue_effects?.health && (
+                          <span className={`px-2 py-1 text-xs rounded ${
+                            vc.venue_effects.health > 0 
+                              ? 'bg-green-100 text-green-800' 
+                              : 'bg-red-100 text-red-800'
+                          }`}>
+                            {vc.venue_effects.health > 0 ? '+' : ''}{vc.venue_effects.health} Health
+                          </span>
+                        )}
+                        {vc.venue_effects?.reputation && (
+                          <span className="px-2 py-1 bg-yellow-100 text-yellow-800 text-xs rounded">
+                            +{vc.venue_effects.reputation} Reputation
+                          </span>
+                        )}
+                        {vc.venue_effects?.addiction && (
+                          <span className="px-2 py-1 bg-orange-100 text-orange-800 text-xs rounded">
+                            +{vc.venue_effects.addiction} Addiction
+                          </span>
+                        )}
+                      </div>
+                    </td>
+                    <td className="p-4">
+                      <button
+                        className={`px-2 py-1 rounded-full text-xs font-medium ${
+                          vc.available
+                            ? "bg-green-100 text-green-800"
+                            : "bg-gray-100 text-gray-800"
+                        }`}
+                      >
+                        {vc.available ? "Available" : "Unavailable"}
+                      </button>
+                    </td>
+                    <td className="p-4">
+                      <div className="flex items-center justify-end gap-2">
+                        <button
+                          onClick={() => setEditingVenueConsumable(vc)}
+                          className="p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded"
+                        >
+                          <Edit size={16} />
+                        </button>
+                        
+                        <button
+                          onClick={() => deleteVenueConsumable(vc.id)}
+                          className="p-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          ) : activeTab === "grouped" ? (
+            <div className="space-y-6">
+              {/* Expand/Collapse Controls */}
+              <div className="flex items-center justify-between bg-gray-50 p-4 rounded-lg">
+                <div className="flex items-center gap-4">
+                  <h3 className="font-medium text-gray-900">Venue Overview</h3>
+                  <span className="text-sm text-gray-500">
+                    {venues.length} venues, {expandedVenues.size} expanded
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={expandAllVenues}
+                    className="flex items-center gap-1 px-3 py-1 text-sm text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded"
+                  >
+                    <Eye size={14} />
+                    Expand All
+                  </button>
+                  <button
+                    onClick={collapseAllVenues}
+                    className="flex items-center gap-1 px-3 py-1 text-sm text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded"
+                  >
+                    <EyeOff size={14} />
+                    Collapse All
+                  </button>
+                </div>
+              </div>
+              {venues.map((venue) => {
+                const venueConsumablesForVenue = venueConsumables.filter(vc => vc.venue_id === venue.id);
+                return (
+                  <div key={venue.id} className="border border-gray-200 rounded-lg overflow-hidden">
+                    {/* Venue Header */}
+                    <div className="bg-gray-50 p-4 border-b border-gray-200">
+                      <div className="flex items-center gap-4">
+                        <div className="w-16 h-16 rounded-lg overflow-hidden bg-gray-200 flex-shrink-0">
+                          {venue.image_url ? (
+                            <img
+                              src={venue.image_url}
+                              alt={venue.name}
+                              className="w-full h-full object-cover"
+                              onError={(e) => {
+                                e.currentTarget.style.display = 'none';
+                              }}
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center">
+                              <Image size={24} className="text-gray-400" />
+                            </div>
+                          )}
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex items-center gap-3 mb-2">
+                            <h3 className="text-lg font-bold text-gray-900">{venue.name}</h3>
+                            <span className={`px-2 py-1 rounded-full text-xs font-medium border ${getTypeColor(venue.type)}`}>
+                              {venue.type.charAt(0).toUpperCase() + venue.type.slice(1)}
+                            </span>
+                            <button
+                              className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                venue.isActive
+                                  ? "bg-green-100 text-green-800"
+                                  : "bg-gray-100 text-gray-800"
+                              }`}
+                            >
+                              {venue.isActive ? "Active" : "Inactive"}
+                            </button>
+                          </div>
+                          <p className="text-sm text-gray-600 mb-2">{venue.description}</p>
+                          <div className="flex items-center gap-4 text-sm">
+                            <div className="flex items-center gap-1">
+                              <DollarSign size={14} className="text-green-500" />
+                              <span className="font-medium">${venue.price} entry</span>
+                            </div>
+                            <div className="flex gap-2">
+                              {venue.effects.energy && venue.effects.energy > 0 && (
+                                <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">
+                                  +{venue.effects.energy} Energy
+                                </span>
+                              )}
+                              {venue.effects.reputation && venue.effects.reputation > 0 && (
+                                <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded">
+                                  +{venue.effects.reputation} Rep
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => toggleVenueExpanded(venue.id)}
+                            className="flex items-center gap-1 px-3 py-2 text-sm text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg"
+                          >
+                            {expandedVenues.has(venue.id) ? (
+                              <>
+                                <ChevronUp size={16} />
+                                Hide Items ({venueConsumablesForVenue.length})
+                              </>
+                            ) : (
+                              <>
+                                <ChevronDown size={16} />
+                                Show Items ({venueConsumablesForVenue.length})
+                              </>
+                            )}
+                          </button>
+                          <button
+                            onClick={() => setEditingVenue(venue)}
+                            className="p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded"
+                          >
+                            <Edit size={16} />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Venue Consumables */}
+                    {expandedVenues.has(venue.id) && (
+                      <div className="p-4 border-t border-gray-200">
+                        <div className="flex items-center justify-between mb-4">
+                          <h4 className="font-medium text-gray-900">
+                            Available Consumables ({venueConsumablesForVenue.length})
+                          </h4>
+                          <button
+                            onClick={() => {
+                              setActiveTab("venue-consumables");
+                              setSearchTerm(venue.name);
+                            }}
+                            className="text-sm text-blue-600 hover:text-blue-800"
+                          >
+                            Manage Pricing
+                          </button>
+                        </div>
+                      
+                      {venueConsumablesForVenue.length === 0 ? (
+                        <div className="text-center py-8 text-gray-500">
+                          <p>No consumables configured for this venue</p>
+                          <button
+                            onClick={() => {
+                              setActiveTab("venue-consumables");
+                              setShowAddModal(true);
+                            }}
+                            className="mt-2 text-blue-600 hover:text-blue-800 text-sm"
+                          >
+                            Add Consumables
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                          {venueConsumablesForVenue.map((vc) => (
+                            <div key={vc.id} className="border border-gray-200 rounded-lg p-3 hover:bg-gray-50">
+                              <div className="flex items-start gap-3">
+                                <img
+                                  src={vc.consumable?.image_url}
+                                  alt={vc.consumable?.name}
+                                  className="w-12 h-12 rounded object-cover"
+                                  onError={(e) => {
+                                    e.currentTarget.style.display = 'none';
+                                  }}
+                                />
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-center justify-between mb-1">
+                                    <h5 className="font-medium text-gray-900 truncate">
+                                      {vc.consumable?.name}
+                                    </h5>
+                                    <button
+                                      onClick={() => setEditingVenueConsumable(vc)}
+                                      className="p-1 text-gray-400 hover:text-blue-600"
+                                    >
+                                      <Edit size={12} />
+                                    </button>
+                                  </div>
+                                  <div className="flex items-center gap-2 mb-2">
+                                    <span className={`px-2 py-1 rounded-full text-xs font-medium border ${
+                                      vc.consumable?.type === 'brothel' 
+                                        ? 'bg-pink-100 text-pink-800 border-pink-200'
+                                        : vc.consumable?.type === 'drink'
+                                        ? 'bg-amber-100 text-amber-800 border-amber-200'
+                                        : 'bg-purple-100 text-purple-800 border-purple-200'
+                                    }`}>
+                                      {vc.consumable?.type === 'brothel' ? 'Service' : 
+                                       vc.consumable?.type === 'drink' ? 'Drink' : 'Drug'}
+                                    </span>
+                                  </div>
+                                  <div className="flex items-center justify-between text-sm">
+                                    <div>
+                                      <div className="flex items-center gap-1">
+                                        <DollarSign size={12} className="text-green-500" />
+                                        <span className="font-medium text-green-600">${vc.venue_price}</span>
+                                      </div>
+                                      {vc.venue_price !== vc.consumable?.price && (
+                                        <div className="flex items-center gap-1">
+                                          <DollarSign size={10} className="text-gray-400" />
+                                          <span className="text-gray-400 line-through text-xs">${vc.consumable?.price}</span>
+                                        </div>
+                                      )}
+                                    </div>
+                                    <button
+                                      className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                        vc.available
+                                          ? "bg-green-100 text-green-800"
+                                          : "bg-gray-100 text-gray-800"
+                                      }`}
+                                    >
+                                      {vc.available ? "Available" : "Unavailable"}
+                                    </button>
+                                  </div>
+                                  <div className="flex gap-1 mt-2 flex-wrap">
+                                    {vc.venue_effects?.energy && (
+                                      <span className={`px-1 py-0.5 text-xs rounded ${
+                                        vc.venue_effects.energy > 0 
+                                          ? 'bg-blue-100 text-blue-800' 
+                                          : 'bg-red-100 text-red-800'
+                                      }`}>
+                                        {vc.venue_effects.energy > 0 ? '+' : ''}{vc.venue_effects.energy} Energy
+                                      </span>
+                                    )}
+                                    {vc.venue_effects?.health && (
+                                      <span className={`px-1 py-0.5 text-xs rounded ${
+                                        vc.venue_effects.health > 0 
+                                          ? 'bg-green-100 text-green-800' 
+                                          : 'bg-red-100 text-red-800'
+                                      }`}>
+                                        {vc.venue_effects.health > 0 ? '+' : ''}{vc.venue_effects.health} Health
+                                      </span>
+                                    )}
+                                    {vc.venue_effects?.reputation && (
+                                      <span className="px-1 py-0.5 bg-yellow-100 text-yellow-800 text-xs rounded">
+                                        +{vc.venue_effects.reputation} Rep
+                                      </span>
+                                    )}
+                                    {vc.venue_effects?.addiction && (
+                                      <span className="px-1 py-0.5 bg-orange-100 text-orange-800 text-xs rounded">
+                                        +{vc.venue_effects.addiction}% Addiction
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                        </div>
+                    )}
+                  </div>
+                );
+              })}
+              
+              {venues.length === 0 && (
+                <div className="text-center py-12 text-gray-500">
+                  <p className="text-lg mb-4">No venues found</p>
+                  <button
+                    onClick={() => {
+                      setActiveTab("venues");
+                      setShowAddModal(true);
+                    }}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                  >
+                    Add Your First Venue
+                  </button>
+                </div>
+              )}
+            </div>
+          ) : null}
         </div>
       </div>
 
@@ -1081,9 +1955,9 @@ const NightlifeManagement = () => {
         />
       )}
 
-      {showAddModal && activeTab === "prostitutes" && (
-        <ProstituteForm
-          onSubmit={addProstitute}
+      {showAddModal && activeTab === "consumables" && (
+        <ConsumableForm
+          onSubmit={addConsumable}
           onCancel={() => setShowAddModal(false)}
         />
       )}
@@ -1096,11 +1970,30 @@ const NightlifeManagement = () => {
         />
       )}
 
-      {editingProstitute && (
-        <ProstituteForm
-          prostitute={editingProstitute}
-          onSubmit={(updatedProstitute) => updateProstitute(editingProstitute.id, updatedProstitute)}
-          onCancel={() => setEditingProstitute(null)}
+      {editingConsumable && (
+        <ConsumableForm
+          consumable={editingConsumable}
+          onSubmit={(updatedConsumable) => updateConsumable(editingConsumable.id, updatedConsumable)}
+          onCancel={() => setEditingConsumable(null)}
+        />
+      )}
+
+      {showAddModal && activeTab === "venue-consumables" && (
+        <VenueConsumableForm
+          venues={venues}
+          consumables={nightlifeConsumables}
+          onSubmit={addVenueConsumable}
+          onCancel={() => setShowAddModal(false)}
+        />
+      )}
+
+      {editingVenueConsumable && (
+        <VenueConsumableForm
+          venues={venues}
+          consumables={nightlifeConsumables}
+          venueConsumable={editingVenueConsumable}
+          onSubmit={(updatedVC) => updateVenueConsumable(editingVenueConsumable.id, updatedVC)}
+          onCancel={() => setEditingVenueConsumable(null)}
         />
       )}
     </div>

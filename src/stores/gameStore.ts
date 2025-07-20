@@ -990,7 +990,6 @@ export const useGameStore = create<GameStore>()(
           });
         } catch (error) {
           // Realtime sync setup failed - continue with local mode
-          console.debug('Realtime sync setup error:', error);
         }
         }, 100); // Small delay to prevent connection conflicts
       },
@@ -1003,7 +1002,6 @@ export const useGameStore = create<GameStore>()(
           }
         } catch (error) {
           // Silently handle realtime cleanup errors during development
-          console.debug('Realtime cleanup error:', error);
         }
       },
 
