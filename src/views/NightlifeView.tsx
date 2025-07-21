@@ -347,7 +347,7 @@ const NightlifeView = () => {
                                     : "text-yellow-400"
                                 }`}
                               >
-                                ⚠️ Risco de overdose: {overdoseRisk}
+                                ⚠️ Overdose risk: {overdoseRisk}
                               </p>
                             )}
                           </div>
@@ -477,7 +477,7 @@ const NightlifeView = () => {
                                     : "text-yellow-400"
                                 }`}
                               >
-                                ⚠️ Risco de overdose: {overdoseRisk}
+                                ⚠️ Overdose risk: {overdoseRisk}
                               </p>
                             )}
                           </div>

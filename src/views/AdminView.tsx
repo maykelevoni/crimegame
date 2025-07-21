@@ -13,6 +13,7 @@ import {
   Plus,
   Edit,
   Trash2,
+  Heart,
   Search,
   Download,
   Upload,
@@ -25,6 +26,7 @@ import BusinessTypesManagement from "../components/admin/BusinessTypesManagement
 import CrimeManagement from "../components/admin/CrimeManagement";
 import NightlifeManagement from "../components/admin/NightlifeManagement";
 import CasinoManagement from "../components/admin/CasinoManagement";
+import HospitalManagement from "../components/admin/HospitalManagement";
 import DailyRewardsManagement from "../components/admin/DailyRewardsManagement";
 import AvatarManagement from "../components/admin/AvatarManagement";
 
@@ -36,6 +38,7 @@ type AdminSection =
   | "crimes" 
   | "nightlife" 
   | "casino"
+  | "hospital"
   | "rewards"
   | "avatars";
 
@@ -86,6 +89,12 @@ const AdminView = () => {
       description: "Manage Games"
     },
     {
+      id: "hospital" as AdminSection,
+      label: "Hospital",
+      icon: Heart,
+      description: "Manage Treatments"
+    },
+    {
       id: "rewards" as AdminSection,
       label: "Daily Rewards",
       icon: Gift,
@@ -115,6 +124,8 @@ const AdminView = () => {
         return <NightlifeManagement />;
       case "casino":
         return <CasinoManagement />;
+      case "hospital":
+        return <HospitalManagement />;
       case "rewards":
         return <DailyRewardsManagement />;
       case "avatars":

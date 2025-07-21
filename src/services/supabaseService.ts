@@ -400,52 +400,26 @@ export class SupabaseService {
     if (playerError) throw playerError;
     if (!player) throw new Error("Player not found");
 
-    // Mock robbery data with power requirements (matching useRobberies.ts)
-    const mockRobberies = [
-      {
-        id: "1", name: "Convenience Store", power_required: 10, base_reward: 25, max_reward: 75,
-        energy_cost: 5, health_cost: 10, risk_level: 1
-      },
-      {
-        id: "2", name: "Gas Station", power_required: 25, base_reward: 40, max_reward: 100,
-        energy_cost: 8, health_cost: 12, risk_level: 1
-      },
-      {
-        id: "3", name: "Jewelry Store", power_required: 50, base_reward: 75, max_reward: 200,
-        energy_cost: 10, health_cost: 15, risk_level: 3
-      },
-      {
-        id: "4", name: "ATM Heist", power_required: 80, base_reward: 120, max_reward: 300,
-        energy_cost: 12, health_cost: 18, risk_level: 2
-      },
-      {
-        id: "5", name: "Warehouse", power_required: 120, base_reward: 100, max_reward: 300,
-        energy_cost: 15, health_cost: 20, risk_level: 2
-      },
-      {
-        id: "6", name: "Armored Truck", power_required: 200, base_reward: 250, max_reward: 600,
-        energy_cost: 20, health_cost: 25, risk_level: 4
-      },
-      {
-        id: "7", name: "Bank Branch", power_required: 350, base_reward: 400, max_reward: 1000,
-        energy_cost: 25, health_cost: 30, risk_level: 5
-      },
-      {
-        id: "8", name: "Mansion", power_required: 500, base_reward: 300, max_reward: 800,
-        energy_cost: 25, health_cost: 30, risk_level: 4
-      },
-      {
-        id: "9", name: "Casino Vault", power_required: 750, base_reward: 600, max_reward: 2000,
-        energy_cost: 35, health_cost: 40, risk_level: 6
-      },
-      {
-        id: "10", name: "Federal Reserve", power_required: 1200, base_reward: 1000, max_reward: 5000,
-        energy_cost: 50, health_cost: 50, risk_level: 8
-      }
-    ];
+    // Get crime data from database instead of using mock data
+    const { data: crimeData, error: crimeError } = await supabase
+      .from('crimes')
+      .select('*')
+      .eq('id', robberyId)
+      .single();
 
-    const robbery = mockRobberies.find(r => r.id === robberyId);
-    if (!robbery) throw new Error("Robbery not found");
+    if (crimeError || !crimeData) throw new Error("Robbery not found");
+
+    // Map database crime to robbery format
+    const robbery = {
+      id: crimeData.id,
+      name: crimeData.name,
+      power_required: crimeData.min_level * 10, // Simple power calculation
+      base_reward: Math.floor(crimeData.reward * 0.8),
+      max_reward: Math.floor(crimeData.reward * 1.5),
+      energy_cost: crimeData.energy_cost,
+      health_cost: Math.floor(crimeData.energy_cost * 0.8),
+      risk_level: Math.floor(crimeData.risk / 10)
+    };
 
     // Check requirements - use direct properties from database schema
     const currentEnergy = player.energy || 0;
@@ -456,11 +430,8 @@ export class SupabaseService {
       throw new Error("Not enough energy");
     }
 
-    // Get robbery power requirement from mock data
-    const robberyData = mockRobberies.find(r => r.id === robberyId);
-    if (!robberyData) throw new Error("Robbery data not found");
-    
-    const crimeRequiredPower = robberyData.power_required;
+    // Use the robbery data we already fetched from database
+    const crimeRequiredPower = robbery.power_required;
     
     // Calculate player's total power using correct field names
     const playerReputation = player.reputation || 0;
@@ -502,19 +473,25 @@ export class SupabaseService {
       reputation_gained = Math.floor(robbery.risk_level * 5); // 5 rep per risk level
     }
 
-    // Calculate new stats (only update fields that exist in database)
+    // Calculate wanted level increase (heat)
+    const wanted_increase = Math.floor(robbery.risk_level / 2) + (success ? 1 : 0); // More heat if successful
+
+    // Calculate new stats
+    const currentWantedLevel = player.wanted_level || 0;
     const newStats = {
       energy: Math.max(0, currentEnergy - energy_spent),
       money: currentMoney + reward,
-      reputation: currentReputation + reputation_gained
+      reputation: currentReputation + reputation_gained,
+      wantedLevel: currentWantedLevel + wanted_increase
     };
 
 
-    // Update only the fields that exist in the database
+    // Update database with new stats
     const updateData = {
       money: newStats.money,
       energy: newStats.energy,
-      reputation: newStats.reputation
+      reputation: newStats.reputation,
+      wanted_level: newStats.wantedLevel
     };
 
 
@@ -531,12 +508,12 @@ export class SupabaseService {
       energy_spent,
       health_spent: 0, // No health system in current database
       reputation_gained,
-      wanted_increase: 0, // No wanted system in current database
+      wanted_increase: wanted_increase,
       newStats: {
         energy: newStats.energy,
         health: 100, // Fixed value since no health in DB
         reputation: newStats.reputation,
-        wantedLevel: 0, // Fixed value since no wanted in DB
+        wantedLevel: newStats.wantedLevel,
         money: newStats.money
       },
     };

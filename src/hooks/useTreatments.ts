@@ -34,28 +34,6 @@ export const useTreatments = () => {
   });
 };
 
-export const useTreatmentHistory = (playerId: string) => {
-  return useQuery({
-    queryKey: ["treatment-history", playerId],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("treatment_history")
-        .select(
-          `
-          *,
-          treatments (*)
-        `
-        )
-        .eq("player_id", playerId)
-        .order("created_at", { ascending: false })
-        .limit(10);
-
-      if (error) throw error;
-      return data;
-    },
-    enabled: !!playerId,
-  });
-};
 
 export const useExecuteTreatment = () => {
   const queryClient = useQueryClient();
@@ -120,22 +98,7 @@ export const useExecuteTreatment = () => {
 
       if (updateError) throw updateError;
 
-      // Record treatment
-      const { error: historyError } = await supabase
-        .from("treatment_history")
-        .insert({
-          player_id: playerId,
-          treatment_id: treatmentId,
-          cost: treatment.cost,
-          effects: {
-            health_restored: treatment.health_restore,
-            energy_restored: treatment.energy_restore,
-            addiction_reduced: treatment.addiction_reduction,
-            wanted_level_reduced: treatment.wanted_level_reduction,
-          },
-        });
-
-      if (historyError) throw historyError;
+      // No treatment history recording needed
 
       return {
         treatment,
@@ -150,9 +113,6 @@ export const useExecuteTreatment = () => {
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({
         queryKey: ["player", variables.playerId],
-      });
-      queryClient.invalidateQueries({
-        queryKey: ["treatment-history", variables.playerId],
       });
     },
   });

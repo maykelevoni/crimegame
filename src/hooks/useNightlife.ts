@@ -264,7 +264,7 @@ export const useConsumeItem = () => {
         playerData.reputation + (effects.reputation || 0)
       );
 
-      // Verificar overdose baseado no vício
+      // Check overdose based on addiction
       let overdoseChance = 0;
       let isOverdose = false;
       let isDisease = false;

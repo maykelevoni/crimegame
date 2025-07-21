@@ -242,7 +242,7 @@ const HomeView = ({ onViewChange }: HomeViewProps) => {
       <div className="space-y-3 mt-0 pt-0 overflow-x-hidden pb-16">
         
         {/* Daily Reward */}
-        <div className="flex justify-center mb-4">
+        <div className="flex justify-center mb-0">
           <button
             className={`reward-btn flex items-center justify-center gap-2 px-4 py-2 rounded-lg transition-all duration-200 ${
               canCollectReward
@@ -265,9 +265,6 @@ const HomeView = ({ onViewChange }: HomeViewProps) => {
             </div>
           </button>
         </div>
-
-        {/* Espaçamento entre Daily Reward e Main Actions */}
-        <div className="h-4"></div>
 
         {/* Main Actions */}
         <div className="grid grid-cols-2 md:grid-cols-2 gap-2 mb-0">

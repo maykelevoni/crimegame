@@ -69,7 +69,13 @@ const TopStatusBar: React.FC<TopStatusBarProps> = ({
     <header className="w-full bg-cyber-dark border-b-2 border-cyber-blue/40 shadow-cyber-glow z-30 relative">
       {/* Game Name Section */}
       <div className="w-full py-3 border-b border-cyber-blue/20">
-        <h1 className="text-cyber-blue text-2xl font-extrabold tracking-widest font-nunito glow-text text-center">
+        <h1 className="text-2xl font-extrabold tracking-widest text-center" style={{ 
+          fontFamily: 'Chela One, cursive',
+          background: 'linear-gradient(45deg, #ff0000, #ff6600, #ffaa00)',
+          WebkitBackgroundClip: 'text',
+          WebkitTextFillColor: 'transparent',
+          filter: 'drop-shadow(2px 2px 4px rgba(0,0,0,0.8))'
+        }}>
           URBAN HUSTLE
         </h1>
       </div>

@@ -54,6 +54,18 @@ const GameStatusBar: React.FC<GameStatusBarProps> = ({
   if (isMobile) {
     return (
       <div className="bg-cyber-dark/95 border-b border-cyber-blue/20 p-3">
+        {/* Game Title */}
+        <div className="text-center mb-3">
+          <h1 className="text-xl font-extrabold" style={{ 
+            fontFamily: 'Chela One, cursive',
+            background: 'linear-gradient(45deg, #ff0000, #ff6600, #ffaa00)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            filter: 'drop-shadow(1px 1px 2px rgba(0,0,0,0.8))'
+          }}>
+            URBAN HUSTLE
+          </h1>
+        </div>
         {/* Player Info Row */}
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-3">
@@ -193,6 +205,18 @@ const GameStatusBar: React.FC<GameStatusBarProps> = ({
   if (isTablet) {
     return (
       <div className="bg-cyber-dark/95 border-b border-cyber-blue/20 p-3">
+        {/* Game Title */}
+        <div className="text-center mb-3">
+          <h1 className="text-2xl font-extrabold" style={{ 
+            fontFamily: 'Chela One, cursive',
+            background: 'linear-gradient(45deg, #ff0000, #ff6600, #ffaa00)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            filter: 'drop-shadow(2px 2px 4px rgba(0,0,0,0.8))'
+          }}>
+            URBAN HUSTLE
+          </h1>
+        </div>
         {/* Stats em grid 2x2 */}
         <div className="grid grid-cols-2 gap-2">
           <div className="bg-black/20 rounded p-2">
@@ -259,6 +283,18 @@ const GameStatusBar: React.FC<GameStatusBarProps> = ({
   // Desktop layout original
   return (
     <div className="bg-cyber-dark/95 border-b border-cyber-blue/20 p-4">
+      {/* Game Title */}
+      <div className="text-center mb-4">
+        <h1 className="text-3xl font-extrabold" style={{ 
+          fontFamily: 'Chela One, cursive',
+          background: 'linear-gradient(45deg, #ff0000, #ff6600, #ffaa00)',
+          WebkitBackgroundClip: 'text',
+          WebkitTextFillColor: 'transparent',
+          filter: 'drop-shadow(2px 2px 4px rgba(0,0,0,0.8))'
+        }}>
+          URBAN HUSTLE
+        </h1>
+      </div>
       <div className="flex items-center justify-between">
         {/* Player Info */}
         <div className="flex items-center gap-4">

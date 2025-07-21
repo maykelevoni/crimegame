@@ -84,10 +84,22 @@ function AppContent() {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-cyber-dark flex items-center justify-center p-4">
-        <div className="text-center max-w-md">
-          <h1 className="text-4xl font-bold text-white mb-4">Urban Hustle</h1>
-          <p className="text-cyber-blue/80 mb-8">
+      <div className="min-h-screen bg-cyber-dark flex items-center justify-center p-4" style={{
+        backgroundImage: 'url(https://uiwtpxcefwsdijzsiwbw.supabase.co/storage/v1/object/public/images/front.png)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat'
+      }}>
+        <div className="absolute inset-0 bg-black/60"></div>
+        <div className="text-center max-w-md relative z-10">
+          <h1 className="text-5xl font-bold mb-4" style={{ 
+            fontFamily: 'Chela One, cursive',
+            background: 'linear-gradient(45deg, #ff0000, #ff6600, #ffaa00)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            filter: 'drop-shadow(2px 2px 4px rgba(0,0,0,0.8))'
+          }}>Urban Hustle</h1>
+          <p className="text-white/90 mb-8 drop-shadow-md">
             Enter the world of urban crime and build your empire
           </p>
 
