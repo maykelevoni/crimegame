@@ -658,7 +658,6 @@ const NightlifeView = () => {
               ) : (
                 <div className="space-y-6">
                   {barVenues.map((venue) => {
-                    console.log(`🎯 [NightlifeView] Rendering bar venue "${venue.name}" with image:`, venue.image_url);
                     return (
                     <div
                       key={venue.id}
@@ -672,7 +671,6 @@ const NightlifeView = () => {
                               alt={venue.name}
                               className="w-full h-full object-cover"
                               onError={(e) => {
-                                console.log(`❌ [NightlifeView] Failed to load image for bar venue "${venue.name}":`, venue.image_url);
                                 e.currentTarget.style.display = 'none';
                               }}
                             />
@@ -718,7 +716,6 @@ const NightlifeView = () => {
               ) : (
                 <div className="space-y-6">
                   {raveVenues.map((venue) => {
-                    console.log(`🎯 [NightlifeView] Rendering rave venue "${venue.name}" with image:`, venue.image_url);
                     return (
                     <div
                       key={venue.id}
@@ -732,7 +729,6 @@ const NightlifeView = () => {
                               alt={venue.name}
                               className="w-full h-full object-cover"
                               onError={(e) => {
-                                console.log(`❌ [NightlifeView] Failed to load image for rave venue "${venue.name}":`, venue.image_url);
                                 e.currentTarget.style.display = 'none';
                               }}
                             />
@@ -783,7 +779,6 @@ const NightlifeView = () => {
                     </div>
                   ) : (
                     brothelVenues.map((venue) => {
-                      console.log(`🎯 [NightlifeView] Rendering brothel venue "${venue.name}" with image:`, venue.image_url);
                       return (
                       <div
                         key={venue.id}
@@ -797,7 +792,6 @@ const NightlifeView = () => {
                                 alt={venue.name}
                                 className="w-full h-full object-cover"
                                 onError={(e) => {
-                                  console.log(`❌ [NightlifeView] Failed to load image for brothel venue "${venue.name}":`, venue.image_url);
                                   e.currentTarget.style.display = 'none';
                                 }}
                               />

@@ -82,30 +82,20 @@ export const useNightlifeConsumables = () => {
   return useQuery({
     queryKey: ["nightlife-consumables"],
     queryFn: async () => {
-      console.log('🔄 [NightlifeView] Loading consumables from database...');
-
       const { data, error } = await supabase
         .from("nightlife_consumables")
         .select("*")
         .eq("available", true)
         .order("price", { ascending: true });
 
-      console.log('📊 [NightlifeView] Consumables response:', { data, error });
-
       if (error && error.code !== 'PGRST116' && error.code !== '42P01') {
-        console.error('❌ [NightlifeView] Consumables error:', error);
         throw error;
       }
 
       if (data && data.length > 0) {
-        console.log(`✅ [NightlifeView] Found ${data.length} consumables in database`);
-        data.forEach(consumable => {
-          console.log(`🖼️ [NightlifeView] Consumable "${consumable.name}" image_url:`, consumable.image_url);
-        });
         return data as unknown as NightlifeConsumable[];
       }
 
-      console.log('📝 [NightlifeView] No consumables found in database');
       return [];
     },
   });
@@ -115,30 +105,20 @@ export const useNightlifeVenues = () => {
   return useQuery({
     queryKey: ["nightlife-venues"],
     queryFn: async () => {
-      console.log('🔄 [NightlifeView] Loading venues from database...');
-      
       const { data, error } = await supabase
         .from("nightlife_venues")
         .select("*")
         .eq("available", true)
         .order("money_cost", { ascending: true });
 
-      console.log('📊 [NightlifeView] Database response:', { data, error });
-
       if (error && error.code !== 'PGRST116' && error.code !== '42P01') {
-        console.error('❌ [NightlifeView] Database error:', error);
         throw error;
       }
 
       if (data && data.length > 0) {
-        console.log(`✅ [NightlifeView] Found ${data.length} venues in database`);
-        data.forEach(venue => {
-          console.log(`🖼️ [NightlifeView] Venue "${venue.name}" image_url:`, venue.image_url);
-        });
         return data as unknown as NightlifeVenue[];
       }
 
-      console.log('📝 [NightlifeView] No venues found in database');
       return [];
     },
   });
@@ -175,8 +155,6 @@ export const useVenueConsumables = (venueId: string) => {
   return useQuery({
     queryKey: ["venue-consumables", venueId],
     queryFn: async () => {
-      console.log(`🔄 [NightlifeView] Loading venue consumables for venue: ${venueId}`);
-      
       const { data, error } = await supabase
         .from("venue_consumables")
         .select(`
@@ -188,22 +166,14 @@ export const useVenueConsumables = (venueId: string) => {
         .eq("available", true)
         .order("venue_price", { ascending: true });
 
-      console.log(`📊 [NightlifeView] Venue consumables response for ${venueId}:`, { data, error });
-
       if (error && error.code !== 'PGRST116' && error.code !== '42P01') {
-        console.error(`❌ [NightlifeView] Venue consumables error for ${venueId}:`, error);
         throw error;
       }
 
       if (data && data.length > 0) {
-        console.log(`✅ [NightlifeView] Found ${data.length} venue consumables for venue ${venueId}`);
-        data.forEach(vc => {
-          console.log(`🖼️ [NightlifeView] Consumable "${vc.consumable?.name}" image_url:`, vc.consumable?.image_url);
-        });
         return data as unknown as VenueConsumable[];
       }
 
-      console.log(`📝 [NightlifeView] No venue consumables found for venue ${venueId}`);
       return [];
     },
     enabled: !!venueId,
