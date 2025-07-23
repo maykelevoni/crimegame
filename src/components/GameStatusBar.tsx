@@ -192,7 +192,7 @@ const GameStatusBar: React.FC<GameStatusBarProps> = ({
             <div className="flex-1 bg-gray-700 rounded-full h-1.5">
               <div 
                 className="bg-orange-400 h-1.5 rounded-full transition-all duration-300" 
-                style={{width: `${Math.min(wantedLevel * 10, 100)}%`}}
+                style={{width: `${Math.min(wantedLevel, 100)}%`}}
               />
             </div>
             <span className="text-orange-400 text-xs min-w-[35px]">{wantedLevel}</span>
