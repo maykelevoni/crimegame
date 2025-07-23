@@ -7,7 +7,8 @@ import {
   DollarSign,
   TrendingUp,
   Activity,
-  AlertCircle
+  AlertCircle,
+  Heart
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -18,6 +19,8 @@ interface DashboardStats {
   totalCrimes: number;
   totalRevenue: number;
   activeToday: number;
+  totalTreatments: number;
+  averageTreatmentCost: number;
 }
 
 const AdminDashboard = () => {
@@ -28,6 +31,8 @@ const AdminDashboard = () => {
     totalCrimes: 0,
     totalRevenue: 0,
     activeToday: 0,
+    totalTreatments: 0,
+    averageTreatmentCost: 0,
   });
   const [loading, setLoading] = useState(true);
 
@@ -61,6 +66,20 @@ const AdminDashboard = () => {
         .select("*", { count: "exact", head: true })
         .gte("updated_at", today.toISOString());
 
+      // Get treatments data
+      const { count: treatmentCount } = await supabase
+        .from("treatments")
+        .select("*", { count: "exact", head: true });
+
+      const { data: treatmentData } = await supabase
+        .from("treatments")
+        .select("cost")
+        .not("cost", "is", null);
+
+      const averageTreatmentCost = treatmentData?.length > 0 
+        ? Math.round(treatmentData.reduce((sum, t) => sum + (t.cost || 0), 0) / treatmentData.length)
+        : 0;
+
       setStats({
         totalPlayers: playerCount || 0,
         totalItems: 45, // Mock data for now
@@ -68,6 +87,8 @@ const AdminDashboard = () => {
         totalCrimes: 10,
         totalRevenue,
         activeToday: activeCount || 0,
+        totalTreatments: treatmentCount || 0,
+        averageTreatmentCost,
       });
     } catch (error) {
       console.error("Error loading dashboard stats:", error);
@@ -118,6 +139,13 @@ const AdminDashboard = () => {
       icon: Activity,
       color: "indigo",
       trend: `${Math.round((stats.activeToday / stats.totalPlayers) * 100)}% of total`
+    },
+    {
+      title: "Hospital Treatments",
+      value: stats.totalTreatments.toLocaleString(),
+      icon: Heart,
+      color: "pink",
+      trend: `Avg cost: $${stats.averageTreatmentCost.toLocaleString()}`
     }
   ];
 
@@ -128,7 +156,8 @@ const AdminDashboard = () => {
       purple: "bg-purple-50 text-blue-600 border-purple-200",
       red: "bg-red-50 text-red-600 border-red-200",
       yellow: "bg-yellow-50 text-yellow-600 border-yellow-200",
-      indigo: "bg-indigo-50 text-indigo-600 border-indigo-200"
+      indigo: "bg-indigo-50 text-indigo-600 border-indigo-200",
+      pink: "bg-pink-50 text-pink-600 border-pink-200"
     };
     return colors[color as keyof typeof colors] || colors.blue;
   };

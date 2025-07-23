@@ -172,7 +172,6 @@ const HospitalView = ({
   const categories = [
     { id: "health", name: "Health", icon: HeartPulse },
     { id: "addiction", name: "Detox", icon: Pill },
-    { id: "wanted_level", name: "Legal", icon: Siren },
     { id: "plastic_surgery", name: "Surgery", icon: Scissors },
   ];
 

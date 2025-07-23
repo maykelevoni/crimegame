@@ -25,7 +25,6 @@ export const useTreatments = () => {
       const { data, error } = await supabase
         .from("treatments")
         .select("*")
-        .eq("available", true)
         .order("cost", { ascending: true });
 
       if (error) throw error;
